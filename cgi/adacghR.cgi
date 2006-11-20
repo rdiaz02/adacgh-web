@@ -267,6 +267,8 @@ fs = cgi.FieldStorage()
 
 idtype = radioUpload('idtype', acceptedIDTypes)
 organism = radioUpload('organism', acceptedOrganisms)
+tmp = valueNumUpload('MCR.gain', 'float', -999999999)
+tmp = valueNumUpload('MCR.loss', 'float', -999999999)
 
 
 methodaCGH = radioUpload('methodaCGH', acceptedMethodaCGH)
@@ -299,6 +301,7 @@ if methodaCGH == 'CBS':
     tmp = valueNumUpload('DNA.undo.prune', 'float', 0, 'Undo prune')
     tmp = valueNumUpload('DNA.nmin', 'float', 0, 'Min length. hybrid. approx.')
     tmp = valueNumUpload('DNA.kmax', 'float', 0, 'Max. width. smaller for perm')
+    tmp = radioUpload('DNA.merge', ('Yes','No'))
 if methodaCGH == 'WS':
     tmp = valueNumUpload('Wave.minDiff', 'float', 0)
 if methodaCGH == 'ACE':

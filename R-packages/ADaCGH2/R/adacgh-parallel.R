@@ -99,9 +99,11 @@ createIM2 <- function(im, file = "", imgTags = list(),
 
 mpiCBS <- function() {
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+    mpi.remote.exec(library(cghMCR))
     mpi.remote.exec(library(cluster))
     mpi.remote.exec(library(DNAcopy))
     mpi.remote.exec(library(ADaCGH2))
+    mpi.remote.exec(library(aCGH))
 }
 
 
@@ -573,8 +575,9 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
 
 ### Plateau plots by Olshen 
 
-print.olshen.results <- function(res, xcenter, output =
-                                 "CBS.results.txt"){
+print.olshen.results <- function(res, xcenter,
+                                 merged = NULL,
+                                 output = "CBS.results.txt"){
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
 
@@ -589,10 +592,19 @@ print.olshen.results <- function(res, xcenter, output =
         t1 <- rep(tmp$seg.mean, tmp$num.mark)
         t2 <- xcenter[, i]
         out <- cbind(out, t2, t1)
+        if(!is.null(merged)) {
+            out <- cbind(out, merged[[i]][ , 3])
+        }
     }
-    colnames(out)[6:(ncol(out))] <-
-        paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
-              c(".Original", ".Smoothed"), sep = "")
+    if(is.null(merged)) {
+        colnames(out)[6:(ncol(out))] <-
+            paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
+                  c(".Original", ".Smoothed"), sep = "")
+    } else {
+        colnames(out)[6:(ncol(out))] <-
+            paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
+                  c(".Original", ".Smoothed", ".Merged"), sep = "")
+    }
     write.table(out, file = output,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
@@ -3352,6 +3364,37 @@ print.ACE.results <- function(res,
                 row.names = TRUE, quote = FALSE)
 }
 
+
+
+##### cghMCR examples
+
+## library(cghMCR)
+## data("sampleData")
+## segments <- getSegments(sampleData)
+
+## names(segments)
+## segments2 <- segments
+## segments2$data <- ""
+
+## mc1 <- cghMCR(segments)
+## mc2 <- cghMCR(segments2)
+
+
+
+## dim(segments[[1]])
+## ##
+## > segments[[1]][1:10,1:4]
+##             probe chrom  maploc     array1
+## 960  A_14_P136500     1  799681      .23
+
+
+## segments[[2]][1:10,]
+##                                                           ID chrom loc.start
+## 1  X.home.john.lib64.R.library.cghMCR.sampledata.sample1.agi     1    799681
+## 2  X.home.john.lib64.R.library.cghMCR.sampledata.sample1.agi    10   1036908
+##      loc.end num.mark seg.mean
+## 1  244806850      424   0.1789
+## 2 
 
 
 

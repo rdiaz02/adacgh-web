@@ -257,7 +257,7 @@ centering will often be very small.</p>
           smoothing outliers and undoing splits based on SD.</li>
 </ul>
 
-<h4>Segmentation prameters</h4>
+<h4>Segmentation parameters</h4>
 
 <ul>
 <li>alpha: significance levels for the test to accept change-points.</li>
@@ -278,6 +278,24 @@ centering will often be very small.</p>
 <p>(Please note that we set as, undoing splits method, the "prune"
   method and, as p.method, the "hybrid" method with a kmax and nmi of
   25 and 200, respectively, as in the defaults.)</p>
+
+
+<h4><a name="mergeLevels">Use mergeLevels algorithm for figures?</a> (<FONT COLOR="red">New!!</FONT>)</h4>
+
+<p>If you say yes (the default) ADaCGH will use the mergeLevels algorithm
+of <cite>Willenbrock and Fridlyand (2005)</cite> on the results from the
+circular binary segmentation; the mergeLevels algorithm is implemented in
+the bioconductor package aCGH, maintained by J. Fridlyand. We have
+post-processed the mergeLevels output a little bit, so that the output has
+only three levels, -1, 0, 1, that you might want to map into "loss", "no
+change", and "gain". Note that we have made the assumption, in this
+mapping, that the "no change" class is the one that has the absolute value
+closest to zero, and any other classes are either gains or losses. When
+the data are normalized, the "no change" class should be the most common
+one.</p>
+
+<p>Using mergeLevels only affects the figures. You still get the segmented
+output from CBS (and from mergeLevels) in the output file.</p>
 
 
 
@@ -433,6 +451,32 @@ all the samples). You should enter here the pFDR you want, and we will
 return the results (figures and table of genes and their state) for the
 closest FDR to the one you entered.</p>
 
+
+
+<h3><a name="MCR">Minimal common regions (<FONT COLOR="red">New!!</FONT>)</a></h3>
+
+<p>We use the cghMCR function, as provided in the cghMCR bioconductor
+package, by J. Zhang and B. Feng, which implements an algorithm originally
+proposed in <cite>Aguirre et al. (2004)</cite>. This algorithm should be
+applicable to other methods, but so far we are only using it with CBS, as
+Zheng and Feng do. Note that you can find "common regions" that do not
+correspond to any region of gain/loss found by the <a
+href="#mergeLevels">mergeLevels</a> algorithm (see <a href="#examples">examples</a>).</p>
+
+<p>Please note that this is a beta version of how to best display this
+information. <FONT COLOR="red">We want your feedback about how you want us
+to show this information</FONT>; please use our <a
+href="http://bioinformatics.org/bugs/?group_id=630">bug/features request
+page</a> (this is the best way, because it is trackable and nicely organized)
+or, else, email us.</p>
+
+
+
+<h4><a name="MCRparams">Parameters</a></h4>
+
+<p>There are two parameters: <b>Gain threshold</b> is the minimum positive
+value for a chromosome segment to be considered a gain, and <b>Loss
+threshold</b> is the maximum negative value to be considered a loss.</p>
 
 
 
@@ -682,8 +726,9 @@ examples (from a somewhat less interactive version) are also available there.</p
     <h2><a name="authors">Author and Acknowledgements</a></h2>
     
     <p>This program was developped by <a href="http://ligarto.org/rdiaz"
-      target="_blank">Ramón Díaz-Uriarte</a> and <a href="mailto:omrueda%%cnio.es">Oscar Rueda-Palacio</a>, from
-      the <a href="http://bioinfo.cnio.es" target="_blank">Bioinformatics
+      target="_blank">Ramón Díaz-Uriarte</a> and <a
+      href="mailto:omrueda%%cnio.es">Oscar Rueda-Palacio</a>, from the <a
+      href="http://bioinfo.cnio.es" target="_blank">Bioinformatics
       Unit</a> at <a href="http://www.cnio.es" target="_blank">CNIO</a>.
       This tool uses <a href="http://www.python.org">Python</a> for the
       CGI and <a href="http://www.r-project.org">R</a> for the
@@ -694,11 +739,17 @@ examples (from a somewhat less interactive version) are also available there.</p
       href="http://www.bioconductor.org/packages/bioc/1.7/src/contrib/html/DNAcopy.html">DNAcopy</a>
       R/BioConductor package by E. S. Venkatraman and Adam Olshen.  The
       ACE algorithm was implemented from scratch in R and C by Oscar Rueda
-      Palacio using, as basis, the Java code and documentation from Lingj&#230;rde et
-      al. (available <a
+      Palacio using, as basis, the Java code and documentation from
+      Lingj&#230;rde et al. (available <a
       href="http://www.ifi.uio.no/forskning/grupper/bioinf/Papers/CGH/">here</a>).
       Some of the above functions might have been modified slightly (by
-      R. Díaz-Uriarte) to parallelize some of the computations. Our code
+      R. Díaz-Uriarte) to parallelize some of the computations.  The
+      mergeLevels algorithm is from the <a
+      href="http://www.bioconductor.org/packages/1.9/bioc/html/aCGH.html">aCGH</a>
+      package, by Frdlyand and Dimitorv, and the minimal common regions
+      functionality from the <a
+      href="http://www.bioconductor.org/packages/1.9/bioc/html/cghMCR.html">cghMCR</a>
+      by J. Zhang and B. Feng. Our code
       and/or some of the above packages use the R packages <a
       href="http://www.image.ucar.edu/staff/whitcher/">waveslim</a> by
       Brandom Whitchern, <a
@@ -822,6 +873,15 @@ statistical computing</a>.</p>
     <h2><a name="refs">References</a></h2>
 
 
+<p>Aguirre, Andrew  J.  and Brennan, Cameron   and Bailey, Gerald   and
+Sinha, Raktim   and Feng, Bin   and Leo, Christopher   and Zhang, Yunyu
+and Zhang, Jean   and Gans, Joseph  D.  and Bardeesy, Nabeel   and
+Cauwels, Craig   and Cordon-Cardo, Carlos   and Redston, Mark  S.  and
+Depinho, Ronald  A.  and Chin, Lynda. (2004). High-resolution
+characterization of the pancreatic adenocarcinoma genome. PNAS, 24:
+9067--9072. <a "href=http://www.pnas.org/cgi/content/abstract/101/24/9067">link</a>.</p>
+
+
 
 <p> Hsu L, Self SG, Grove D, Randolph T, Wang K, Delrow JJ, Loo L,
 Porter P. (2005) Denoising array-based comparative genomic
@@ -853,11 +913,13 @@ data.  Biostatistics, 5(4):557-72.</p>
   genomic DNA using array comparative genome hybridization data.
   Nucleic Acids Res. 33:3455-64. </p>
 
-
-
+<p>Willenbrock H, Fridlyand J. (2005). A comparison study: applying
+segmentation to array CGH data for downstream analyses Bioinformatics, 21:
+4084-4091.</p>
 
 <h3>Copyright</h3>
-This document is copyrighted. Copyright © 2005, 2006 Ramón Díaz-Uriarte.
+This document is copyrighted. Copyright © 2005, 2006 Ramón
+Díaz-Uriarte. Please, respect the copyright and the license.
 <hr>
 
 <!-- hhmts start -->Last modified: 26 January 2006 <!-- hhmts end -->

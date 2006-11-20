@@ -240,8 +240,17 @@ def printOKRun():
             outf.write('<p>Smoothed values for all genes/clones are available from file' +
                        ' <a href="./CBS.results.txt">"CBS.results.txt".</a></p>')
             outf.write('<br />')
-            outf.write('<h2>Plateau plots <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
-            pdf2html('CBS.plateau.plots', tmpDir, outf, allResults, 150)
+            merge = open(tmpDir + '/DNA.merge', mode = 'r').readline()
+            if merge == "Yes":
+                outf.write('<h2>Plateau plots <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+                outf.write('Plateau plots are not available (do not make sense) with merge levels.\n')
+            else:
+                outf.write('<h2>Plateau plots <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+                pdf2html('CBS.plateau.plots', tmpDir, outf, allResults, 150)
+            outf.write('<br />')
+            if os.path.exists(tmpDir + "/mcr.results.html"):
+                outf.write('<h2>Minimal common regions</h2>\n')
+                outf.write(open(tmpDir + "/mcr.results.html").read())
             outf.write('<br />')
             if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
             if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')

@@ -67,11 +67,13 @@ sink()
 library(Hmisc)
 ## Price-Smith-Waterman
 library(cgh)
+library(aCGH)
 ## wavelets
 library("waveslim") ## we will have to load ADaCGH soon,
 ## but we must mask certain defs. in waveslim. So load
 ## waveslim here
 library("cluster") 
+library(cghMCR)
 library(DNAcopy)
 
 library(GDD)
@@ -257,7 +259,8 @@ warningsForUsers <- vector()
 idtype <- try(scan("idtype", what = "", n = 1))
 organism <- try(scan("organism", what = "", n = 1))
 
-
+MCR.gain <- try(scan("MCR.gain", what = double(0), n = 1))
+MCR.loss <- try(scan("MCR.loss", what = double(0), n = 1))
 
 methodaCGH <- scan("methodaCGH", what = "", n = 1)
 if (methodaCGH == "CBS") {
@@ -270,7 +273,8 @@ if (methodaCGH == "CBS") {
     DNA.copy.alpha       <- scan("DNA.copy.alpha", what = double(0), n = 1)      
     DNA.nperm            <- scan("DNA.nperm", what = double(0), n = 1)           
     DNA.overlap          <- scan("DNA.overlap", what = double(0), n = 1)         
-    DNA.undo.prune       <- scan("DNA.undo.prune", what = double(0), n = 1)          
+    DNA.undo.prune       <- scan("DNA.undo.prune", what = double(0), n = 1)
+    DNA.merge            <- scan("DNA.merge", what = "", n = 1)          
 } else if (methodaCGH == "WS") {
     Wave.minDiff <-  scan("Wave.minDiff", what = double(0), n = 1)
 } else if (methodaCGH == "PSW") {
@@ -537,7 +541,7 @@ if (sum(duplicated(tmp))) {
             runif(sum(duplicated(tmp)))
 
     ## Reorder, just in case
-    reorder <- order(positions.merge1$chromosome,
+    reorder <- order(positions.merge1$chrom.numeric,
                      positions.merge1$MidPoint,
                      positions.merge1$start,
                      positions.merge1$end,
@@ -598,7 +602,8 @@ if (methodaCGH == "CBS") {
     cat("<p>        DNA.copy.alpha\t\t:        ",       DNA.copy.alpha,"</p>\n")      
     cat("<p>        DNA.nperm\t\t:             ",            DNA.nperm,"</p>\n")           
     cat("<p>        DNA.overlap\t\t:           ",          DNA.overlap,"</p>\n")         
-    cat("<p>        DNA.undo.prune\t\t:        ",       DNA.undo.prune,"</p>\n")        
+    cat("<p>        DNA.undo.prune\t\t:        ",       DNA.undo.prune,"</p>\n")
+    cat("<p>        DNA.merge\t\t:             ",       DNA.merge,"</p>\n")
 } else if (methodaCGH == "WS") {
     cat("<p>        Wave.minDiff\t\t:          ",         Wave.minDiff,"</p>\n")
 } else if (methodaCGH == "PSW") {
@@ -606,6 +611,11 @@ if (methodaCGH == "CBS") {
     cat("<p>        PSW.prec\t\t:              ",             PSW.prec,"</p>\n")
     cat("<p>        PSW.p.crit\t\t:            ",             PSW.p.crit,"</p>\n")
 }
+
+
+cat("<h4>Minimal common regions </h4>\n")
+cat("<p>        MCR.gain\t\t:             ",       MCR.gain,"</p>\n")
+cat("<p>        MCR.loss\t\t:             ",       MCR.loss,"</p>\n")            
 
 cat("<h4>Centering:              </h4>", centering,"\n")
 sink()
@@ -638,7 +648,8 @@ if (methodaCGH == "CBS") {
     cat("\n\nDNA.copy.alpha\t\t:        ",       DNA.copy.alpha)      
     cat("\n\nDNA.nperm\t\t:             ",            DNA.nperm)           
     cat("\n\nDNA.overlap\t\t:           ",          DNA.overlap)         
-    cat("\n\nDNA.undo.prune\t\t:        ",       DNA.undo.prune)        
+    cat("\n\nDNA.undo.prune\t\t:        ",       DNA.undo.prune)
+    cat("\n\nDNA.merge\t\t:             ",       DNA.merge)        
 } else if (methodaCGH == "WS") {
     cat("\n\nWave.minDiff\t\t:          ",         Wave.minDiff)
 } else if (methodaCGH == "PSW") {
@@ -646,6 +657,11 @@ if (methodaCGH == "CBS") {
     cat("\n\nPSW.prec\t\t:              ",             PSW.prec)
     cat("\n\nPSW.p.crit\t\t:            ",             PSW.p.crit)
 }
+
+cat("\n\n\n\nMinimal common regions\n")
+cat("\n\nMCR.gain\t\t:             ",       MCR.gain)
+cat("\n\nMCR.loss\t\t:             ",       MCR.loss)            
+
 
 cat("\n\n\n\n Centering:              ", centering)
 
@@ -993,50 +1009,147 @@ if(methodaCGH == "CBS") {
                              trythis, ". \n Please let us know so we can fix the code."))
     
 
-    trythis <- try({
-        ## The segmented plots, one per array
-        for(i in 1:numarrays) {
-            
-            plot.olshen2(segment.smoothed.CNA.object,
-                        i, main = colnames(xcenter)[i],
-                         html = TRUE)
-            
-        }
-        ## Supperimposed
-        plot.olshen3(segment.smoothed.CNA.object,
-                    main = "All_arrays", ylim = c(ymin, ymax),
-                    html = TRUE) ## all genome
+##     we might later parallelize and do all arrays at once
+##     segmeans <- tapply(   ID, ) ## here an array with means
+##     datalist <- list()
+##     klist <- 1
+##     for(i in 1:nsample) {
+##         datalist[[klist]][[1]] <- x[, i + 2]
+##         datalist[[klist]][[2]]  <- y[ID == i]
+##             klist <- klist + 1
+##     }
 
-        plot.olshen4(segment.smoothed.CNA.object,
-                    main = "All_arrays", ylim = c(ymin, ymax),
-                    html = TRUE) ## by chromosome
+save.image()                             
+    ### Minimal common regions
+    if(numarrays > 1) {
+        ## cghMCR seems needs different classes.
+        res <-  segment.smoothed.CNA.object
+        class(res[[1]]) <- "data.frame"
+        cghmcr <- cghMCR(res,
+                         margin = 0,
+                         gain.threshold = MCR.gain,
+                         loss.threshold = MCR.loss)
+        mcrs <- MCR(cghmcr)
+        msamples <- sapply(mcrs[, 9],
+                           function(x) length(unlist(strsplit(x, ","))))
+        mcrselect <- which(msamples > 1)
+        mcrs <- mcrs[mcrselect,]
+        mcrsc <- data.frame(chromosome = mcrs[, 1],
+                            samples = mcrs[, 9],
+                            mcr.start  = as.numeric(mcrs[, 7]),
+                            mcr.end  = as.numeric(mcrs[, 8]))
+        mcrsc <- mcrsc[ order(as.numeric(as.character(mcrsc$chromosome)),
+                              mcrsc$mcr.start, mcrsc$mcr.end), ]
+
+
+        sink(file = "mcr.results.html")
+        ##cat("<h3>Minimal common regions</h3>\n")
+        cat("<p>(Yes, this output might be ugly. We want your comments on how to",
+            "make the output more useful to you.)</p>\n")
+        if (nrow(mcrsc) == 0)
+          cat("\n<p> No common minimal regions found.</p>\n")
+        else 
+          html.data.frame(mcrsc[, -1], first.col = "Chromosome",
+                          file = "mcr.results.html", append = TRUE)
+        sink()
         
-    })
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Error in segment plots  with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
+        sink(file = "results.txt")
+        cat("\n\n\nMinimal common regions\n")
+        cat("(Yes, this output is ugly. We want your comments on how to",
+            "make the output more useful for you.)\n")
+        if (nrow(mcrsc) == 0)
+          cat("\n No common minimal regions found.\n")
+        else 
+          print(mcrsc)
+        sink()
+        ## Do the output here!
+    }
 
-    
+
+    if(DNA.merge == "No") {
+        trythis <- try({
+            ## The segmented plots, one per array
+            for(i in 1:numarrays) {
+                plot.olshen2(segment.smoothed.CNA.object,
+                             i, main = colnames(xcenter)[i],
+                             html = TRUE)
+            }
+            ## Supperimposed
+            plot.olshen3(segment.smoothed.CNA.object,
+                         main = "All_arrays", ylim = c(ymin, ymax),
+                         html = TRUE) ## all genome
+            
+            plot.olshen4(segment.smoothed.CNA.object,
+                         main = "All_arrays", ylim = c(ymin, ymax),
+                         html = TRUE) ## by chromosome
+            
+        })
+        if(class(trythis) == "try-error")
+            caughtOurError(paste("Error in segment plots  with error",
+                                 trythis, ". \n Please let us know so we can fix the code."))
+
 ############ Plateau plots
+        
+        trythis <- try({ ## fix this later, using GDD
+            pdf("CBS.plateau.plots.pdf", height = 6, width = 9)
+            ## For each sample:
+            plot.DNAcopy2(segment.smoothed.CNA.object)
+            ## superimposing all:
+            plot.DNAcopy3(segment.smoothed.CNA.object, pt.pch = "", pt.cex = 0)
+            ## One for all
+            plot.DNAcopy4(segment.smoothed.CNA.object)
+            dev.off()
+        })
+    } else { ## If we used mergeLevels, then we can pretend we are using ACE for plotting
+        ## there is some data duplication here.
 
-
-    trythis <- try({ ## fix this later, using GDD
-        pdf("CBS.plateau.plots.pdf", height = 6, width = 9)
-        ## For each sample:
-        plot.DNAcopy2(segment.smoothed.CNA.object)
-        ## superimposing all:
-        plot.DNAcopy3(segment.smoothed.CNA.object, pt.pch = "", pt.cex = 0)
-        ## One for all
-        plot.DNAcopy4(segment.smoothed.CNA.object)
-        dev.off()
-    })
+        res <- segment.smoothed.CNA.object
+        merged_segments <- list()
+        for(arraynum in 1:numarrays) {
+            obs <- res$data[, 2 + arraynum]
+            segmented <-
+                res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
+            segmentus <- res$data$maploc
+            for(i in 1:nrow(segmented)) {
+                segmentus[(segmented[i,'loc.end'] >= segmentus) &
+                          (segmented[i,'loc.start'] <= segmentus)] <- segmented[i,'seg.mean']
+            }
+            segmentus2 <- mergeLevels(obs, segmentus)$vecMerged
+            classes.ref <- which.min(abs(unique(segmentus2)))
+            classes.ref <- unique(segmentus2)[classes.ref]
+            ref <- rep(0, length(segmentus))
+            ref[segmentus2 > classes.ref] <- 1
+            ref[segmentus2 < classes.ref] <- -1
+            merged_segments[[arraynum]] <- cbind(segmentus, obs, ref)
+        }
+        
+        trythis <- try({
+          save.image()
+            ## The segmented plots, one per array
+            for(i in 1:numarrays) {
+                plot.ace2(merged_segments, positions.merge1$chrom.numeric, arraynum = i,
+                          main = colnames(xcenter)[i])
+            }
+            
+            ## Supperimposed
+            plot.ace3(merged_segments, positions.merge1$chrom.numeric, 
+                      main = "All_arrays",
+                      ylim = c(ymin, ymax),
+                      pch = "")
+            plot.ace4(merged_segments, positions.merge1$chrom.numeric, 
+                      main = "All_arrays",
+                      ylim = c(ymin, ymax))
+            
+        })
+    }
                    
     if(class(trythis) == "try-error")
         caughtOurError(paste("Error in plateau plots with error",
                              trythis, ". \n Please let us know so we can fix the code."))
 
     ## return final results
-    print.olshen.results(segment.smoothed.CNA.object, xcenter)
+    print.olshen.results(segment.smoothed.CNA.object, xcenter,
+                         merged = merged_segments)
     ##save(file = "CBS.RData", list = ls())
     quit()
     

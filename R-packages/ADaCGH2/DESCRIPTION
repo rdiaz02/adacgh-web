@@ -1,6 +1,6 @@
 Package: ADaCGH2
-Version: 0.8-2
-Date: 2005-10-19
+Version: 0.8-3
+Date: 2005-10-03
 Title: Analysis of data from aCGH experiments
 Author: Ramon Diaz-Uriarte <rdiaz@ligarto.org>
 Maintainer: Ramon Diaz-Uriarte <rdiaz@ligarto.org>

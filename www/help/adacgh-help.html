@@ -1,0 +1,887 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Help - ADaCGH</title>
+<style type="text/css">
+                 body { margin-left: 10%; margin-right: 10%; color: black;} 
+<!--                  body { margin-left: 10%; margin-right: 10%; color: black; background="fondo3.jpg";} -->
+                 <!-- h1 { margin-left: -8%;} -->
+                 h2,h3,h4,h5,h6 { margin-left: -4%; }
+div.box { border: solid; border-width: thin; width: 100%; padding: 0.2em; }
+div.color {background: rgb(204,204,255);
+           padding: 0.5em;
+           border: none;
+           }
+body { font-family: Verdana, sans-serif; }
+h1,h2 { font-family: Verdana, sans-serif; }
+pre { font-family: monospace; }
+               </style>
+  </head>
+<body background="fondo3.jpg"> 
+
+
+
+<br />
+
+<center>
+<!-- Creative Commons License -->
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.0/"><img alt="Creative Commons License" border="0" src="somerights20.gif" /></a><br />
+<span class="license">This document is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.0/">Creative Commons License</a></span>.
+<!-- /Creative Commons License -->
+</center>
+<!--
+
+<rdf:RDF xmlns="http://web.resource.org/cc/"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"> <Work rdf:about="">
+<dc:title>Signatures for survival data</dc:title>
+<dc:date>2005</dc:date>
+<dc:description>Help for ADaCGH: analysis of data from aCGH.</dc:description>
+<dc:creator><Agent>
+<dc:title>Ramón Díaz-Uriarte</dc:title>
+</Agent></dc:creator>
+<dc:rights><Agent>
+<dc:title>Ramón Díaz-Uriarte</dc:title>
+</Agent></dc:rights>
+<dc:type
+rdf:resource="http://purl.org/dc/dcmitype/Text"
+/>
+<license
+rdf:resource="http://creativecommons.org/licenses/by-nc-sa/2.0/"
+/>
+</Work>
+
+<License
+rdf:about="http://creativecommons.org/licenses/by-nc-sa/2.0/">
+<permits
+rdf:resource="http://web.resource.org/cc/Reproduction"
+/>
+<permits
+rdf:resource="http://web.resource.org/cc/Distribution"
+/>
+<requires
+rdf:resource="http://web.resource.org/cc/Notice"
+/>
+<requires
+rdf:resource="http://web.resource.org/cc/Attribution"
+/>
+<prohibits
+rdf:resource="http://web.resource.org/cc/CommercialUse"
+/>
+<permits
+rdf:resource="http://web.resource.org/cc/DerivativeWorks"
+/>
+<requires
+rdf:resource="http://web.resource.org/cc/ShareAlike"
+/>
+</License>
+
+</rdf:RDF>
+
+-->
+<br />
+
+<hr>
+<center>
+<h1>ADaCGH: analysis of data from aCGH</h1>
+</center>
+
+   
+<hr>
+<ol>
+  <li> <a href="#intro">Introduction and purpose</a></li>
+       <li><a  href="#methods">Methods</a>
+      <ul>   
+      <li>Processing common to all methods
+<ul>  
+          <li><a href="#average">Averaging over duplicated entries for names and locating clones/genes</a></li>
+	      <li><a href="#centering">Centering</a></li>
+</ul>
+	      </li>	      
+  </ul>	        
+  <ul>
+    <li><a href="#CBS">Circular binary segmentation (CBS) of Olshen
+	and Venkatraman</a></li>
+    <li><a href="#Wavelet">Wavelet-based smoothing approach of
+	Hsu et al.</a></li>
+    <li><a href="#PSW">Price-Smith-Waterman approach</a></li>
+    <li><a href="#ACE">ACE method of Lingj&#230;rde et al.</a></li>
+  </ul>
+  </li>
+  <li><a href="#usage">Usage</a>
+    <ul>
+        <li><a href="#input">Input</a></li>
+	  <li><a href="#output">Output</a></li>
+<li><a href="#examples">Examples</a></li>
+	  </ul> 
+  </li>
+  <!--        <li><a href="#speed">How long does it take?</a></li>  -->
+  
+  <li><a href="#authors">Author and Acknowledgements</a></li>
+  <li><a href="#bugs">Before you start: If "The program doesn't
+      work"</a></li>
+      <li><a href="#terms.use">Terms of use</a></li>
+      <li><a href="#privacy">Privacy and	Security</a></li>
+  <li><a href="#warranty">Disclaimer</a></li>  
+  <li><a href="#refs">References</a></li>
+  </ol>
+
+<hr>
+
+
+
+<h2><a name="intro">Introduction and purpose</a></h2>
+
+<p>ADaCGH is a web-based tool for the analysis of aCGH data. 
+We focus on the problems of calling gains and losses and the
+estimation of the number of copy changes. We have implemented several
+methods, some of which have been lately shown in the literature to
+work relatively well or are methods with which we have had some
+previous positive experiences.
+</p>
+
+<p>Most of the methods implemented have their very own ways of
+  displaying results. To make it easier for the user, we have tried to
+  provide a unified graphical output, while at the same time being
+  faithful to the original approaches of the authors (e.g., "plateau
+  plots" are included for the binary segmentation method).</p>
+
+
+
+
+<p><a name="beta1">Please note that this is an <b>early beta
+    version</b> </a>of the application. Comments, suggestions, ideas
+    of possible enhancements, etc, will be most welcome. We are
+    currently working on adding other algorithms, improving the look
+    of the output, speeding up the computations and improving the
+    user-friendliness of the output. In particular, as this
+    application returns (and depends on) graphics heavily, you might
+    notice that it is slow to return the results to you.</p>
+
+
+
+
+<h2><a name="methods">Methods</a></h2>
+
+
+<h3>Processing common to all methods</h3>
+
+<h4><a name="average">Averaging over duplicated entries for names and locating clones/genes</a></h4>
+<p>It is common that many genes/clones that are mapped to the same
+  locations appear several times in an array. Often, there are several
+  spots for each clone, and there are several clones for each
+  gene. Thus, the very first part of our analyses is computing the
+  average log2 ratio for each gene/clone. The identifiers used to
+  compute the average are either the identifiers resulting from
+  concatenating the name and position of each gene/clone.</p>
+
+<p>It is up to you to try to work at the clone or the gene
+  level. There are a variety of trade-offs involved here. We would
+  suggest you do some pre-processing prior to sending data to this
+  application. If you have multiple spots per clone and missing data,
+  we probably would suggest you impute and then replicates from the
+  same spot using, for instance, our <a
+	 href="http://prep.bioinfo.cnio.es">preprocessor</a> tool.</p>
+
+
+
+<p>None of the methods currently implemented in ADaCGH use the
+  distance between clones in the analyses, but some of the ones we
+  will include in the future will. For now, we take as the position of
+  the clone/gene the mid point of that clone/gene.  Other approaches
+  are available and reasonable; this one has at least the nice feature
+  of being invariant to where you start (p or q end).  We use the mid
+  point to order the clones/genes along a chromosome. In the very
+  unlikely event that two or more clones/genes have the same mid
+  point, a small uniform random variate is added to its mid point to
+  break the ties.</p>
+
+
+<h4><a name="centering">Centering</a></h4>
+<p>Centering is done on a per-array basis. Some methods do require
+that data be centered, and for others centering simplifies
+interpretation. We often prefer centering by subtracting the median,
+to avoid effects of outliers on the mean. If your data come from a
+normalization program such
+as <a href="http://dnmad.bioinfo.cnio.es">DNMAD</a>, the effect of
+centering will often be very small.</p>
+
+<p>Note, however, that you might prefer to carry out the centering
+  outside ADaCGH, using certain clones that you <b>know</b> (how?) are
+  not changed. As well, the X and Y chromosomes might require
+  "special" treatment. For instance, if you have some samples that are
+  XXXX, you probably do not want to center the data using the
+  log-ratios from all the clones, since those from the X chromosome
+  will be shifting the mean up artificially. One approach is to
+  exclude from all analyses the sex chromosomes; this is easy if,
+  e.g., you change the X and Y by any other letter (ADaCGH will
+  exclude from all analyses any chromosome with a name that is
+  different from 1 to 24 or X or Y).</p>
+
+
+
+<h3><a name="CBS">Circular binary segmentation (CBS) of Olshen
+	      and Venkatraman</a></h3>
+
+<p>This method tries to split each chromosome into contiguous regions of equal
+  copy number. Olshen and Venkatraman reframe the problem as one of
+  finding change-points, those places where the copy number
+  changes. For each chromosome, the (ordered) data are splitted
+  recursively until no further change points can be found. Determining
+  if a particular point corresponds to a change point is done using a
+  test whose reference (null) distribution is found via permutation.
+  This method is described in detail in <cite>Olshen et al.,
+  2004</cite> and <cite>Lucito et al. 2003</cite>.
+
+<p>Details on the meaning of the parameters can be found in the
+  original references. The following are copied verbatim from the help
+  for
+  the <a
+  href="http://www.bioconductor.org/packages/bioc/1.7/src/contrib/html/DNAcopy.html">DNAcopy</a>
+  package.</p>
+
+
+<h4>Smoothing parameters</h4>
+<ul>
+<li>Smooth region: number of points to consider on the left and the right
+          of a point to detect it as an outlier.</li>
+
+<li>Outlier SD scale: the number of SDs away from the nearest point in the
+          smoothing region to call a point an outlier.</li>
+
+<li>Smooth SD scale: the number of SDs from the median in the smoothing
+          region where a smoothed point is positioned.</li>
+
+<li>trim: proportion of data to be trimmed for variance calculation for
+          smoothing outliers and undoing splits based on SD.</li>
+</ul>
+
+<h4>Segmentation prameters</h4>
+
+<ul>
+<li>alpha: significance levels for the test to accept change-points.</li>
+
+<li>Number permutations: number of permutations used for p-value
+  computation.</li>
+
+<li>Max. width. smaller for perm. (kmax): the maximum width of smaller segment for permutation in the
+          hybrid method.</li>
+<li>Min length. hybbrid approx.(nmin): the minimum length of data for which the approximation of
+          maximum statistic is used under the hybrid method.</li>
+<li> overlap: proportion of data that overlap for adjacent windows.</li>
+
+<li>undo.prune: the proportional increase in sum of squares allowed when
+          eliminating splits if undo.splits="prune".</li>
+</ul>
+
+<p>(Please note that we set as, undoing splits method, the "prune"
+  method and, as p.method, the "hybrid" method with a kmax and nmi of
+  25 and 200, respectively, as in the defaults.)</p>
+
+
+
+<h3><a name="Wavelet">Wavelet-based smoothing approach of
+	      Hsu et al. (WS) </a></h3>
+
+<p>This method uses wavelets for denoising the data. First, a Haar
+  wavelet transform is applied to the log-ratios; next, the wavelets
+  are shrunken or thresholded; then, the signal is reconstructed
+  (inverse wavelet transform), leading to the smoothed or denoised
+  data; finally, the smoothed data are clustered (using the
+  "partitioning around medoids" method of Rousseeuw and coll.). Both
+  the wavelet-based smoothing and the clustering are carried out
+  chromosome by chromosome. This method is described in <cite>Hsu et
+  al., 2005</cite></p>
+
+
+<h4>Parameters</h4>
+<p>Any clusters that are closer together than <b>minDiff</b> are
+  collapsed together to form a single cluster. We use as default value
+  0.25, the same default as used by Hsu et al., but this is something
+  you might want to experiment with, depending on the variability in
+  your data, ploidy of samples, etc.</p>
+
+
+<p>This method has a few other parameters, such as the maximum number
+  of initial clusters (set to 10, as done by default by Hsu et al.),
+  that rarely affect the outcome, and a few specific settings for the
+  wavelet transforms (specifically, the wavelet had a depth of three
+  levels, the recommended for a sample of size between 3 and 1096; if any
+  chromosome has more than 1096 or less than 3 samples, you will be
+  provided with a warning.). We have used the same defaults as Hsu et
+  al. Of the possible thresholding methods, we use only the "hybrid
+  method", with soft thresholding, as implemented by the authors
+  (slightly different from the one in the waveslim package). The
+  hybrid method with soft thresholding seemed to produce the best
+  results in the original paper.</p>
+
+
+
+
+<h3><a name="PSW">Price-Smith-Waterman approach (PSW)</a></h3>
+<p>This is an approach that was developed by Price and collaborators
+(<cite>Price et al., 2005</cite>), and that uses the Smith-Waterman algorithm to
+  detect "islands" of positive scores in a set of ordered
+  real values. Before applying the Smith-Waterman algorithm, the data
+  are thresholded and adjusted for sign (depending on whether we want
+  to calculate copy gains or losses).</p>
+
+<p>A permutation test is carried out to compute how likely it is that
+  we find higher-scoring islands when there is no structure in the
+  data. As well, a robustness calculation indicates the sensitivity of
+  the localization of the highest-scoring island to the treshold value
+  (threshold value that was used in the very first step, before
+  applying the Smith-Waterman algorithm).</p>
+
+
+<p>This method is slightly more sensitive to a -1 copy number change
+(equivalente to a fold change in signal of 2) than a +1 copy number change
+(fold change of +1.5), for a diploid sample. (T. Price,
+pers. communication). Note also that this method does not distinguish
+between a copy number increase of +1 and a copy number increase of +10
+(this is also the case for ACE). </p>
+
+
+<p>The method implemented here is a small departure from the one
+  described originally: here we use all the data for a subject/array for the
+  thresholding, but subsequent analyses (finding islands and
+  robustness analysis and permutation tests) are carried out
+  chromosome by chromosome. This should allow to detect cases where a
+  complete chromosome is gained or lost, as well as cases where
+  smaller regions are gained or lost. Note that this approach is
+  probably not advisable for the X chromosome, at least for males. You
+  probably want to analyze the X separately, since you only expect one
+  copy of the genomic DNA in males. Finally, the function for calculating
+  the threshold (the default used by T. Price originally, which we also
+  use ---median + 0.2 * MAD---) was validated by Price and collaborators
+  on a 75-probe dataset that spanned the telomeric 2MB of chromosome 16p,
+  using subjects with well-characterized deletions in the region and
+  healthy controls. But it has not been validated with whole-genome chips
+  or other DNA sources. (If you want to play around with the code, the
+  sources  are available from <a
+  href="http://www.well.ox.ac.uk/~tprice/cgh/">
+http://www.well.ox.ac.uk/~tprice/cgh/</a>). (I thank Tom Price for his
+  discussion on these issues; some sentences here are copied almost
+  verbatim from his emails.)  </p>
+
+
+
+
+<h4><a name="PWSparams">Parameters</a></h4>
+
+<p>For the permutation test, <b>Number of permutation</b> is, well, the
+number of random permutations used. For the robustness
+calculation, <b>Precision</b> indicates the number of intervals used
+when dividing the threshold values between the lowest and highest
+possible. For plotting, <b>Largest p-value shown</b> is the largest
+p-value for which we want a region to be shown, in red, in the
+plot. (Note that this last is a parameter in our implementation of the
+plots, not in the original code). In contrast to the previous version of
+ADaCGH, we now use a Bonferroni-corrected p-value (we divide the p-value
+by the number of chromosomes).</p>
+
+
+
+<p>The imlementation by T.S.Price allowed the specification of
+  additional parameters. We have used the default ones (thresholding
+  function = median + 0.2 * MAD; robustness calculation with
+  median and median + 0.4 MAD for the lowest and highest threshold
+  values, respectively).
+
+
+
+<h3><a name="ACE">Analysis of copy errors approach of Lingj&#230;rde et
+al.</a></h3>
+<p>This is the method implemented in <a
+href="http://www.ifi.uio.no/forskning/grupper/bioinf/Papers/CGH/">CGH-Explorer</a>
+and described both in the manual and in <cite>Lingj&#230;rde et al., 2005
+</cite>. This method does not focus on estimating the number of copy gains
+per gene, but rather in finding regions with evidence for copy number
+changes. The emphasis, therefore, is hypothesis testing. The data are
+first smoothed using a 5-neighbor running mean. Then, genes are segmented
+in regions of the same type (gain or loss) and a gene is regarded as
+having an altered copy number if it belongs to a segment with a
+"significant" segment. Significance is determined using the length and
+height (mean expression) of each segment and comparing it with the null,
+and then obtaining and estimate of the positive FDR (sensu Storey and
+Tibshirani).</p>
+
+<!-- Then, the method tries to -->
+<!-- identify segments that deviate from a mean of 0 (the method assumes data -->
+<!-- have been centered ---see below---). The data are segmented, assigning -->
+<!-- each gene to the "gain" or "loss" group depending on the sign of its log -->
+<!-- ratio. Now, a segment is defined as a consecutive set of genes of state -->
+<!-- (e.g., "gain, gain, gain").  These segments are then compared, in terms of -->
+<!-- their length and height, with the null distribution of segments (i.e., -->
+<!-- under the null of no gain or loss). -->
+			
+
+
+<p>This method assumes that the data have been centered appropriately, so
+that the expect response from normal DNA is zero. You should be careful,
+does, with how the centering is done when you have samples from different
+sexes or with altered ratios of the sex chromosomes. (For instance, you
+might want to center your data using only the mean computed from genes
+that are not on the X or Y chromosomes).</p>
+
+<h4>Parameters</h4>
+<p>The only parameter is the (desired) <b>FDR</b>. As part of the
+calculations, ACE returns a table with the pFDR (positive FDR) and the
+corresponding number of genes regarded as having altered copy number (over
+all the samples). You should enter here the pFDR you want, and we will
+return the results (figures and table of genes and their state) for the
+closest FDR to the one you entered.</p>
+
+
+
+
+
+<h2><a name="input">Input</a></h2>
+<p>You can input the data either in a single file or using two files. If
+you use two files, one of them is the file with the aCGH data and the
+other the file with the position or coordinates or chromosomal
+location information. If you enter a single file, the first four
+columns of that file are identical to the columns of the location
+information file. All data are to be entered in tab-separated
+text-files. Any rows starting with a "&#035;" are considered comments.</p>
+
+<p>In the aCGH data file rows are variables (generally genes), and columns represent
+    subjects, or samples, or arrays. If you want to
+    <b>name your arrays</b> place a line that starts with "&#035;",
+    after the "&#035;" put "Name" or "NAME" or "name" and write the
+    array names (separated by tabs), but leave no space between
+    "&#035;" and "name" or whatever; thus, write "&#035;name", NOT
+    "&#035; name". If you use two files,
+    the  <b>first column</b> 
+of the aCGH file is  assumed to contain the ID information for genes, marker, or
+    whatever. This column need not be the same as the first column of
+    the coordinate or position information file.</p>
+
+<p>More on names: please, do not use spaces in the names of your arrays:
+  they lead to problems when generating the thumbnails for the figures.</p>
+
+<p>We assume all the aCGH data are <b>normalized log ratios</b>. We
+  carry out no checking of this. You can normalize your data using our
+  <a href="http://dnmad.bioinfo.cnio.es">DNMAD</a> tool, though how
+  best to normalize aCGH data is very much an open question.</p> 
+
+
+<h3><a name="positioninfo">Position (coordinates) file/columns</a></h3>
+<p>You must enter information about the position of the genes/clones in
+  your arrays. The file must contain, in this exact order:</p>
+  <ol>
+    <li>Name of clone</li>
+    <li>Chromosome; this can be coded as <i>1, 2, 3, ..., 23, 24</i> or as
+      <i>1, 2, 3, ...., X, Y </i>, or as <i>chr1, chr2, ..., chrX,
+      chrY</i> or as <i>Chr1, Chr2, ..., ChrX, ChrY</i>, or <i>chr 1, chr
+      2, .., chr X, chr Y</i>, or <i>Chr 1, Chr 2, ..., Chr X, Chr Y </i>
+      (and a few others in between, but those will only lead to
+      confussion). Regarding <b>X and Y</b> you can use either 23 and 24
+      or X and Y (but NOT x and y; i.e., we expect capital X and capital
+      Y, if you use them). Some data bases have additional codes
+      (e.g., Golden Path, can return "chr12_random", etc; these positions are deleted).</li>
+    <li>Start: this is the starting position of the given clone/gene in a
+    chromosome. You can use anything you want or consider reasonable. But
+    it will be best if these are bases or kilobases from the beggining of
+    the chromosome (and recall that some of the current and/or future
+    methods implemented use the position of the centromere for analyzing
+    data from each arm of the chromosome separately, thus if you use
+    those methods your start and end must make sense).</li>
+    <li>End: the end of that clone/gene.See start for comments. Note also
+    that we will be computing the mid position of each clone, so end
+    should never be smaller than start. </li>
+  </ol>
+
+  <p>Please note that <b>we will not check that the columns you use are in
+  the right order or use reasonable names</b>. This means you can use any
+  column names you like (e.g., instead of start you could write "inicio"
+  or "comienzo"), but this also means that you have to make sure the order
+  conforms to what is explained here.</p>
+
+<p>Where can you get position information? There are several sources
+  available. You might want to check
+  our <a href="http://idconverter.bioinfo.cnio.es">IDconverter</a> tool.</p>
+
+<h3><a name="idc">Type of gene identifier and species</a></h3>
+<p>If you use any of the currently standard identifiers for your gene IDs
+for either human, mouse, or rat genomes, you can obtain additional
+information by clicking on the names in the output figures. This
+information is returned from <a
+href="http://idclight.bioinfo.cnio.es">IDClight</a> based on that provided
+by our <a href="http://idconverter.bioinfo.cnio.es">IDConverter</a>
+tool.</p>
+
+
+<h3>Missing values</h3>
+<p>Some of the methods implemented can deal with missing values in the
+data. In addition, since the first step is averaging values over
+identifiers, many missing values "disappear". However, we have done no
+testing of the procedures implemented with data sets with missing values,
+ and it is likely that you would run into problems if your data sets contain
+missing values. We plan to lift this restriction in the future. For
+  now, you are adviced to impute the data; you can do this, for
+  instance, with our <a
+	 href="http://gepas.bioinfo.cnio.es/cgi-bin/preprocess">preprocessor</a> tool.</p>
+
+
+
+
+
+
+<h2><a name="output">Output</a></h2>
+
+<p>A common output for all methods are some simple summary statistics
+  per subject/array and per subject by chromosome combination. 
+These statistics are provided before and after centering. If there are
+  any relevant warnings in the initial processing of data (e.g.,
+  clones with chromosome names not among the accepted ones), these are
+  also provided here.</p>
+
+
+
+<p>The
+  details about the rest of the output depend on the method. In all the plots, the
+  original data are shown using small orange dots. In plots that show
+  a subject/array, the chromosome numbers are indicated in the x-labels, and
+  a vertical dotted grey line separates chromosomes. The main output shows
+  thumbnails; click on the thumbnails to expand.</p>
+
+<p><b><FONT COLOR="#CC00FF">NEW</font></b>We now provide clickable plots for the segmentation
+results. Clicking on the thumbnails will open the Genome View plots. If
+you move the mouse over the figure, you will be told what chromosome it
+is. If you click, you will be taken to the Chromosome View plot. On the
+Chromosome View plot, hovering over a point will show you the ID of that
+point. If you click on the point, you will place a small blue box with the
+ID in place. To close,
+click on the "X". If, in addition, you have provided information on the
+type of id and organism (see <a href="#idc">above</a>) you can click on
+the link in the box with the ID, and you will be taken to <a
+href="http://idclight.bioinfo.cnio.es">IDClight</a> for additional
+information on that clone/gene. Please note that for the "All_arrays"
+plots, you need to click on the line at the log-ratio of 0, not on a dot at
+any other height.</p>
+
+
+<h3><a name="outputCBS">Circular binary segmentation of Olshen and Venkatraman</a></h3>
+
+<p> We first provide several <b>diagnostic plots</b> to help <b>check that the smoothing is
+  appropriate</b>. We plot the original vs. the smoothed data, both for
+  the complete genome for each sample and for each chromosome within
+  each sample.</p>
+
+
+<p>We provide <b>segmented data plots</b> with the original data plus segments (smoothed
+  regions), both by subject/array and superimposing all subjects. The
+  later are useless if your subjects/arrays are a heterogeneous bunch,
+  but might be helpful otherwise; in the supperimposed plots, and to
+  enhance readability, no points are shown, only the estimated
+  segments. Segments are shown in black.</p>
+
+<p>Finally, we show <b>plateau plots</b>; here segments are shown in
+  red. Plateau plots can help decide how many levels of gain/loss are
+  really in the data, and can even be used to estimate the copy
+  number. This is explained in p. 2296 of <cite>Lucito et al., 2003</cite>. We actually provide three types of
+  plateau plots: one per sample, as originally done by Olshen and
+  collaborators; then, we provide a simple superimposition of all the
+  plateau plots, and finally we provide a "global" plateau plot, after
+  setting all the data and segments as if they came from one single
+  genome. Again, if your subjects/arrays are a very heterogeneous
+  bunch, these last two plots are unlikely to help at all. Otherwise,
+  they can make it easier to spot which are the actual levels of
+  gain/loss.</p>
+
+<p>A file with the output is available for download (including also
+  the figures in both png and pdf formats). The results file is a
+  tab-delimited text file with columns: name of gene, chromosome,
+  start, end, and mid-point and, for each subject/array, two columns,
+  the original data, and the smoothed data (the mean of the
+  segment).</p>
+
+
+
+
+
+<h3><a name="outputWS">Wavelet-based smoothing</a></h3>
+
+<p>We first show <b>plots of the autocorrelation (lag 1)</b>, BEFORE
+  any wavelet smooting. These plots,
+  one per chromosome, are histograms of the lag-1 autocorrelation of
+  all the subjects/arrays. Small autocorrelations suggest that the
+  wavelet-based smoothing might not work very effectively.</p>
+
+
+<p>Next, we provide very similar plots as for CBS, including both plots of
+  the segments for each subject/arrays and plateau plots. Plateau
+  plots are not a set of plots that were used in the original paper by
+  Hsu et al., but we think they could be useful, and since this is
+  experimental software anyway,... If they are useless for you,
+  disregard them. If you think they are actually a bad idea that could
+  lead to confusion, please let us know.</p>
+
+<p>We also provide a tab-separated text file with the results, similar
+  to what is done with the CBS, above. Here, however, for each
+  subject/array we have three columns: the original log-ratio, the
+  smoothed log-ratio, and the "state" (an integer indicator starting
+  at 1). Please note that a state of 2 in one sample might denote
+  a completely different thing from a state of 2 in another
+  sample. These are the states for each subject/array, but are not
+  necessarily comparable among subjects/arrays.</p>
+
+
+<h3><a name="outputPSW">Price-Smith-Waterman approach</a></h3>
+
+<p>For this method, we provide island plots for each subject/array,
+  but we show two plots, one when for regions of gain and one for
+  regions of loss. In each plot (e.g., gain, array 1) we show the
+  original data, as well as horizontal red lines for segments with a
+  significant (i.e., p < <a href="#PWSparams">Largest p-value
+  shown</a>) island; the horizontal location of the segments is
+  irrelevant (always at the same height).We also provide a line that
+  indicates the robustness.  You want to focus on red segments with
+  high robustness. Recall that both the p-values and the robustness
+  are calculated here over each chromosome (even when the thresholding
+  is done using the complete genome). Note that the p-values are not
+  corrected for multiple testing at all. (The original R function from
+  T. Price included an indication of the highest-scoring island; that
+  is not provided here, as we've found it potentially confussing when
+  analyzing 23 chromosomes). </p>
+
+
+<p>If you download the output, in addition to the figures, you get two
+  text files, one for gains and one for losses. Each of these files
+  has the same five initial columns as above (name of gene, chromosome,
+  start, end, and mid-point) and for each subject/array the sign (+1
+  if we were looking for gains, -1 if looking for losses, the
+  robustness of an island of gain/loss that includes that gene/clone, and
+  the p-value of that segment).</p>
+
+
+
+<h3><a name="outputACE">ACE</a></h3>
+<p>We first show the <b>FDR table</b>, with the number of genes that are
+considered to have altered copy numbers for each pFDR. Then, we provide
+the segmented plots.</p>
+<p>If you wish to change the FDR, you can do it here, by entering a new
+FDR and pressing submit.</p>
+
+
+
+
+
+
+<h2><a name="examples">Examples</a></h2>
+<p>An example with fictitious data is provided in <a
+href="http://adacgh.bioinfo.cnio.es/Examples/index.html">here</a>. You can
+play with the figures, get the additional information from <a
+href="http://idclight.bioinfo.cnio.es">IDCLight</a>, etc. Additional
+examples (from a somewhat less interactive version) are also available there.</p>
+
+
+
+    <h2><a name="authors">Author and Acknowledgements</a></h2>
+    
+    <p>This program was developped by <a href="http://ligarto.org/rdiaz"
+      target="_blank">Ramón Díaz-Uriarte</a> and <a href="mailto:omrueda%%cnio.es">Oscar Rueda-Palacio</a>, from
+      the <a href="http://bioinfo.cnio.es" target="_blank">Bioinformatics
+      Unit</a> at <a href="http://www.cnio.es" target="_blank">CNIO</a>.
+      This tool uses <a href="http://www.python.org">Python</a> for the
+      CGI and <a href="http://www.r-project.org">R</a> for the
+      computations.  The R library underlying the Price-Smith-Waterman
+      method was kindly provided by Tom Price. The R code for the
+      wavelet-based smoothing method was kindly provided by Doug
+      Grove. The binary segmentation approach uses the <a
+      href="http://www.bioconductor.org/packages/bioc/1.7/src/contrib/html/DNAcopy.html">DNAcopy</a>
+      R/BioConductor package by E. S. Venkatraman and Adam Olshen.  The
+      ACE algorithm was implemented from scratch in R and C by Oscar Rueda
+      Palacio using, as basis, the Java code and documentation from Lingj&#230;rde et
+      al. (available <a
+      href="http://www.ifi.uio.no/forskning/grupper/bioinf/Papers/CGH/">here</a>).
+      Some of the above functions might have been modified slightly (by
+      R. Díaz-Uriarte) to parallelize some of the computations. Our code
+      and/or some of the above packages use the R packages <a
+      href="http://www.image.ucar.edu/staff/whitcher/">waveslim</a> by
+      Brandom Whitchern, <a
+      href="http://cran.r-project.org/src/contrib/Descriptions/cluster.html">cluster</a>,
+      by Martin Maechler, based on S original by Peter Rousseeuw,
+      Anja.Struyf and Mia.Hubert, and initial R port by Kurt.Hornik, <a
+      href="http://biostat.mc.vanderbilt.edu/s/Hmisc">Hmisc</a>, by Frank
+      E Harrell Jr, <a
+      href="http://www.warwick.ac.uk/go/cgiwithr">CGIwithR</a> by David
+      Firth, <a href="http://www.rosuda.org/R/GDD/">GDD</a> by Simon
+      Urbanek, <a href="http://www.stats.uwo.ca/faculty/yu/Rmpi">Rmpi</a>,
+      by Hao Yu,
+<a href="http://www.maths.lancs.ac.uk/Software/Imagemap/">imagemap</a> by
+Barry Rowlingson, 
+<a
+   href="http://cran.r-project.org/src/contrib/Descriptions/R2HTML.html">R2HTML</a>
+   by Eric Lecoutre, and 
+<a
+      href="http://cran.r-project.org/src/contrib/Descriptions/papply.html">papply</a>,
+      by D. Currie.
+ We have also used and modified the  ToolTip script <a
+ href="http://www.dynamicdrive.com">Dynamic Drive</a> as well as taken
+ some ideas from <a href="http://www.bosrup.com/web/overlib/">overLIB</a>,
+ by Erik Bosrup.</p> 
+    
+      <p>Our understanding about aCGH and their analysis has
+      beneffited greatly from discussions with Sara Alvarez de Andrés,
+      Tom Price and Doug Grove, as well as with Philippe Hupé, Adam
+      Olshen and Franck Picard.</p>
+	
+ 
+<p>This application is running on a cluster of machines using <a
+href="http://www.debian.org">Debian GNU/Linux</a> as operating system, <a
+href="http://www.apache.org">Apache</a> as web server, and <a
+href="http://www.linuxvirtualserver.org">Linux Virtual Server</a> for web server
+  load-balancing.
+<!-- , and <a -->
+<!-- href="http://www.lam-mpi.org">LAM/MPI</a> for parallelization.</p> -->
+
+
+<p>We want to thank the authors and contributors of these great (and open
+source) tools that they have made available for all to use. If you find this
+useful, and since R and Bioconductor are developed by a team of volunteers, we
+suggest you consider making a donation to the <a
+href="http://www.R-project.org/foundation/main.html"> R foundation for
+statistical computing</a>.</p>
+
+
+<p><b>Funding</b> provided by Fundación de Investigación
+  Médica Mutua Madrileña and Project TIC2003-09331-C02-02 of the Spanish
+  Ministry of Education and Science. This application is running on a
+  cluster of machines purchased with funds from the
+<a href="http://www.rticcc.org/">RTICCC</a>.</p> 
+
+
+<!-- <p><a name="beta">This is an <b>early beta version</b> </a>of the application. Comments, -->
+<!--     suggestions, ideas of possible enhancements, etc, will be most -->
+<!--     welcome. We are currently working on adding other algorithms, -->
+<!--     improving the look of the output, speeding up the computations and -->
+<!--     improving the user-friendliness of the output.</p> -->
+
+
+
+    <h2><a name="bugs">Before you start: If "The program doesn't work"</a></h2>
+    <p>Please, before calling/emailing us if "the program doesn't work", make
+      sure you have read this documentation. In particular, make sure
+      your data are <a href="#requirements">formatted appropriately</a>.</p>
+
+
+      
+      
+    <h2><a name="terms.use">Terms of use</a></h2>
+    <ul>
+      <li>You acknowledge that this Software is experimental in nature
+	and is supplied "AS IS", without obligation by the authors, the CNIO's
+	Bioinformatics Unit or the CNIO to provide accompanying
+	services or support. The entire risk as to the quality and performance of the
+	Software is with you. The CNIO and the authors expressly disclaim any and all
+	warranties regarding the software, whether express or implied, including but
+	not limited to warranties pertaining to merchantability or fitness for a
+	particular purpose.</li>
+      <li>If you use ADaCGH for any publication, we would appreciate if you
+	could let us know and if you cite our program (you know, "credit where
+	credit is due"). For now, you can give the main web site:
+	<a href="http://adacgh.bioinfo.cnio.es">http://adacgh.bioinfo.cnio.es</a>).</li>
+    <li>We appreciate if you give us feedback concerning bugs, errors or misconfigurations.
+	Complaints or suggestions are welcome.</li>
+    </ul>
+    <br>
+    
+    <h2><a name="privacy">Privacy and	Security</a></h2>
+    <p>Uploaded data set are saved in temporary directories in the server and are
+      accessible through the web until they are erased after some time
+      (5 days, currently). Anybody can
+      access those directories, but as the name of the directories are not
+      trivial it is not easy for a third person to access your data.</p>
+    <p>In any case, you should keep in mind that communications between the client
+      (your computer) and the server are not encripted at all, thus it is also
+      possible for somebody else to look at your data while you are uploading or
+      dowloading them.</p>
+    <br>
+      
+    <h2><a name="warranty">Disclaimer</a></h2>
+    <p>This software is experimental in nature and is supplied "AS IS", without
+      obligation by the authors or the CNIO the to provide accompanying services or
+      support. The entire risk as to the quality and performance of the software is
+      with you. The authors expressly disclaim any and all warranties regarding the
+      software, whether express or implied, including but not limited to warranties
+      pertaining to merchantability or fitness for a particular purpose.<br>
+      
+      <!--     (If you are lost using these types of applications, or new, you -->
+      <!--       might want to read  -->
+      <!--       <a href="http://www.catb.org/~esr/faqs/smart-questions.html"> -->
+      <!-- 	How To Ask Questions The Smart Way</a>, by Eric Raymond.) -->
+      
+      
+      
+
+
+
+    <h2><a name="refs">References</a></h2>
+
+
+
+<p> Hsu L, Self SG, Grove D, Randolph T, Wang K, Delrow JJ, Loo L,
+Porter P. (2005) Denoising array-based comparative genomic
+hybridization data using wavelets.  Biostatistics, 6:211-26.</p>
+
+
+<p>Lingjærde OC, Baumbusch LO, Liestøl K, Glad I, Børresen-Dale
+AL. (2005). CGH-Explorer: a program for analysis of CGH-data. Bioinformatics, 21: 821--822.</p>
+
+
+
+    <p>Lucito R, Healy J, Alexander J, Reiner A, Esposito D, Chi M,
+      Rodgers L, Brady A, Sebat J, Troge J, West JA, Rostan S, Nguyen
+      KC, Powers S, Ye KQ, Olshen A, Venkatraman E, Norton L, Wigler
+      M. (2003) Representational
+      oligonucleotide microarray analysis: a high-resolution method to
+      detect genome copy number variation.  Genome Res. 13:2291-305</p>
+
+<p>Olshen AB, Venkatraman ES, Lucito R, Wigler M. (2004) Circular
+binary segmentation for the analysis of array-based DNA copy number
+data.  Biostatistics, 5(4):557-72.</p>
+
+
+<p>Price TS, Regan R, Mott R, Hedman A, Honey B, Daniels RJ, Smith L,
+  Greenfield A, Tiganescu A, Buckle V, Ventress N, Ayyub H, Salhan A,
+  Pedraza-Diaz S, Broxholme J, Ragoussis J, Higgs DR, Flint J, Knight
+  SJ. (2005) SW-ARRAY: a dynamic
+  programming solution for the identification of copy-number changes in
+  genomic DNA using array comparative genome hybridization data.
+  Nucleic Acids Res. 33:3455-64. </p>
+
+
+
+
+<h3>Copyright</h3>
+This document is copyrighted. Copyright © 2005, 2006 Ramón Díaz-Uriarte.
+<hr>
+
+<!-- hhmts start -->Last modified: 26 January 2006 <!-- hhmts end -->
+
+<hr>
+<p>
+      <a href="http://validator.w3.org/check/referer"><img border="0"
+          src="valid-html401.png"
+          alt="Valid HTML 4.01!" height="31" width="88"></a>
+<a href="http://www.anybrowser.org/campaign/">
+	<img src="anybrowser3.gif"
+	  width="88"
+	  height="31"
+	  alt="Viewable With Any Browser" border="0"></a>
+
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+

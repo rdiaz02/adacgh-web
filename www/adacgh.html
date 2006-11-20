@@ -1,0 +1,441 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title>ADaCGH: analysis of data from aCGH</title>
+<script type="text/javascript" language="javascript">
+	function getArgs(  ) {
+	    var args = new Object(  );
+	    var query = location.search.substring(1);      // Get query string
+	    var pairs = query.split("&");                  // Break at &
+	    for(var i = 0; i < pairs.length; i++) {
+	        var pos = pairs[i].indexOf('=');          // Look for "name=value"
+	        if (pos == -1) continue;                  // If not found, skip
+	        var argname = pairs[i].substring(0,pos);  // Extract the name
+	        var value = pairs[i].substring(pos+1);    // Extract the value
+	        args[argname] = unescape(value);          // Store as a property
+       						  // In JavaScript 1.5, use decodeURIComponent(  ) 
+					          // instead of escape(  )
+    	    }
+	    return args;     // Return the object
+	}	
+
+</script>
+
+</head>
+
+
+<BODY background="fondo3.jpg">
+
+<form action="http://adacgh.bioinfo.cnio.es/cgi-bin/adacghR.cgi"
+enctype="multipart/form-data" method="POST">
+
+
+
+
+<center>
+<table border=0 cellspacing=0 width="100%">
+<!--   <tr bgcolor="#54C571"> -->
+  <tr bgcolor="#C48189">
+    <td rowspan="3" align=center width=140>
+      <a href="http://adacgh.bioinfo.cnio.es">
+      <img SRC="adacgh_logo.jpeg"
+      border=0 height = 81 width = 100
+      alt="adacgh">
+      </a>
+    </td>  
+    <td bgcolor="#7F525D" align=center width="100%">
+<!--     <td bgcolor="#254117" align=center width="100%"> -->
+      <a href="http://bioinfo.cnio.es" STYLE="text-decoration:none">
+      <font color=white>
+      <b>Bioinformatics Unit</b>
+      </font>
+      </a>
+        -  
+      <a href="http://www.cnio.es" STYLE="text-decoration:none">
+      <font color=white>
+      <b>CNIO</b>
+      </font>
+      </a>
+    </td>
+    <td rowspan="3" align=center width=124>
+      <a href="http://bioinfo.cnio.es">
+      <img src="bioinfo.png" border=0>
+      </a>
+    </td>
+  </tr>
+  <tr>  
+<!--     <td bgcolor="#54C571" align=center valign=middle  STYLE="font-size:12"> -->
+    <td bgcolor="#C48189" align=center valign=middle  STYLE="font-size:12">
+      <br>
+      <font size=5>
+      <b> ADaCGH</b>
+      </font>
+      <br> 
+    </td>
+  </tr>
+  <tr>
+    <td bgcolor="#7F525D" align=center>
+<!--     <td bgcolor="#254117" align=center> the dark color-->
+       
+    </td>
+  </tr>
+</table>
+</center>
+
+<h2><center>ADaCGH: analysis of data from aCGH</center></h2>
+
+
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans"> ADaCGH is a
+    web tool for the analysis of aCGH data sets. We focus
+    on calling gains and losses and estimating the number of copy changes.</p> 
+
+<!-- , or with which we have had some -->
+<!--     previous positive experiences.</p> -->
+
+
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans">To use ADaCGH
+provide either one or two files. If you only provide one file, that file
+must contain also coordinates (location information) of each of the
+genes/clones. If you provide two different files, one must contain the the
+aCGH data themselves and another one the mapping of those
+genes/clones to positions in chromosomes.</p>
+
+<hr>
+
+<h2>Input files (<a href="./help/adacgh-help.html#input">help</a>)</h2>
+
+<input type="RADIO" name="twofiles" checked value="Two.files">
+<FONT COLOR="#CC00FF" SIZE=+1>
+<b>Two files</b></FONT>: (aCGH data + coordinates)<br>
+
+<table>
+<tr><td>
+<b>Genomic data file:</b></td>
+<td>
+<script Language="Javascript">
+    var args = getArgs();
+    if (args.datadir) {
+      document.write("<span style=\"color: red\">Input Data from <i>pre</i>P</b></span><input type=\"hidden\" value =" + args.datadir + "  name=\"covariate2\">");
+    }else {
+      document.write("<input type=\"FILE\" name=\"acghData\" size = \"40\" maxlength =\"150\">");
+    }
+</script>
+</tr>
+
+
+
+<!-- cambiar hrs <hr size=12 noshade="noshade"> -->
+
+
+
+<!-- <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"> -->
+<!-- A tab-separated text file with the aCGH data. In this file, rows -->
+<!--     represent variables (generally genes), and columns represent -->
+<!--     subjects, or samples, or arrays. If you want to -->
+<!--     <b>name your arrays</b> place a line that starts with "&#035;", -->
+<!--     after the "&#035;" put "Name" or "NAME" or "name" and write the -->
+<!--     array names (separated by tabs) (but leave no space between -->
+<!--     "&#035;" and "name" or whatever; thus, write "&#035;name", NOT -->
+<!--     "&#035; name").  The <b>first column</b> is -->
+<!--     assumed to contain the ID information for genes, marker, or -->
+<!--     whatever. This column need not be the same as the first column of -->
+<!--     the coordinate or position information file. For further details -->
+<!--     see the -->
+<!-- <a href="./help/adacgh-help.html#input" -->
+<!--    target="help_window">help</a>. Missing values might be allowed, -->
+<!--    but are not recommended.</p> -->
+<tr><td>
+<b>Coordinate/position information file:</b>   
+</td>
+<td>
+<input type="FILE" name="positionInfo" size = "40" maxlength = "150"> 
+</td></tr>
+</table>
+<!-- <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"> -->
+<!-- A tab-separated text file with the coordinate or mapping -->
+<!-- information. The number of rows in this file must be identical to the -->
+<!-- number of rows in the file above. If there is no coordinate -->
+<!-- information for a given clone/gene, its row will be empty (or filled -->
+<!-- with NA). The file must contain, in this exact order:Name of clone, -->
+<!-- Chromosome, Start, End. Please note that <b>we will not check that the columns you use are in -->
+<!--   the right order or use reasonable names</b>. If you use any column -->
+<!-- names, use a "#" as the first character of the first column in the row -->
+<!-- of names. You can use our -->
+<!-- tool <a href="http://idconverter.bioinfo.cnio.es">IDconverter</a> to obtain -->
+<!-- coordinate information for a variety of types of identifiers.</p> -->
+
+<hr>
+
+
+<input type="RADIO" name="twofiles" value="One.file">
+<FONT COLOR="#CC00FF" SIZE=+1><b>One file</b></FONT> (First column are
+names, next three columns are coordinates.)<br>
+<br>
+
+<b>Genomic data + coordinate information file:</b>   
+<input type="FILE" name="acghAndPosition" size = "40" maxlength ="200"> 
+
+<!-- <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"> -->
+<!-- A tab-separated text file with the aCGH data + coordinate data. The -->
+<!-- file must contain, in this exact order:Name of clone, Chromosome, -->
+<!-- Start, End. After that, all the columns with aCGH data. If for a given -->
+<!-- clone/gene there is no position information, the entries for Start -->
+<!-- and/or End and/or Chromosome will be empty (or have an "NA"). Please -->
+<!-- note that <b>we will not check that the columns you use are in the -->
+<!-- right order: all column names for the first four columns will be discarded.</b>. -->
+<!-- For further details -->
+<!--     see the -->
+<!-- <a href="./help/adacgh-help.html#input" -->
+<!--    target="help_window">help</a>. Missing values for the aCGH data might be allowed, -->
+<!--    but are not recommended. You can use our -->
+<!-- tool <a href="http://idconverter.bioinfo.cnio.es">IDconverter</a> to obtain -->
+<!-- coordinate information for a variety of types of identifiers.</p> -->
+
+<hr size=12 noshade="noshade">
+
+<h2>Centering</h2>
+<input type="RADIO" name="centering" checked value="Median">
+<FONT COLOR="#CC00FF" SIZE=+1>  <b>Median centering</b></FONT>
+<input type="RADIO" name="centering" value="Mean">
+<FONT COLOR="#CC00FF" SIZE=+1>  <b>Mean centering</b></FONT> 
+<input type="RADIO" name="centering" value="None">
+<FONT COLOR="#CC00FF" SIZE=+1>  <b>None</b></FONT>
+
+
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt">
+Centering is done on a per-array basis. Some methods do require that
+data be centered, and for others centering simplifies
+interpretation. See further details in the <a href="./help/adacgh-help.html#centering"
+   target="help_window">help</a>
+
+<hr size=12 noshade="noshade">
+
+
+<h2>Method (<a href="./help/adacgh-help.html#methods">help</a>)</h2>
+
+<p>
+<input type="RADIO" name="methodaCGH" checked value="CBS">
+<FONT COLOR="#CC00FF" SIZE=+1><b>CBS</b></FONT>: Olshen & Venkatraman's circular binary
+    segmentation (CBS).<br>
+
+<table>
+<tr align=top>
+<td align=top>
+<b>Smoothing parameters</b>
+<table align=top>
+  <tr><td width="100"></td><td width="240">Smooth region</td>
+  <td><input type="TEXT" name="DNA.smooth.region" value="2" size="5"
+    maxlength="5"></td></tr>
+
+<tr><td width="100"></td><td width="240"> Outlier sd scale</td><td> 
+<input type="TEXT" name="DNA.outlier.SD.scale" value="4" size="5" maxlength="5"> </td></tr>
+
+<tr><td width="100"></td><td width="240">Smooth sd scale</td><td>
+<input type="TEXT" name="DNA.smooth.SD.scale" value="2"
+  size="5" maxlength="5"></td></tr>
+
+<tr><td width="100"></td><td width="240">Trim</td>
+  <td><input type="TEXT" name="DNA.trim" value="0.025" size="5"
+    maxlength="5"></td></tr>
+<tr><td
+       width="100"></td>
+  <td width="240"> </td>
+  <td> </td></tr>
+  <tr><td width="100"></td>
+    <td width="240"> </td><td> </td></tr>
+</table>
+</td>
+<td>
+<b>Segmentation parameters</b>
+<table>
+<tr><td width="100"></td><td width="240">alpha</td>
+  <td><input type="TEXT" name="DNA.copy.alpha" value="0.01" size="5"
+    maxlength="5"></td></tr>
+
+<tr><td width="100"></td><td width="240">Number permutations</td>
+  <td><input type="TEXT" name="DNA.nperm" value="10000" size="5"
+    maxlength="5"></td></tr>
+
+<tr><td width="100"></td><td width="240">Max. width. smaller for perm.</td>
+  <td><input type="TEXT" name="DNA.kmax" value="25" size="5"
+    maxlength="5"></td></tr>
+
+<tr><td width="100"></td><td width="240">Min length. hybbrid approx.</td>
+  <td><input type="TEXT" name="DNA.nmin" value="200" size="5"
+    maxlength="5"></td></tr>
+
+<tr><td width="100"></td><td width="240">Overlap</td>
+  <td><input type="TEXT" name="DNA.overlap" value="0.25" size="5"2
+    maxlength="5"></td></tr>
+
+<tr><td width="100"></td><td width="240">Undo prune</td>
+  <td><input type="TEXT" name="DNA.undo.prune" value="0.05" size="5"
+    maxlength="5"></td></tr>
+
+<!-- <tr><td width="100"></td><td width="240">Overlap</td> -->
+<!--   <td><input type="TEXT" name="DNA.overlap" value="0.25" size="5" -->
+<!--     maxlength="5"></td></tr> -->
+</table>
+
+</td></tr></table>
+
+
+
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size:
+	  9pt">For details about the parameters see the <a href="./help/adacgh-help.html#CBS"
+   target="help_window">help</a> and original references.</p>
+
+
+<hr>
+<br />
+<input type="RADIO" name="methodaCGH" value="WS">
+<FONT COLOR="#CC00FF" SIZE=+1><b>Wavelet smoothing (WS)</b></FONT>: Hsu et
+    al.'s wavelet-based smoothing.<br>
+<table>
+<tr><td width="100"></td><td width="240">minDiff</td>
+  <td><input type="TEXT" name="Wave.minDiff" value="0.25" size="5"
+    maxlength="5"></td></tr>
+</table>
+
+<hr>
+<br />
+
+<input type="RADIO" name="methodaCGH" value="PSW">
+<FONT COLOR="#CC00FF" SIZE=+1><b>Price-Smith-Waterman (PSW)</b></FONT>:
+    Price et al. method for aCGH using Smith and Waterman's algorithm.<br>
+<table>
+<tr><td>
+<b>Permutation test</b>
+<table>
+<tr><td width="200">Number of permutations</td>
+  <td><input type="TEXT" name="PSW.nIter" value="1000" size="5"
+    maxlength="5"></td></tr>
+</table>
+</td>
+<td width="40"></td>
+<td>
+<b>Robustness calculation</b>
+<table>
+<tr><td width="200">Precision</td>
+  <td><input type="TEXT" name="PSW.prec" value="100" size="5"
+    maxlength="5"></td></tr>
+</table>
+</td>
+<td width="40"></td>
+<td>
+<b>Plotting</b>
+<table>
+<tr><td width="200">Largest p-value shown</td>
+  <td><input type="TEXT" name="PSW.p.crit" value="0.15" size="5"
+    maxlength="5"></td></tr>
+</table>
+</td></tr></table>
+<hr>
+<br />
+<input type="RADIO" name="methodaCGH" value="ACE">
+<FONT COLOR="#CC00FF" SIZE=+1><b>Analysis of copy errors
+    (ACE)</b></FONT>: Lingjaerde et al.'s CGH Explorer.<br>
+<table>
+<tr><td width="100"></td><td width="240">(desired) FDR</td>
+  <td><input type="TEXT" name="ACE.fdr" value="0.15" size="10"
+    maxlength="10"></td></tr>
+</table>
+
+
+
+
+<hr/ >
+<h2>Type of gene identifier and species (<a
+href="./help/adacgh-help.html#idc">help</a>)</h2>
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt">
+To provide clickable links (that take you to
+<a href="http://idclight.bioinfo.cnio.es">IDClight</a> the one-query-version of our 
+<a href="http://idconverter.bioinfo.cnio.es">IDConverter</a>) in the results.</p>
+
+
+<table>
+  <tr><td width="100"></td><td width="400"><b>Type of ID for gene names</b></td>
+    <td width="400"><b>Organism</b></td></tr>
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" value="affy">  Affymetrix ID</input>
+    </td><td>
+      <input type="RADIO" name="organism" value="Hs">  Human (<i>Homo sapiens</i>)</input>
+  </td></tr>
+  
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" value="clone">  Clone ID (IMAGE Consortium)</input>
+    </td><td>
+      <input type="RADIO" name="organism" value="Mm">  Mouse (<i>Mus musculus</i>)</input>
+  </td></tr>
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" value="acc">  GenBank Accession</input>
+    </td><td>
+      <input type="RADIO" name="organism" value="Rn">  Rat (<i>Rattus norvegicus</i>)</input>
+  </td></tr>
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" value="ensembl">  Ensembl Gene</input>
+    </td><td>
+      <input type="RADIO" name="organism" checked value="None">  None of the above</input>
+  </td></tr>
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" value="ug">  Unigene cluster</input>
+    </td><td></td></tr>
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" value="entrez">  Entrez Gene</input>
+    </td><td></td></tr>
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" value="cnio">  CNIO ID</input>
+    </td><td></td></tr>
+  <tr><td></td><td>
+      <input type="RADIO" name="idtype" checked value="None">  None of the above</input>
+    </td><td></td></tr>
+</table>
+
+
+
+<hr>
+<br />
+
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"><b>Note:</b>
+<b>Floating-point numbers</b>, such as 0.001, can be specified as either "0.001",
+"1e-3" or "1E-3" (without the "", of course). Anything else will produce
+an error. </p>
+<hr>
+<input value="Submit" type = "SUBMIT">
+<br>
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt">
+Click "Submit" to send the data to the server and start execution. If the
+servers are too busy, you will be asked to try again later.</p>
+<hr>
+
+
+<a href="./help/adacgh-help.html" target="help_window">Help</a>
+
+
+
+
+</form>
+
+<hr />
+<p>
+<a href="http://www.python.org/">
+<img src="PythonPowered.gif" align=top width=110
+     height=44 alt="[Python Powered]" border=0>
+</a>
+
+<a href="http://www.r-project.org/">
+<img src="Rlogo-5.png" align=top width=100
+     height=76 alt="[R Project for Statistical Computing]" border=0>
+</a>
+</p>
+<TABLE width="100%"><TR>
+<TD align="right" width="200"><a href="http://asterias.bioinfo.cnio.es"><img src="asterias_app.png" width="200" height="40" border="0"></a></TD>
+</TR>
+</TABLE>
+
+<address>Send comments to <a href="mailto:rdiaz@cnio.es">webmaster</a></address>
+<!-- hhmts start -->Last modified: 26 January 2006 <!-- hhmts end -->
+</body> </html>
+
+

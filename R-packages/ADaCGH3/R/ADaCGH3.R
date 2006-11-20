@@ -3,16 +3,28 @@
 ## 	   }
 
 ## Olshen
-library(DNAcopy)
+#library(DNAcopy)
 ## Price-Smith-Waterman
-library(cgh)
+#library(cgh)
 ## wavelets
-library("waveslim")
-library("cluster")  
+#library("waveslim")
+#library("cluster")  
 ##dyn.load("ADaCGH2.so")
 
 
 
+
+
+## where do we live? to call the python script
+.calltoMap.py <- function() {
+    tmp <- library()[[2]]
+    pathpy <- tmp[which(tmp[, 1] == "ADaCGH3"), 2]
+    .python.call <- paste(pathpy, "/RJaCGH/Python/toMap.py", sep = "")
+    return(.python.call)
+}
+
+.python.toMap.py <- .calltoMap.py()
+    
 ##############################################
 
 
@@ -200,8 +212,9 @@ pSegmentPSW <- function(common.dat,
                       prec = prec,
                       name = paste(name, colnames(acghdata)[i], sep = ""))
         out$Data <- cbind(out$Data, tmp$out)
-        out$plotData[[i]] <- (tmp$plotdat,
-                              p.crit.bonferroni = tmp$plotdat$p.crit/ncrom)
+        p.crit.bonferroni <- tmp$plotdat$p.crit / ncrom
+        out$plotData[[i]] <- c(tmp$plotdat,
+                              p.crit.bonferroni = p.crit.bonferroni)
     }
     class(out) <- c(class(out), "CGH.PSW")
     return(out)
@@ -495,8 +508,8 @@ pSegmentACE <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
 
 
 
-require(GDD)
-require(imagemap)
+##require(GDD)
+##require(imagemap)
 
 imClose <- function (im) {
     ## prevent all the "Closing PNG device ..."
@@ -579,50 +592,6 @@ mpiCBS <- function() {
     mpi.remote.exec(library(ADaCGH2))
     mpi.remote.exec(library(aCGH))
 }
-
-
-                       
-
-                       
-
-
-
-plot.DNAcopyA <- function(x, plateau = FALSE, 
-                          superimposed = TRUE,
-                          html = TRUE, ...) {
-    ## oj: sacar xcenter, ymin and ymax
-    numarrays <- zzWhatever
-    if (!plateau) {
-        if (!superimposed) {
-            for(i in 1:numarrays) {
-                plot.olshen2(x,
-                             i, main = colnames(xcenter)[i],
-                             html = TRUE)
-            }
-        }
-        else {
-            plot.olshen3(x, html = html
-                         main = "All_arrays", ylim = c(ymin, ymax),
-                         html = html) ## all genome
-            
-            plot.olshen4(x,
-                         main = "All_arrays", ylim = c(ymin, ymax),
-                         html = html) ## by chromosome
-        }
-    } else {
-        if(!superimposed) {
-            plot.DNAcopy2(x)
-        }
-    
-
-
-            
-    if (segmented && by.chrom) {
-        plot.olshen4(x, html, ...)
-    }
-    else if(
-
-
 
 plot.olshen2 <- function(res, arraynum, main = NULL,
                          colors = c("orange", "red", "green", "blue"),
@@ -754,18 +723,14 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
                   sep ="\t", ncolumns = 3)
             write(as.character(geneNames[indexchr]), file = "geneNamesChr")
             imClose(im2)
-            system(paste("/http/adacgh/cgi/toMap.py",
+            system(paste(.python.toMap.py,
                          paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                          idtype, organism, sep = " "))
         }        ## looping over chromosomes
     } ## if html
 }
 
-    
-
-    
-
-
+   
 plot.olshen3 <- function(res, arraynums = 1:numarrays, main = NULL,
                          colors = c("orange", "red", "green", "blue"),
                          pch = 20, ylim =NULL, html = TRUE,
@@ -918,7 +883,7 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
               sep ="\t", ncolumns = 3)
         write(as.character(geneNames[indexchr]), file = "geneNamesChr")
         imClose(im2)
-        system(paste("/http/adacgh/cgi/toMap.py",
+        system(paste(.python.toMap.py,
                      paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                      idtype, organism, sep = " "))
     }
@@ -1794,7 +1759,7 @@ plot.wavelets2 <- function(res, xdata, chrom,
                   sep ="\t", ncolumns = 3)
             write(as.character(geneNames[indexchr]), file = "geneNamesChr")
             imClose(im2)
-            system(paste("/http/adacgh/cgi/toMap.py",
+            system(paste(.python.toMap.py,
                          paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                          idtype, organism, sep = " "))
         }        ## looping over chromosomes
@@ -1930,7 +1895,7 @@ plot.wavelets4 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NU
               sep ="\t", ncolumns = 3)
         write(as.character(geneNames[indexchr]), file = "geneNamesChr")
         imClose(im2)
-        system(paste("/http/adacgh/cgi/toMap.py",
+        system(paste(.python.toMap.py,
                      paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                      idtype, organism, sep = " "))
     }
@@ -2514,7 +2479,7 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
             write(as.character(geneNames[indexchr]), file = "geneNamesChr")
             imClose(im2)
             ## call the Python function
-            system(paste("/http/adacgh/cgi/toMap.py",
+            system(paste(.python.toMap.py,
                          paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                          idtype, organism, sep = " "))
             
@@ -3433,7 +3398,7 @@ plot.ace2 <- function(res, chrom,
                   sep ="\t", ncolumns = 3)
             write(as.character(geneNames[indexchr]), file = "geneNamesChr")
             imClose(im2)
-            system(paste("/http/adacgh/cgi/toMap.py",
+            system(paste(.python.toMap.py,
                          paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                          idtype, organism, sep = " "))
         }        ## looping over chromosomes
@@ -3578,7 +3543,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
               sep ="\t", ncolumns = 3)
         write(as.character(geneNames[indexchr]), file = "geneNamesChr")
         imClose(im2)
-        system(paste("/http/adacgh/cgi/toMap.py",
+        system(paste(.python.toMap.py,
                      paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                      idtype, organism, sep = " "))
     }

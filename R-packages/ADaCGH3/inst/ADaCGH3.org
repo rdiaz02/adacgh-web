@@ -6,4 +6,8 @@
 * Python code: when, how
 
 * Plots using
-  quansmooth (BioC) o lodplot (CRAN)	
+  quansmooth (BioC) o lodplot (CRAN)  
+
+* Write an installation doc
+
+* Do the vignette

@@ -1049,7 +1049,7 @@ save.image()
         if (nrow(mcrsc) == 0)
           cat("\n<p> No common minimal regions found.</p>\n")
         else 
-          html.data.frame(mcrsc[, -1], first.col = "Chromosome",
+          html.data.frame(mcrsc, first.col = "Case",
                           file = "mcr.results.html", append = TRUE)
         sink()
         

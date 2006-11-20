@@ -1,0 +1,3 @@
+0.8-2. 2006-03-08.
+	- Fixed bug in ACE that, with large numbers of genes,
+	led to problems in output for figures.

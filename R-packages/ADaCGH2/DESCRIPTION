@@ -1,0 +1,16 @@
+Package: ADaCGH2
+Version: 0.8-2
+Date: 2005-10-19
+Title: Analysis of data from aCGH experiments
+Author: Ramon Diaz-Uriarte <rdiaz@ligarto.org>
+Maintainer: Ramon Diaz-Uriarte <rdiaz@ligarto.org>
+Depends: R (>= 2.0.0)
+Description: whatever
+	     Main applications in high-dimensional data
+	     (e.g., microarray data, and other genomics and proteomics
+	     applications).
+LazyLoad: Yes
+License: GPL version 2 or newer
+URL: http://www.r-project.org, http://adacgh.bioinfo.cnio.es,
+http://ligarto.org/rdiaz/Papers/rfVS/randomForestVarSel.html
+Packaged: Thu Mar  9 13:28:14 2006; root

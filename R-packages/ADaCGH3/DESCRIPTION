@@ -1,0 +1,19 @@
+Package: ADaCGH2
+Version: 0.8-3
+Date: 2005-10-03
+Title: Analysis of data from aCGH experiments
+Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <omrueda@cnio.es>
+Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>
+Depends: R (>= 2.0.0), cgh, cghMCR, DNAcopy, Rmpi, papply, GDD, imagemap
+Description: Analysis and plotting of array CGH data. Allows usage of
+	     Circular Binary Segementation, wavelet-based smoothing, ACE
+	     method (CGH Explorer) and  Price's modification of  Smith &
+	     Waterman's algorith. Most computations are
+	     parallelized. Figures are imagemaps with links to IDClight
+	     (http://idclight.bioinfo.cnio.es). 
+
+LazyLoad: Yes
+License: GPL version 2 or newer
+URL: http://www.r-project.org, http://adacgh.bioinfo.cnio.es,
+http://ligarto.org/rdiaz/Papers/rfVS/randomForestVarSel.html
+Packaged: Thu Mar  9 13:28:14 2006; root

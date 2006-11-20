@@ -1,0 +1,9 @@
+* sysdata:
+** when loaded and by whom?
+** repeated presence 
+   as R/sysdata.rda and data/file.aux.RData
+
+* Python code: when, how
+
+* Plots using
+  quansmooth (BioC) o lodplot (CRAN)	

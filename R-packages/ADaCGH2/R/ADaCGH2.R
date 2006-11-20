@@ -1,6 +1,6 @@
-.First.lib <- function(lib, pkg) {
-	   library.dynam("ADaCGH2", pkg, lib)
-	   }
+## .First.lib <- function(lib, pkg) {
+## 	   library.dynam("ADaCGH2", pkg, lib)
+## 	   }
 
 ## Olshen
 library(DNAcopy)
@@ -13,94 +13,27 @@ library("cluster")
 
 
 
-######################################################
-
-#########  Imagemap stuff
+##############################################
 
 
+###  Visible stuff
 
-require(GDD)
-require(imagemap)
-
-imClose <- function (im) {
-    ## prevent all the "Closing PNG device ..."
-    dev.off(im$Device)
-}
-
-imagemap3 <- function(filename,width=480,height=480,
-                      title='Imagemap from R', ps = 12){
-
-    GDD(file = paste(filename,".png",sep=''),w=width, h=height,
-        type = "png", ps = ps)	  
-	  
-    im <- list()
-    im$Device <- dev.cur()
-    im$Filename=filename
-    im$Height=height
-    im$Width=width
-    im$Objects <- list()
-    im$HTML <- list()
-    im$title <- title
-    
-    class(im) <- "imagemap"
-    im
-}
-
-linkGene2 <- function(id) {
-    ## Returns a string for use in a web page with a call
-    ## to IDClight.
-    if ((idtype == "None") | (organism == "None"))
-        return(id)
-    else 
-        paste("http://idclight.bioinfo.cnio.es/IDClight.prog",
-              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
-              organism, sep = "")
-}
-
-linkGene <- function(id) {
-    ## Returns a string for use in a web page with a call
-    ## to IDClight.
-    if ((idtype == "None") | (organism == "None"))
-        return(id)
-    else 
-        paste("<a href=\"http://idclight.bioinfo.cnio.es/IDClight.prog",
-              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
-              organism," target=\"icl_window\"\">",id,"</a>", sep = "")
-}
-
-
-createIM2 <- function(im, file = "", imgTags = list(),
-                      title = "Genome View") {
-    cat(paste("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n",
-              "<html> <head> <title>", title, "</title></head><body>"),
-        file = file)
-    cat(buildIM(im, imgTags), sep = "\n", file = file, append = TRUE)
-    cat("</body></html>", file = file, append = TRUE)
-}
-
-
-#######################################################
-#######################################################
-#######################################################
-###
-###                 DNA copy
-###                 Olshen and Venkatraman
-###
-#######################################################
-#######################################################
-#######################################################
-
-mpiCBS <- function() {
+mpiInit <- function() {
+    library(Rmpi)
+    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
+    library(papply)
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
-    mpi.remote.exec(library(cghMCR))
+    mpi.remote.exec(library(ADaCGH3))
     mpi.remote.exec(library(cluster))
+    mpi.remote.exec(library(waveslim))
+    mpi.remote.exec(library(cghMCR))
     mpi.remote.exec(library(DNAcopy))
-    mpi.remote.exec(library(ADaCGH2))
     mpi.remote.exec(library(aCGH))
+    mpi.remote.exec(library(cgh))
 }
 
 
-segmentCBSp <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"),
+pSegmentCBS <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"),
                     kmax=25, nmin=200, window.size=NULL, overlap=0.25, 
                     trim = 0.025, undo.splits=c("none","prune","sdundo"),
                     undo.prune=0.05, undo.SD=3, verbose=1)
@@ -248,46 +181,409 @@ mergeCBS <- function(object) {
 
 
 
+pSegmentPSW <- function(common.dat,
+                 acghdata,
+                 chrom.numeric,
+                 sign,
+                 nIter,
+                 prec,
+                 name = NULL) {
+    numarrays <- ncol(acghdata)
+    ncrom <- length(unique(chrom.numeric))
+    out$Data <- common.dat
+    out$plotData <- list()
+    for(i in 1:numarrays) {
+        tmp <- my.sw3(acghdata[, i], chrom.numeric,
+                      sign = sign, p.crit = p.crit,
+                      main = colnames(acghdata)[i],
+                      nIter = nIter,
+                      prec = prec,
+                      name = paste(name, colnames(acghdata)[i], sep = ""))
+        out$Data <- cbind(out$Data, tmp$out)
+        out$plotData[[i]] <- (tmp$plotdat,
+                              p.crit.bonferroni = tmp$plotdat$p.crit/ncrom)
+    }
+    class(out) <- c(class(out), "CGH.PSW")
+    return(out)
+}
+        
 
-segmentPlot <- function(x, superimposed = FALSE,
-                        html = TRUE, ...) {
+
+segmentPlot <- function(x, geneNames,
+                        superimposed = FALSE,
+                        chrom.numeric = NULL,
+                        cghdata = NULL,
+                        arraynames = NULL,
+                        html = TRUE,
+                        yminmax = NULL,
+                        numarrays = NULL,
+                        ...) {
+    if(is.null(numarrays)) {
+        if(!is.null(arraynames)) numarrays <- length(arraynames)
+        if(!is.null(cghdata)) numarrays <- ncol(cghdata)
+    }
+    if(is.null(yminmax)) {
+        yminmax <- c(min(as.matrix(cghdata)),
+                     max(as.matrix(cghdata)))
+    }
     classx <- inherits(x, c("DNAcopy", "CGH.wave", "CGH.PSW",
-                            "CGH.ACE.summary", "mergedDNAcopy")
+                            "CGH.ACE.summary", "mergedDNAcopy"))
     if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
             for(i in 1:numarrays) {
                 plot.olshen2(x,
-                             i, main = colnames(xcenter)[i],
-                             html = TRUE)
+                             i, main = arraynames[i],
+                             html = TRUE,
+                             geneNames = geneNames)
             }
         } else {
-            plot.olshen3(x, html = html
-                         main = "All_arrays", ylim = c(ymin, ymax),
+            plot.olshen3(x, html = html, geneNames = geneNames,
+                         main = "All_arrays", ylim = yminmax,
                          html = html) ## all genome
             
-            plot.olshen4(x,
-                         main = "All_arrays", ylim = c(ymin, ymax),
+            plot.olshen4(x,  geneNames = geneNames,
+                         main = "All_arrays", ylim = yminmax,
                          html = html) ## by chromosome
         }
     } else if(inherits(x, "mergedDNAcopy")) {
         if(!superimposed) {
             for(i in 1:numarrays) {
-                plot.ace2(xmerged_segments, positions.merge1$chrom.numeric, arraynum = i,
-                          main = colnames(xcenter)[i])
+                plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
+                          main = arraynames[i])
             }
         } else {
-            plot.ace3(merged_segments$segm, merged_segments$chrom.numeric, 
+            plot.ace3(x, chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
-                      ylim = c(ymin, ymax),
+                      ylim = yminmax,
                       pch = "")
-            plot.ace4(merged_segments$segm, merged_segments$chrom.numeric, 
+            plot.ace4(x, chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
-                      ylim = c(ymin, ymax))
+                      ylim = yminmax)
         }
     } else if(inherits(x, "CGH.ACE.summary")) {
-        
-    } else if(inherits(x, "mergedDNAcopy")) {
+        if(!superimposed) {
+            for(i in 1:numarrays) {
+                plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
+                          main = arraynames[i])
+            }
+        } else {
+            plot.ace3(x, chrom.numeric,  geneNames = geneNames,
+                      main = "All_arrays",
+                      ylim = yminmax,
+                      pch = "")
+            plot.ace4(x, chrom.numeric,  geneNames = geneNames,
+                      main = "All_arrays",
+                      ylim = yminmax)
+        }
+    } else if(inherits(x, "CGH.wave")) {
+        if(!superimposed) {
+            for(i in 1:numarrays) {
+                plot.wavelets2(x, cghdata, chrom.numeric, arraynum = i,
+                               geneNames = geneNames,
+                               main = arraynames[i])
+            }
+        } else {
+            plot.wavelets3(x, cghdata, chrom.numeric,  geneNames = geneNames,
+                           main = "All_arrays",
+                           ylim = yminmax,
+                           pch = "")
+            plot.wavelets4(x, cghdata, chrom.numeric,  geneNames = geneNames,
+                           main = "All_arrays",
+                           ylim = yminmax)
+        }
+    } else if(inherits(x, "CGH.PSW")) {
+        if(x$plotData[[i]]$sign < 0) {
+            main <- "Losses."
+        } else {
+            main <- "Gains."
+        }
+        for(i in 1:numarrays) {
+            sw.plot3(x$plotData[[i]]$logratio, sign=x$plotData[[i]]$sign,
+                     swt.perm = x$plotData[[i]]$swt.perm, rob = x$plotData[[i]]$rob,
+                     swt.run = x$plotData[[i]]$swt.run,
+                     p.crit = x$plotData[[i]]$p.crit.bonferroni,
+                     chrom = x$plotData[[i]]$chrom,
+                     main = paste(main, arraynames[i], sep = ""),
+                     geneNames = geneNames)
+        }
     }
+}
+  
+
+
+
+writeResults <- function(obj, ...) {
+    UseMethod("writeResults", ...)
+}
+
+writeResults.CGH.PSW <- function(obj, file = "PSW.output.txt") {
+    write.table(obj, file = file,
+                sep = "\t", col.names = NA,
+                row.names = TRUE, quote = FALSE)
+}
+
+writeResults.CGH.ACE.summary <- function(obj, file = "ACE.output.txt") {
+    print.ACE.results(obj, output = file)
+}
+
+writeResults.CGH.wave <- function(obj, acghdata, commondata,
+                                  file = "wavelet.output.txt") {
+    print.wavelets.results(obj, acghdata, commondata, output = file)
+}
+
+writeResults.DNAcopy <- function(obj, acghdata, commondata, merged = NULL,
+                                 output = "CBS.output.txt") {
+    print.olshen.results(obj, acghdata, commondata,
+                         merged = merged, output = output) 
+}
+
+
+
+DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
+                                   array.chrom = FALSE, chrom.numeric = NULL) {
+    numarrays <- ncol(CNA.object) - 2
+    if(!array.chrom) {
+        par(pty = "s")
+        for(i in 1:numarrays)
+            plot(CNA.object[, (i + 2)], smoothed.CNA.object[, (i + 2)],
+                 main = colnames(CNA.object[i + 2]),
+                 xlab = "Original data", ylab = "Smoothed data")
+    } else {
+        par(pty = "s")
+        for(i in 1:numarrays) {
+        ##    par(mfrow = c(4, 6))
+            ncr <- unique(chrom.numeric)
+            for(j in ncr) {
+                x <- CNA.object[chrom.numeric == j, (i + 2)]
+                y <- smoothed.CNA.object[chrom.numeric == j, (i + 2)]
+                plot(x, y,
+                     main = paste(colnames(CNA.object[i+2]), "; Chr ", j, sep = ""),
+                     xlab = "Original data", ylab = "Smoothed data")
+            }
+        }
+    }
+}
+
+
+WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
+    numarrays <- ncol(acghdata)
+    if(numarrays < 2) {
+        stop("Only one array. No histogram possible")
+    }
+    ncrom <- length(unique(chrom.numeric))
+    dat <- as.matrix(acghdata)
+    ar1s <- matrix(nrow = numarrays, ncol = ncrom)
+    for(cn in 1:ncrom) { ## zz: parallelize this?
+        index.dat <- which(chrom.numeric == cn)
+        for(subject in 1:numarrays) {
+            trythis <- try(
+            ar1s[subject, cn] <-
+                as.vector(acf(dat[index.dat, subject],
+                              lag.max = 1, plot = FALSE)$acf)[2]
+                           )
+            if(class(trythis) == "try-error")
+                caughtOurError(paste("acf bombed unexpectedly with error",
+                                     trythis, ". \n Please let us know so we can fix the code."))
+
+        }
+    }
+    rm(cn, subject, index.dat)
+    ##         pdf("Autocorrelation.plots.pdf", width = 17.6, height = 12.5)
+    ##        par(mfrow = c(6,4))
+    ##        par(oma = c(2, 2, 2, 2))
+    for(i in 1:ncrom)
+        hist(ar1s[, i], main = paste("Chr", i), xlab = "Autocorrelation, lag 1")
+    mtext("Autocorrelation coefficient lag 1", side = 3,
+          outer = TRUE, line = 0.5, font = 2)
+    ##        dev.off()
+
+}
+
+
+
+
+pSegmentWavelets <- function(dat, chrom, minDiff, thrLvl = 3) {
+## level to use for wavelet decomposition and thresholding
+## The 'recommended' level is floor(log2(log(N)+1)), which
+## equals 3 for:  21 <= N <= 1096
+##    thrLvl <- 3
+
+    ncloneschrom <- tapply(dat[, 1], chrom, function(x) length(x))
+    if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
+        warningsForUsers <-
+            c(warningsForUsers,
+              paste("The number of clones/genes is either",
+                    "larger than 1096 or smaller than 21",
+                    "in at least one chromosome. The wavelet",
+                    "thresholding of 3 might not be appropriate."))
+    
+    Nsamps  <- ncol(dat)
+    uniq.chrom <- unique(chrom)
+
+## construct the list:
+## the code below gives some partial support for missings.
+    ##  but I need to carry that along, and since we are not dealing
+    ##  with missings now, I just re-writte ignoring any NA,
+    ##  since, by decree, we have no NAs.
+##     datalist <- list()
+##     klist <- 1
+##     for(i in 1:Nsamps) {
+##         ratio.i <- dat[,i]
+##         noNA  <- !is.na(ratio.i)
+##         for (j in uniq.chrom) {
+##             chr.j <- (chrom == j)
+##             use.ij <- which(noNA & chr.j)
+##             datalist[klist] <- ratio.i[use.ij]
+##             klist <- klist + 1
+##         }
+##     }
+
+    datalist <- list()
+    klist <- 1
+    for(i in 1:Nsamps) {
+        ratio.i <- dat[,i]
+        for (j in uniq.chrom) {
+            chr.j <- (chrom == j)
+            use.ij <- which(chr.j)
+            datalist[[klist]] <- ratio.i[use.ij]
+            klist <- klist + 1
+        }
+    }
+    
+    funwv <- function(ratio) {
+        wc   <- modwt(ratio, "haar", n.levels=thrLvl)
+        
+        ## These are the three different thresholding functions used
+        ##thH  <- our.sure(wc, max.level=thrLvl, hard=FALSE)
+        thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
+        ##thH  <- nominal.thresh(wc, max.level=thrLvl, hard=FALSE, sig=.05)
+            
+        ## reconstruct the thresheld ('denoised') data
+        recH <- imodwt(thH)
+        
+        ## Categorize the denoised data then combine ("merge") levels that
+        ## have predicted values with an absolute difference < 'minDiff' 
+        pred.ij <- segmentW(ratio, recH, minDiff=minDiff)
+        labs <- as.character(1:length(unique(pred.ij)))
+        state <- as.integer(factor(pred.ij, labels=labs))
+        return(list(pred.ij = pred.ij, state = state))
+    }
+
+    papout <- papply(datalist, funwv,
+                     papply_commondata =list(thrLvl = thrLvl,
+                     minDiff = minDiff))
+    pred <- matrix(unlist(lapply(papout, function(x) x$pred.ij)),
+                   ncol = Nsamps)
+    state <- matrix(unlist(lapply(papout, function(x) x$state)),
+                   ncol = Nsamps)
+                   
+    out <- list(Predicted =pred, State = state)
+    class(out) <- c(class(out), "waveCGH")
+    return(out)
+}
+
+pSegmentACE <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
+    ACE(x, Chrom, coefs, Sdev, echo)
+}
+
+
+
+    
+######################################################
+
+#########  Imagemap stuff
+
+
+
+require(GDD)
+require(imagemap)
+
+imClose <- function (im) {
+    ## prevent all the "Closing PNG device ..."
+    dev.off(im$Device)
+}
+
+imagemap3 <- function(filename,width=480,height=480,
+                      title='Imagemap from R', ps = 12){
+
+    GDD(file = paste(filename,".png",sep=''),w=width, h=height,
+        type = "png", ps = ps)	  
+	  
+    im <- list()
+    im$Device <- dev.cur()
+    im$Filename=filename
+    im$Height=height
+    im$Width=width
+    im$Objects <- list()
+    im$HTML <- list()
+    im$title <- title
+    
+    class(im) <- "imagemap"
+    im
+}
+
+linkGene2 <- function(id) {
+    ## Returns a string for use in a web page with a call
+    ## to IDClight.
+    if ((idtype == "None") | (organism == "None"))
+        return(id)
+    else 
+        paste("http://idclight.bioinfo.cnio.es/IDClight.prog",
+              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
+              organism, sep = "")
+}
+
+linkGene <- function(id) {
+    ## Returns a string for use in a web page with a call
+    ## to IDClight.
+    if ((idtype == "None") | (organism == "None"))
+        return(id)
+    else 
+        paste("<a href=\"http://idclight.bioinfo.cnio.es/IDClight.prog",
+              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
+              organism," target=\"icl_window\"\">",id,"</a>", sep = "")
+}
+
+
+createIM2 <- function(im, file = "", imgTags = list(),
+                      title = "Genome View") {
+    cat(paste("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n",
+              "<html> <head> <title>", title, "</title></head><body>"),
+        file = file)
+    cat(buildIM(im, imgTags), sep = "\n", file = file, append = TRUE)
+    cat("</body></html>", file = file, append = TRUE)
+}
+
+
+#######################################################
+#######################################################
+#######################################################
+###
+###                 DNA copy
+###                 Olshen and Venkatraman
+###
+#######################################################
+#######################################################
+#######################################################
+
+
+
+
+
+
+mpiCBS <- function() {
+    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+    mpi.remote.exec(library(cghMCR))
+    mpi.remote.exec(library(cluster))
+    mpi.remote.exec(library(DNAcopy))
+    mpi.remote.exec(library(ADaCGH2))
+    mpi.remote.exec(library(aCGH))
+}
+
+
+                       
+
+                       
 
 
 
@@ -633,16 +929,17 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
 ### Plateau plots by Olshen 
 
 print.olshen.results <- function(res, xcenter,
+                                 commondata,
                                  merged = NULL,
                                  output = "CBS.results.txt"){
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
 
-    out <- data.frame(ID = positions.merge1$name,
-                      Chromosome = positions.merge1$chromosome,
-                      Start = positions.merge1$start,
-                      End = positions.merge1$end,
-                      MidPoint = positions.merge1$MidPoint)
+    out <- data.frame(ID = commondata$name,
+                      Chromosome = commondata$chromosome,
+                      Start = commondata$start,
+                      End = commondata$end,
+                      MidPoint = commondata$MidPoint)
 
     for(i in 1:ncol(xcenter)) {
         tmp <- res$output[res$output$ID == colnames(res$data)[2 + i], ]
@@ -1677,16 +1974,16 @@ plot.wavelets <- function(res, xdata, chrom,
 
 
 
-print.wavelets.results <- function(res, xcenter, output =
+print.wavelets.results <- function(res, xcenter, commondata, output =
                                    "Wavelets.results.txt"){
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
 
-    out <- data.frame(ID = positions.merge1$name,
-                      Chromosome = positions.merge1$chromosome,
-                      Start = positions.merge1$start,
-                      End = positions.merge1$end,
-                      MidPoint = positions.merge1$MidPoint)
+    out <- data.frame(ID = commondata$name,
+                      Chromosome = commondata$chromosome,
+                      Start = commondata$start,
+                      End = commondata$end,
+                      MidPoint = commondata$MidPoint)
 
     for(i in 1:ncol(xcenter)) {
         t2 <- xcenter[, i]
@@ -2985,7 +3282,6 @@ print.summary.ACE.array <- function(obj) {
 	print(obj)
 	invisible(obj)
 }
-
 
 plot.ace <- function(res, chrom,
                           arraynum, main = NULL,

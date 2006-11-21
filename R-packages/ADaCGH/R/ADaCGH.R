@@ -1,3 +1,8 @@
+
+
+.__ADaCGH_WEB_APPL <- FALSE ## set to TRUE in web appl!
+
+
 ## .First.lib <- function(lib, pkg) {
 ## 	   library.dynam("ADaCGH2", pkg, lib)
 ## 	   }
@@ -33,22 +38,24 @@
 mpiInit <- function() {
     library(Rmpi)
     mpi.spawn.Rslaves(nslaves= mpi.universe.size())
+    mpi.setup.rngstream() ## or mpi.setup.sprng()
+##    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     library(papply)
-    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
-    mpi.remote.exec(library(ADaCGH3))
     mpi.remote.exec(library(cluster))
     mpi.remote.exec(library(waveslim))
     mpi.remote.exec(library(cghMCR))
     mpi.remote.exec(library(DNAcopy))
-    mpi.remote.exec(library(aCGH))
     mpi.remote.exec(library(cgh))
+    mpi.remote.exec(library(ADaCGH))
+    
+
 }
 
 
-pSegmentCBS <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"),
-                    kmax=25, nmin=200, window.size=NULL, overlap=0.25, 
+pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"),
+                    kmax=25, nmin=200, eta = 0.05, window.size=NULL, overlap=0.25, 
                     trim = 0.025, undo.splits=c("none","prune","sdundo"),
-                    undo.prune=0.05, undo.SD=3, verbose=1)
+                    undo.prune=0.05, undo.SD=3)
   {
     if (!inherits(x, 'CNA')) stop("First arg must be a copy number array object")
     call <- match.call()
@@ -87,9 +94,16 @@ pSegmentCBS <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"
                                         #      maploci <- x$maploc[ina]
         sample.lsegs <- NULL
         sample.segmeans <- NULL
+        if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
+            sbdry <- default.DNAcopy.bdry
+        } else {
+            max.ones <- floor(nperm * alpha) + 1
+            sbdry <- getbdry(eta, nperm, max.ones)
+        }
+        sbn <- length(sbdry)
         for (ic in uchrom) {
             segci <- changepoints(genomdati[chromi==ic], data.type, alpha, 
-                                  nperm, p.method, window.size, overlap, kmax,
+                                  sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
                                   nmin, trimmed.SD, undo.splits, undo.prune,
                                   undo.SD, verbose)
             sample.lsegs <- c(sample.lsegs, segci$lseg)
@@ -112,7 +126,7 @@ pSegmentCBS <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"
                     seg.mean = seg.mean,
                     nseg = sample.nseg))
     }
-    
+
     papout <- papply(datalist, funcbs,
                      papply_commondata =list(chrom = x$chrom,
                      uchrom=uchrom,
@@ -125,11 +139,13 @@ pSegmentCBS <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"
                      kmax = kmax,
                      nmin = nmin,
                      trim = trim,
+                     eta = eta,
                      undo.splits = undo.splits,
                      undo.prune = undo.prune,
                      undo.SD = undo.SD,
-                     verbose = 0,
-                     maploc = x$maploc))                     
+                     verbose = 2,
+                     maploc = x$maploc),
+                     do_trace = TRUE)                     
 
     allsegs$chrom <- unlist(lapply(papout, function(x) x$chrom.o))
     allsegs$loc.start <- unlist(lapply(papout, function(x) x$loc.start))
@@ -158,7 +174,8 @@ pSegmentCBS <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"
 
 ## a function that will merge the CBS?
 
-mergeCBS <- function(object) {
+mergeDNAcopy <- function(object) {
+    numarrays <- ncol(object$data) - 2
     ## zz: we must get numarray from object
     
     if(!(inherits(object, "DNAcopy")))
@@ -183,14 +200,12 @@ mergeCBS <- function(object) {
         ref <- rep(0, length(segmentus))
         ref[segmentus2 > classes.ref] <- 1
         ref[segmentus2 < classes.ref] <- -1
-        merged_segments$segm[[arraynum]] <- cbind(maploc = segmentus, obs, ref)
+        merged_segments$segm[[arraynum]] <- cbind(merged.mean = segmentus, obs, alteration = ref)
     }
     class(merged_segments) <- c(class(merged_segments),
                                 "mergedDNAcopy")
     return(merged_segments)
 }    
-
-
 
 
 pSegmentPSW <- function(common.dat,
@@ -323,7 +338,12 @@ segmentPlot <- function(x, geneNames,
 }
   
 
+plateauPlot <- function(obj, ...) {
+    UseMethod("plateauplot", ...)
+}
 
+plateauPlot.DNAcopy <- function() {}
+plateauPlot.CGH.wave <- function() {}
 
 writeResults <- function(obj, ...) {
     UseMethod("writeResults", ...)
@@ -362,6 +382,8 @@ DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
                  main = colnames(CNA.object[i + 2]),
                  xlab = "Original data", ylab = "Smoothed data")
     } else {
+        if(is.null(chrom.numeric))
+            stop("To use array.chom = TRUE you need to provide the vector with chrom. number")
         par(pty = "s")
         for(i in 1:numarrays) {
         ##    par(mfrow = c(4, 6))
@@ -499,6 +521,45 @@ pSegmentACE <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
     ACE(x, Chrom, coefs, Sdev, echo)
 }
 
+
+
+
+
+######################################
+
+
+
+
+
+caughtOurError <- function(message) {
+    if(.__ADaCGH_WEB_APPL) {
+        webPNG("ErrorFigure.png", width = png.width,
+               height = png.height, 
+               pointsize = png.pointsize,
+               family = png.family)
+        plot(x = c(0, 1), y = c(0, 1),
+             type = "n", axes = FALSE, xlab = "", ylab = "")
+        box()
+        text(0.5, 0.7, "There was a PROBLEM with the code.")
+        text(0.5, 0.5,
+             "Please let us know (send us the URL),")
+        
+        text(0.5, 0.3, "so that we can fix it.")
+        dev.off()
+        sink(file = "results.txt")
+        cat(message)
+        sink()
+        sink(file = "exitStatus")
+        cat("Error\n\n")
+        cat(message)
+        sink()
+        quit(save = "no", status = 11, runLast = TRUE)
+    } else {
+        message <- paste("It looks like you found a bug. Please let us know. ", message)
+        stop(message)
+    }
+}
+    
 
 
     
@@ -1403,6 +1464,8 @@ plot.DNAcopy3 <- function (x, plot.type = c("whole", "plateau", "samplebychrom",
 #######################################################
 #######################################################
 
+#### The first part is the code as provided by Hsu and Grove.
+####  Below are my (R.D.-U.) modifications
 
 ####################################################################
 ## Thresholding functions (slightly diff. than ones in 'waveslim'
@@ -1495,7 +1558,7 @@ our.hybrid <- function (wc, max.level = 4, hard=TRUE)
 ## 
 ####################################################################
 
-## I rename segment to segmentW to prevent confussion
+## I (RDU) rename segment to segmentW to prevent confussion
 
 segmentW <- function(obs.dat, rec.dat, minDiff=0.25, n.levels=10) {
     ## 'obs.dat' is OBServed DATa
@@ -2751,143 +2814,141 @@ ace.analysis.C <- function(x, coefs=file.aux, Sdev, array.names="x")
 
 
 ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") {
-
-        
-	Ngenes = length(x)
-	if(is.null(array.names)) array.names <- "x"
-	
-	#Step 1		
-	#Segmentation
-	#Compute running mean
-	
-	yhat <- rep(NA, Ngenes)
-	yhat[1:2] = x[1:2]
-	for (i in 3:(Ngenes - 2)) {
-		yhat[i] = 0;
-		for (j in (i - 2):(i + 2)) {
-			yhat[i] = yhat[i] + x[j]
-			}
-		yhat[i] = yhat[i]/5
-		}
-	yhat[Ngenes - 1] = x[Ngenes - 1]
-	yhat[Ngenes] = x[Ngenes]
-
-	#Find change points
-
-	#nknots <- 0
-	knots <- rep(NA, Ngenes)
-	signo <- (yhat>=0)
-	for (i in 3:(Ngenes-2)) {
-		if(yhat[i-2]>=0 && yhat[i-1]>=0 && yhat[i+1]>=0 && yhat[i+2]>=0) {
-			signo[i] <- TRUE
-			}
+    Ngenes = length(x)
+    if(is.null(array.names)) array.names <- "x"
+    
+                                        #Step 1		
+                                        #Segmentation
+                                        #Compute running mean
+    
+    yhat <- rep(NA, Ngenes)
+    yhat[1:2] = x[1:2]
+    for (i in 3:(Ngenes - 2)) {
+        yhat[i] = 0;
+        for (j in (i - 2):(i + 2)) {
+            yhat[i] = yhat[i] + x[j]
+        }
+        yhat[i] = yhat[i]/5
+    }
+    yhat[Ngenes - 1] = x[Ngenes - 1]
+    yhat[Ngenes] = x[Ngenes]
+    
+                                        #Find change points
+    
+                                        #nknots <- 0
+    knots <- rep(NA, Ngenes)
+    signo <- (yhat>=0)
+    for (i in 3:(Ngenes-2)) {
+        if(yhat[i-2]>=0 && yhat[i-1]>=0 && yhat[i+1]>=0 && yhat[i+2]>=0) {
+            signo[i] <- TRUE
+        }
 		
-		if(yhat[i-2]<0 && yhat[i-1]<0 && yhat[i+1]<0 && yhat[i+2]<0) {
-			signo[i] <- FALSE
-			}
-		}
-	knots <- (1:(Ngenes-1))*(signo[1:(Ngenes-1)]!=signo[2:Ngenes])
-	knots <- knots[knots>0]
-	knots <- c(0, knots, Ngenes)
+        if(yhat[i-2]<0 && yhat[i-1]<0 && yhat[i+1]<0 && yhat[i+2]<0) {
+            signo[i] <- FALSE
+        }
+    }
+    knots <- (1:(Ngenes-1))*(signo[1:(Ngenes-1)]!=signo[2:Ngenes])
+    knots <- knots[knots>0]
+    knots <- c(0, knots, Ngenes)
+    
+    
+                                        #Step 2
+                                        #Feature extraction
+                                        #Compute size, height, first, last tuples
+    
+    Nclusters <- length(knots) - 1
+    first <- knots[1:Nclusters] + 1
+    last <- knots[2:(Nclusters+1)] 
+    size <- last - first + 1
+    height <- mapply(function(first, last) mean(x[first:last]), first=first, last=last)
+    z1 <- size
+    z2 <- abs(height)
+    
+    
 	
-	
-	#Step 2
-	#Feature extraction
-	#Compute size, height, first, last tuples
-
-	Nclusters <- length(knots) - 1
-	first <- knots[1:Nclusters] + 1
-	last <- knots[2:(Nclusters+1)] 
-	size <- last - first + 1
-	height <- mapply(function(first, last) mean(x[first:last]), first=first, last=last)
-	z1 <- size
-	z2 <- abs(height)
-
-	
-	
-	#Step 3
-	#Obtain the null distribution of the (L,H)-pairs
-	
-	#Step 6
-	#Report genes
-	#Adjust start/end positions of clusters
-	#Could be optimized
-	for (j in 1:Nclusters) {
-		fi <- first[j]
-		la <- last[j]
-		err.opt <- 999999999
-		p.opt <- fi
-		q.opt <- la
-		r <- floor(max(0, min(16, (la-fi)/2)-1))
-		for (p in fi:(fi+r)) {
-			for(q in la:(la-r)) {
-				#Hay que vigilar que se cumplan las condiciones de los for
-				e1 <- ifelse(fi<p,sum(x[fi:(p-1)]^2),0)
-				#Hay que vigilar que se cumplan las condiciones de los for
-				e2 <- ifelse(p<=q,sum((x[p:q]-height[j])^2),0)
-				#Hay que vigilar que se cumplan las condiciones de los for
-				e3 <- ifelse(q+1<=la,sum(x[(q+1):la]^2),0)
-				err <- (e1 + e2 + e3) /(la-fi)
-				##In case that (la-fi)==0
-				err <- ifelse(is.nan(err), 99999999999, err)
-				if (err < err.opt) {
-					err.opt <- err
-					p.opt <- p
-					q.opt <- q
-					}
-				}
-			}
-		if(echo) {
-			cat("\nUpdated:", p.opt, "-->", q.opt)
-			}
-		first[j] <- p.opt
-		last[j] <- q.opt
-		size[j] <- q.opt - p.opt + 1
-	}
-	alpha1 <- coefs$alpha1 * Sdev
-        alpha2 <- coefs$alpha2 * Sdev
-	beta1 <- coefs$beta1 * Sdev
-	beta2 <- coefs$beta2 * Sdev
-	#Step 4
-	#Find significant genes
-	#Determine which clusters are inside/outside
-	Nlevels <- nrow(coefs)
-	called <- matrix(NA, Nlevels, Nclusters)
-	
-	v1 <- t(as.matrix(mapply(function(alpha1, beta1) {								                        z2-(alpha1+beta1*z1) }
-		  , alpha1=alpha1, beta1=beta1)))
-	v2 <- t(as.matrix(mapply(function(alpha2, beta2) {
-	            z2-(alpha2+beta2*z1) }
-	           , alpha2=alpha2, beta2=beta2)))
-	###Check that mapply left the matrix in good shape
-	if (nrow(v1)!=Nlevels) {
-		v1 <- t(v1)
-		 }
-	if (nrow(v2)!=Nlevels) {
-	        v2 <- t(v2)
-	         }
-	#number of rejections
-	called <- !(v1<=0 & v2>=0)
-																														
-	#Step 5
-	#Estimate the positive false discovery rate
-
-	
-	ACEPgene <- coefs$Pgene
-	calledClusters <- apply(called, 1, sum)
-	calledGenes <- rep(NA, Nlevels)
-	for (i in 1:Nlevels) {
-		calledGenes[i] <- sum(last[called[i,]] - 
-				first[called[i,]] + 1)
-			
-		}
-
-	FDR <- Ngenes*(1-ACEPgene)/calledGenes	
-
-	ace <- list(x, FDR, calledGenes, Sdev, called, ACEPgene, first, last)
-	names(ace) <- c(array.names, "FDR", "calledGenes", "Sdev", "called", "ACEPgene", "first", "last")
-	class(ace) <- "ACE.analysis"
-	ace
+                                        #Step 3
+                                        #Obtain the null distribution of the (L,H)-pairs
+    
+                                        #Step 6
+                                        #Report genes
+                                        #Adjust start/end positions of clusters
+                                        #Could be optimized
+    for (j in 1:Nclusters) {
+        fi <- first[j]
+        la <- last[j]
+        err.opt <- 999999999
+        p.opt <- fi
+        q.opt <- la
+        r <- floor(max(0, min(16, (la-fi)/2)-1))
+        for (p in fi:(fi+r)) {
+            for(q in la:(la-r)) {
+                                        #Hay que vigilar que se cumplan las condiciones de los for
+                e1 <- ifelse(fi<p,sum(x[fi:(p-1)]^2),0)
+                                        #Hay que vigilar que se cumplan las condiciones de los for
+                e2 <- ifelse(p<=q,sum((x[p:q]-height[j])^2),0)
+                                        #Hay que vigilar que se cumplan las condiciones de los for
+                e3 <- ifelse(q+1<=la,sum(x[(q+1):la]^2),0)
+                err <- (e1 + e2 + e3) /(la-fi)
+                ##In case that (la-fi)==0
+                err <- ifelse(is.nan(err), 99999999999, err)
+                if (err < err.opt) {
+                    err.opt <- err
+                    p.opt <- p
+                    q.opt <- q
+                }
+            }
+        }
+        if(echo) {
+            cat("\nUpdated:", p.opt, "-->", q.opt)
+        }
+        first[j] <- p.opt
+        last[j] <- q.opt
+        size[j] <- q.opt - p.opt + 1
+    }
+    alpha1 <- coefs$alpha1 * Sdev
+    alpha2 <- coefs$alpha2 * Sdev
+    beta1 <- coefs$beta1 * Sdev
+    beta2 <- coefs$beta2 * Sdev
+                                        #Step 4
+                                        #Find significant genes
+                                        #Determine which clusters are inside/outside
+    Nlevels <- nrow(coefs)
+    called <- matrix(NA, Nlevels, Nclusters)
+    
+    v1 <- t(as.matrix(mapply(function(alpha1, beta1) {								                        z2-(alpha1+beta1*z1) }
+                             , alpha1=alpha1, beta1=beta1)))
+    v2 <- t(as.matrix(mapply(function(alpha2, beta2) {
+        z2-(alpha2+beta2*z1) }
+                             , alpha2=alpha2, beta2=beta2)))
+###Check that mapply left the matrix in good shape
+    if (nrow(v1)!=Nlevels) {
+        v1 <- t(v1)
+    }
+    if (nrow(v2)!=Nlevels) {
+        v2 <- t(v2)
+    }
+                                        #number of rejections
+    called <- !(v1<=0 & v2>=0)
+    
+                                        #Step 5
+                                        #Estimate the positive false discovery rate
+    
+    
+    ACEPgene <- coefs$Pgene
+    calledClusters <- apply(called, 1, sum)
+    calledGenes <- rep(NA, Nlevels)
+    for (i in 1:Nlevels) {
+        calledGenes[i] <- sum(last[called[i,]] - 
+                              first[called[i,]] + 1)
+        
+    }
+    
+    FDR <- Ngenes*(1-ACEPgene)/calledGenes	
+    
+    ace <- list(x, FDR, calledGenes, Sdev, called, ACEPgene, first, last)
+    names(ace) <- c(array.names, "FDR", "calledGenes", "Sdev", "called", "ACEPgene", "first", "last")
+    class(ace) <- "ACE.analysis"
+    ace
 }
 
 sd.ACE.analysis<- function(obj.ACE.analysis) {

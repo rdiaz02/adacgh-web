@@ -1,0 +1,47 @@
+\name{WaveletsDiagnosticPlots}
+\alias{WaveletsDiagnosticPlots}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{Diagnostic plots for wavelet-based smoothing of aCGH data.}
+\description{
+  Lag-1 autocorrealtions by chromosome for the aCGH data, following a
+  suggestion in the paper by Hsu et al. 2005.}
+\usage{
+WaveletsDiagnosticPlots(acghdata, chrom.numeric)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{acghdata}{The data frame or matrix with the aCGH data. We expect
+    samples in columns and genes/clones in rows. No additional columns
+    (names, locations, etc) should be given to this function.}
+  \item{chrom.numeric}{A vector with the chromosome indicator. It must
+    be a numeric vector.}
+}
+\value{Only used for its side effects of producing a figure.}
+\references{
+  Hsu, L.  and Self, S. G.  and Grove, D.  and Randolph, T.  and Wang,
+  K.  and Delrow, J. J.  and Loo, L.  and Porter, P. (2005). Denoising
+  array-based comparative genomic hybridization data using
+  wavelets. \emph{Biostatistics}, \bold{2}, 211--216.
+
+Díaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
+web-based application for the analysis of aCGH data. Tech. report.
+\url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
+\url{http://adacgh.bioinfo.cnio.es}.
+}
+\author{Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}}
+
+\seealso{\code{\link{pSegmentWavelets}}}
+\examples{
+data(cghMCRe)
+
+chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
+chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
+chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+
+par(mfrow = c(5, 5))
+WaveletsDiagnosticPlots(cghMCRe[, 5:7], chrom.numeric)
+}
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+\keyword{ hplot }
+

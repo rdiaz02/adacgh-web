@@ -1,0 +1,27 @@
+useDynLib(ADaCGH)
+
+export("mpiInit",
+       "pSegmentDNAcopy",
+       "pSegmentACE",
+       "pSegmentPSW",
+       "pSegmentWavelets",
+       "segmentPlot",
+       "mergeDNAcopy",
+       "DNAcopyDiagnosticPlots",
+       "WaveletsDiagnosticPlots"
+       "plateauPlot"
+       )
+
+
+S3method(summary, ACE)
+S3method(print, summary.ACE)
+S3method(summary, ACE.array)
+S3method(print, summary.ACE.array)
+
+S3method(writeResults, CGH.PSW)
+S3method(writeResults, CGH.ACE.summary)
+S3method(writeResults, CGH.wave)
+S3method(writeResults, DNAcopy)
+
+S3method(plateauPlot, DNAcopy)
+S3method(plateauPlot, CGH.wave)

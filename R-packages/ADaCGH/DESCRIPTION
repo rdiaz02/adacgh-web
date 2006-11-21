@@ -1,10 +1,10 @@
-Package: ADaCGH3
-Version: 0.8-3
-Date: 2005-10-03
+Package: ADaCGH
+Version: 0.9-1
+Date: 2006-11-22
 Title: Analysis of data from aCGH experiments
 Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <omrueda@cnio.es>
 Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>
-Depends: R (>= 2.4.0), cgh, cghMCR, DNAcopy, papply, GDD, imagemap, waveslim
+Depends: R (>= 2.4.0), cgh, aCGH, cghMCR, DNAcopy, papply, GDD, imagemap, waveslim
 Suggests: Rmpi
 Description: Analysis and plotting of array CGH data. Allows usage of
 	     Circular Binary Segementation, wavelet-based smoothing, ACE

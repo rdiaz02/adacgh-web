@@ -214,6 +214,7 @@ pSegmentPSW <- function(common.dat,
                  sign,
                  nIter,
                  prec,
+                        p.crit = 0.10,
                  name = NULL) {
     numarrays <- ncol(acghdata)
     ncrom <- length(unique(chrom.numeric))

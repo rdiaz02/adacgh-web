@@ -1,9 +1,9 @@
 \name{pSegmentDNAcopy}
 \alias{pSegmentDNAcopy}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{ Parallelized version of \code{\link[DNAopy]{segment}} }
+\title{ Parallelized version of \code{\link[DNAcopy]{segment}} }
 \description{
-  This function is a parallelized version (suing papply and Rmpi) of \code{\link[DNAopy]{segment}}.
+  This function is a parallelized version (using papply and Rmpi) of \code{\link[DNAopy]{segment}}.
 }
 \usage{
 
@@ -31,7 +31,7 @@ pSegmentDNAcopy(x, alpha = 0.01, nperm = 10000,
   \item{undo.SD}{See \code{\link[DNAcopy]{segment}} }
 }
 \details{
-  You should only use this functino if you are using two or more CPUs.
+  You should only use this function if you are using two or more CPUs.
 }
 \value{
   See \code{\link[DNAcopy]{segment}}

@@ -16,7 +16,11 @@
 #library("cluster")  
 ##dyn.load("ADaCGH2.so")
 
-
+if(.__ADaCGH_WEB_APPL) {
+    warningsForUsers <- vector()
+} else {
+    warningsForUsers <- warning
+}
 
 
 
@@ -209,15 +213,16 @@ mergeDNAcopy <- function(object) {
 
 
 pSegmentPSW <- function(common.dat,
-                 acghdata,
-                 chrom.numeric,
-                 sign,
-                 nIter,
-                 prec,
+                        acghdata,
+                        chrom.numeric,
+                        sign = -1,
+                        nIter = 1000,
+                        prec = 100,
                         p.crit = 0.10,
-                 name = NULL) {
+                        name = NULL) {
     numarrays <- ncol(acghdata)
     ncrom <- length(unique(chrom.numeric))
+    out <- list()
     out$Data <- common.dat
     out$plotData <- list()
     for(i in 1:numarrays) {
@@ -372,6 +377,96 @@ writeResults.DNAcopy <- function(obj, acghdata, commondata, merged = NULL,
 }
 
 
+pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25, thrLvl = 3,
+                             initClusterLevels = 10) {
+## level to use for wavelet decomposition and thresholding
+## The 'recommended' level is floor(log2(log(N)+1)), which
+## equals 3 for:  21 <= N <= 1096
+##    thrLvl <- 3
+
+    ncloneschrom <- tapply(acghdata[, 1], chrom, function(x) length(x))
+    if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
+        warningsForUsers <-
+            c(warningsForUsers,
+              paste("The number of clones/genes is either",
+                    "larger than 1096 or smaller than 21",
+                    "in at least one chromosome. The wavelet",
+                    "thresholding of 3 might not be appropriate."))
+    
+    Nsamps  <- ncol(acghdata)
+    uniq.chrom <- unique(chrom)
+
+## construct the list:
+## the code below gives some partial support for missings.
+    ##  but I need to carry that along, and since we are not dealing
+    ##  with missings now, I just re-writte ignoring any NA,
+    ##  since, by decree, we have no NAs.
+##     datalist <- list()
+##     klist <- 1
+##     for(i in 1:Nsamps) {
+##         ratio.i <- dat[,i]
+##         noNA  <- !is.na(ratio.i)
+##         for (j in uniq.chrom) {
+##             chr.j <- (chrom == j)
+##             use.ij <- which(noNA & chr.j)
+##             datalist[klist] <- ratio.i[use.ij]
+##             klist <- klist + 1
+##         }
+##     }
+
+    datalist <- list()
+    klist <- 1
+    for(i in 1:Nsamps) {
+        ratio.i <- acghdata[,i]
+        for (j in uniq.chrom) {
+            chr.j <- (chrom == j)
+            use.ij <- which(chr.j)
+            datalist[[klist]] <- ratio.i[use.ij]
+            klist <- klist + 1
+        }
+    }
+    
+    funwv <- function(ratio) {
+        wc   <- modwt(ratio, "haar", n.levels=thrLvl)
+        
+        ## These are the three different thresholding functions used
+        ##thH  <- our.sure(wc, max.level=thrLvl, hard=FALSE)
+        thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
+        ##thH  <- nominal.thresh(wc, max.level=thrLvl, hard=FALSE, sig=.05)
+            
+        ## reconstruct the thresheld ('denoised') data
+        recH <- imodwt(thH)
+        
+        ## Categorize the denoised data then combine ("merge") levels that
+        ## have predicted values with an absolute difference < 'minDiff' 
+        pred.ij <- segmentW(ratio, recH, minDiff=minDiff, n.levels = initClusterLevels)
+        labs <- as.character(1:length(unique(pred.ij)))
+        state <- as.integer(factor(pred.ij, labels=labs))
+        return(list(pred.ij = pred.ij, state = state))
+    }
+    browser()
+    papout <- papply(datalist, funwv,
+                     papply_commondata =list(thrLvl = thrLvl,
+                     minDiff = minDiff))
+    pred <- matrix(unlist(lapply(papout, function(x) x$pred.ij)),
+                   ncol = Nsamps)
+    state <- matrix(unlist(lapply(papout, function(x) x$state)),
+                   ncol = Nsamps)
+                   
+    out <- list(Predicted =pred, State = state)
+    class(out) <- c(class(out), "waveCGH")
+    return(out)
+}
+
+pSegmentACE <- function(acghdata, chrom.numeric,  echo=FALSE) {
+    ACE(acghdata, chrom.numeric, echo, coefs = file.aux, Sdev = 0.2)
+}
+
+
+
+
+
+######################################
 
 DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
                                    array.chrom = FALSE, chrom.numeric = NULL) {
@@ -436,97 +531,6 @@ WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
 }
 
 
-
-
-pSegmentWavelets <- function(dat, chrom, minDiff, thrLvl = 3) {
-## level to use for wavelet decomposition and thresholding
-## The 'recommended' level is floor(log2(log(N)+1)), which
-## equals 3 for:  21 <= N <= 1096
-##    thrLvl <- 3
-
-    ncloneschrom <- tapply(dat[, 1], chrom, function(x) length(x))
-    if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
-        warningsForUsers <-
-            c(warningsForUsers,
-              paste("The number of clones/genes is either",
-                    "larger than 1096 or smaller than 21",
-                    "in at least one chromosome. The wavelet",
-                    "thresholding of 3 might not be appropriate."))
-    
-    Nsamps  <- ncol(dat)
-    uniq.chrom <- unique(chrom)
-
-## construct the list:
-## the code below gives some partial support for missings.
-    ##  but I need to carry that along, and since we are not dealing
-    ##  with missings now, I just re-writte ignoring any NA,
-    ##  since, by decree, we have no NAs.
-##     datalist <- list()
-##     klist <- 1
-##     for(i in 1:Nsamps) {
-##         ratio.i <- dat[,i]
-##         noNA  <- !is.na(ratio.i)
-##         for (j in uniq.chrom) {
-##             chr.j <- (chrom == j)
-##             use.ij <- which(noNA & chr.j)
-##             datalist[klist] <- ratio.i[use.ij]
-##             klist <- klist + 1
-##         }
-##     }
-
-    datalist <- list()
-    klist <- 1
-    for(i in 1:Nsamps) {
-        ratio.i <- dat[,i]
-        for (j in uniq.chrom) {
-            chr.j <- (chrom == j)
-            use.ij <- which(chr.j)
-            datalist[[klist]] <- ratio.i[use.ij]
-            klist <- klist + 1
-        }
-    }
-    
-    funwv <- function(ratio) {
-        wc   <- modwt(ratio, "haar", n.levels=thrLvl)
-        
-        ## These are the three different thresholding functions used
-        ##thH  <- our.sure(wc, max.level=thrLvl, hard=FALSE)
-        thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
-        ##thH  <- nominal.thresh(wc, max.level=thrLvl, hard=FALSE, sig=.05)
-            
-        ## reconstruct the thresheld ('denoised') data
-        recH <- imodwt(thH)
-        
-        ## Categorize the denoised data then combine ("merge") levels that
-        ## have predicted values with an absolute difference < 'minDiff' 
-        pred.ij <- segmentW(ratio, recH, minDiff=minDiff)
-        labs <- as.character(1:length(unique(pred.ij)))
-        state <- as.integer(factor(pred.ij, labels=labs))
-        return(list(pred.ij = pred.ij, state = state))
-    }
-
-    papout <- papply(datalist, funwv,
-                     papply_commondata =list(thrLvl = thrLvl,
-                     minDiff = minDiff))
-    pred <- matrix(unlist(lapply(papout, function(x) x$pred.ij)),
-                   ncol = Nsamps)
-    state <- matrix(unlist(lapply(papout, function(x) x$state)),
-                   ncol = Nsamps)
-                   
-    out <- list(Predicted =pred, State = state)
-    class(out) <- c(class(out), "waveCGH")
-    return(out)
-}
-
-pSegmentACE <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
-    ACE(x, Chrom, coefs, Sdev, echo)
-}
-
-
-
-
-
-######################################
 
 
 
@@ -1618,11 +1622,6 @@ segmentW <- function(obs.dat, rec.dat, minDiff=0.25, n.levels=10) {
 }
 ####################################################################
 
-
-
-### see their "wavelet_script.R"
-##### I (R.D.U.) wrap the code in wavelet_script.R, to make it simpler
-##### to play with minDiff.
 
 
 mpiWave <- function() {
@@ -3190,6 +3189,8 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
 	class(res) <- c("summary.ACE", "CGH.ACE.summary")
 	res <- do.call("rbind", res)
 	rownames(res) <- 1:nrow(res)
+        ncr <- ncol(res) - 1
+        colnames(res)[-1] <- paste(c("sample.", "Gain.Loss."), rep((1:ncr), rep(2, ncr)))
 	res
 }
 

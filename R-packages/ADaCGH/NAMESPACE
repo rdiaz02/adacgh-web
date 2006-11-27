@@ -7,8 +7,6 @@ export("mpiInit",
        "pSegmentWavelets",
        "segmentPlot",
        "mergeDNAcopy",
-       "DNAcopyDiagnosticPlots",
-       "WaveletsDiagnosticPlots"
        "plateauPlot"
        )
 

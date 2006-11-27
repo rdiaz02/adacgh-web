@@ -37,11 +37,17 @@ pSegmentDNAcopy(x, alpha = 0.01, nperm = 10000,
   See \code{\link[DNAcopy]{segment}}
 }
 \references{
- Olshen, A. B., Venkatraman, E. S., Lucito, R., Wigler, M. (2004).
-     Circular binary segmentation for the analysis of array-based DNA
-     copy number data.  _Biostatistics_ 5: 557-572. <URL:
-     http://www.mskcc.org/biostat/~olshena/research.>
-     }
+    Olshen, A. B.  and Venkatraman, E. S.  and Lucito, R.  and Wigler,
+  M. (2004) Circular binary segmentation for the analysis of array-based
+  DNA copy number data. \emph{Biostatistics}, \bold{4}, 557--572.
+  \url{http://www.mskcc.org/biostat/~olshena/research}.
+
+  Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
+  web-based application for the analysis of aCGH data. Tech. report.
+  \url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
+  \url{http://adacgh.bioinfo.cnio.es}.
+
+}
 
 \author{ E. S. Venkatraman and Adam Olshen \email{olshena@mskcc.org};
   parallelization by Ramon Diaz-Uriarte \email{rdiaz02@gmail.com} }

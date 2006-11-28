@@ -6,17 +6,12 @@ nameMap = sys.argv[1]
 idtype = sys.argv[2]
 organism = sys.argv[3]
 
-#nameMap = 'Chr1@yetAnother@88'
-#idtype = 'acc'
-#organism = 'Hs'
 
 nameSrc = nameMap + '.png'
 nameHTML = nameMap + '.html'
 
 gene_F = open('geneNamesChr', mode = 'r')
 gene_Names = [L.rstrip('\n') for L in gene_F]
-## gene_Names = gene_F.read().split('\n') this leaves a trailing 
-## empty line
 gene_F.close()
 map_F = open('pngCoordChr', mode = 'r')
 map_coord = [L.rstrip('\n') for L in map_F]

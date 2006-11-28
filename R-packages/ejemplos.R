@@ -1,23 +1,5 @@
-par(mfrow = c(1, 3))
-DNAcopyDiagnosticPlots(CNA.object,
-                       smoothed.CNA.object)
-
-par(mfrow = c(3, 3))
-par(ask = TRUE)
-DNAcopyDiagnosticPlots(CNA.object,
-                       smoothed.CNA.object, array.chrom = TRUE,
-                       chrom.numeric = chrom.numeric)
 
 #####################
-
-data(cghMCRe)
-
-chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
-chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
-chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
-
-par(mfrow = c(5, 5))
-WaveletsDiagnosticPlots(cghMCRe[, 5:7], chrom.numeric)
 
 
 ################
@@ -99,4 +81,46 @@ chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
 ace.out <- pSegmentACE(cghMCRe[, 5:7], chrom.numeric)
+summary(ace.out)
+
+
+##################
+
+data(cghE1)
+tmpchr <- sub("chr", "", cghE1$Chromosome)
+chrom.numeric <- as.numeric(as.character(tmpchr))
+chrom.numeric[tmpchr == "X"] <- 23
+chrom.numeric[tmpchr == "Y"] <- 24
+rm(tmpchr)
+
+
+## ACE
+ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
+ace.out.sum <- summary(ace.out)
+segmentPlot(ace.out.sum, geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+## DNA copy + merging
+CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
+                  chrom = chrom.numeric,
+                  maploc = 1:nrow(cghMCRe),
+                  data.type = "logratio",
+                  sampleid = colnames(cghMCRe[, 5:7]))
+smoothed.CNA.object <- smooth.CNA(CNA.object)
+dnacopy.out <- segment(smoothed.CNA.object)
+merged.out <- mergeDNAcopy(dnacopy.out)
+
+## PSW
+psw2.out <- pSegmentPSW(cghMCRe[, -c(5:7)], as.matrix(cghMCRe[, 5:7]), chrom.numeric,
+                       sign = - 1, nIter = 5000, prec = 100, p.crit = 0.10)
+
+## wavelets
+wave.out <- pSegmentWavelets(cghMCRe[, 5:7], chrom.numeric)
+
+
+acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')
+acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
 

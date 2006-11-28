@@ -1,5 +1,3 @@
-
-
 .__ADaCGH_WEB_APPL <- FALSE ## set to TRUE in web appl!
 
 
@@ -27,8 +25,8 @@ if(.__ADaCGH_WEB_APPL) {
 ## where do we live? to call the python script
 .calltoMap.py <- function() {
     tmp <- library()[[2]]
-    pathpy <- tmp[which(tmp[, 1] == "ADaCGH3"), 2]
-    .python.call <- paste(pathpy, "/RJaCGH/Python/toMap.py", sep = "")
+    pathpy <- tmp[which(tmp[, 1] == "ADaCGH"), 2]
+    .python.call <- paste(pathpy, "/ADaCGH/Python/toMap.py", sep = "")
     return(.python.call)
 }
 
@@ -244,10 +242,12 @@ pSegmentPSW <- function(common.dat,
 
 
 segmentPlot <- function(x, geneNames,
-                        superimposed = FALSE,
                         chrom.numeric = NULL,
                         cghdata = NULL,
                         arraynames = NULL,
+                        idtype = "ug",
+                        organism = "Hs",
+                        superimposed = FALSE,
                         html = TRUE,
                         yminmax = NULL,
                         numarrays = NULL,
@@ -260,70 +260,87 @@ segmentPlot <- function(x, geneNames,
         yminmax <- c(min(as.matrix(cghdata)),
                      max(as.matrix(cghdata)))
     }
+    if(is.null(arraynames)) arraynames <- colnames(cghdata)
+    if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
+    
     classx <- inherits(x, c("DNAcopy", "CGH.wave", "CGH.PSW",
                             "CGH.ACE.summary", "mergedDNAcopy"))
     if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
-            for(i in 1:numarrays) {
+            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
                 plot.olshen2(x,
                              i, main = arraynames[i],
                              html = TRUE,
-                             geneNames = geneNames)
+                             geneNames = geneNames,
+                             idtype = idtype, organism = organism)
             }
         } else {
             plot.olshen3(x, html = html, geneNames = geneNames,
                          main = "All_arrays", ylim = yminmax,
-                         html = html) ## all genome
+                         html = html,
+                         idtype = idtype, organism = organism) ## all genome
             
             plot.olshen4(x,  geneNames = geneNames,
                          main = "All_arrays", ylim = yminmax,
-                         html = html) ## by chromosome
+                         html = html,
+                         idtype = idtype, organism = organism) ## by chromosome
         }
     } else if(inherits(x, "mergedDNAcopy")) {
         if(!superimposed) {
-            for(i in 1:numarrays) {
+            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
                 plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
-                          main = arraynames[i])
+                          main = arraynames[i],
+                          idtype = idtype, organism = organism)
             }
         } else {
             plot.ace3(x, chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
                       ylim = yminmax,
-                      pch = "")
+                      pch = "",
+                      idtype = idtype, organism = organism)
             plot.ace4(x, chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
-                      ylim = yminmax)
+                      ylim = yminmax,
+                      idtype = idtype, organism = organism)
         }
     } else if(inherits(x, "CGH.ACE.summary")) {
         if(!superimposed) {
-            for(i in 1:numarrays) {
+            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
                 plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
-                          main = arraynames[i])
+                          main = arraynames[i],
+                          idtype = idtype, organism = organism)
             }
         } else {
             plot.ace3(x, chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
                       ylim = yminmax,
-                      pch = "")
+                      pch = "",
+                      idtype = idtype, organism = organism,
+                      arraynums = 1:numarrays)
             plot.ace4(x, chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
-                      ylim = yminmax)
+                      ylim = yminmax,
+                      idtype = idtype, organism = organism,
+                      arraynums = 1:numarrays)
         }
     } else if(inherits(x, "CGH.wave")) {
         if(!superimposed) {
-            for(i in 1:numarrays) {
+            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
                 plot.wavelets2(x, cghdata, chrom.numeric, arraynum = i,
                                geneNames = geneNames,
-                               main = arraynames[i])
+                               main = arraynames[i],
+                               idtype = idtype, organism = organism)
             }
         } else {
             plot.wavelets3(x, cghdata, chrom.numeric,  geneNames = geneNames,
                            main = "All_arrays",
                            ylim = yminmax,
-                           pch = "")
+                           pch = "",
+                           idtype = idtype, organism = organism)
             plot.wavelets4(x, cghdata, chrom.numeric,  geneNames = geneNames,
                            main = "All_arrays",
-                           ylim = yminmax)
+                           ylim = yminmax,
+                           idtype = idtype, organism = organism)
         }
     } else if(inherits(x, "CGH.PSW")) {
         if(x$plotData[[i]]$sign < 0) {
@@ -331,16 +348,20 @@ segmentPlot <- function(x, geneNames,
         } else {
             main <- "Gains."
         }
-        for(i in 1:numarrays) {
+        for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
             sw.plot3(x$plotData[[i]]$logratio, sign=x$plotData[[i]]$sign,
                      swt.perm = x$plotData[[i]]$swt.perm, rob = x$plotData[[i]]$rob,
                      swt.run = x$plotData[[i]]$swt.run,
                      p.crit = x$plotData[[i]]$p.crit.bonferroni,
                      chrom = x$plotData[[i]]$chrom,
                      main = paste(main, arraynames[i], sep = ""),
-                     geneNames = geneNames)
+                     geneNames = geneNames,
+                     idtype = idtype, organism = organism)
         }
+    } else {
+        stop("No plotting for this class of objects")
     }
+    
 }
   
 
@@ -481,7 +502,7 @@ DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
         if(is.null(chrom.numeric))
             stop("To use array.chom = TRUE you need to provide the vector with chrom. number")
         par(pty = "s")
-        for(i in 1:numarrays) {
+        for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
         ##    par(mfrow = c(4, 6))
             ncr <- unique(chrom.numeric)
             for(j in ncr) {
@@ -493,6 +514,18 @@ DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
             }
         }
     }
+
+#####  example
+##### par(mfrow = c(1, 3))
+##### DNAcopyDiagnosticPlots(CNA.object,
+#####                        smoothed.CNA.object)
+
+##### par(mfrow = c(3, 3))
+##### par(ask = TRUE)
+##### DNAcopyDiagnosticPlots(CNA.object,
+#####                        smoothed.CNA.object, array.chrom = TRUE,
+#####                        chrom.numeric = chrom.numeric)
+
 }
 
 
@@ -528,6 +561,17 @@ WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
           outer = TRUE, line = 0.5, font = 2)
     ##        dev.off()
 
+
+
+##### example
+##### data(cghMCRe)
+
+##### chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
+##### chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
+##### chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+
+##### par(mfrow = c(5, 5))
+##### WaveletsDiagnosticPlots(cghMCRe[, 5:7], chrom.numeric)
 }
 
 
@@ -664,7 +708,9 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
                          pch = 20, ylim =NULL, html = TRUE,
                          superimpose = FALSE,
                          nsupimp = 0,
-                         geneNames = positions.merge1$name) {
+                         geneNames = positions.merge1$name,
+                         idtype = idtype,
+                         organism = organism) {
                                         #res is the results
                                         # color code for region status
 ## Like plot.olshen2, but with identifiers and imagemap
@@ -800,7 +846,8 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
 plot.olshen3 <- function(res, arraynums = 1:numarrays, main = NULL,
                          colors = c("orange", "red", "green", "blue"),
                          pch = 20, ylim =NULL, html = TRUE,
-                         geneNames = positions.merge1$name) {
+                         geneNames = positions.merge1$name,
+                         idtype = idtype, organism = organism) {
     ## For superimposed: only all genome plot with map to chromosomes
 
     nameIm <- main
@@ -879,7 +926,9 @@ plot.olshen3 <- function(res, arraynums = 1:numarrays, main = NULL,
 plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
                          colors = c("orange", "red", "green", "blue"),
                          pch = 20, ylim =NULL, html = TRUE,
-                         geneNames = positions.merge1$name) {
+                         geneNames = positions.merge1$name,
+                         idtype = idtype,
+                         organism = organism) {
     ## For superimposed: one plot per chr
 
     nameIm <- main
@@ -1716,10 +1765,11 @@ wave.aCGH <- function(dat, chrom, minDiff) {
 
 
 plot.wavelets2 <- function(res, xdata, chrom,
-                          arraynum, main = NULL,
-                          colors = c("orange", "red", "green", "blue"),
-                          pch = 20, ylim = NULL, html = TRUE,
-                          geneNames = positions.merge1$name) {
+                           arraynum, main = NULL,
+                           colors = c("orange", "red", "green", "blue"),
+                           pch = 20, ylim = NULL, html = TRUE,
+                           geneNames = positions.merge1$name,
+                           idtype = idtype, organism = organism) {
                                         #res is the results
                                         # color code for region status
 
@@ -1833,7 +1883,8 @@ plot.wavelets2 <- function(res, xdata, chrom,
 plot.wavelets3 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NULL,
                          colors = c("orange", "red", "green", "blue"),
                          pch = 20, ylim =NULL, html = TRUE,
-                         geneNames = positions.merge1$name) {
+                         geneNames = positions.merge1$name,
+                           idtype = idtype, organism = organism) {
     ## For superimposed: only all genome plot with map to chromosomes
 
     nameIm <- main
@@ -1901,7 +1952,8 @@ plot.wavelets3 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NU
 plot.wavelets4 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NULL,
                            colors = c("orange", "red", "green", "blue"),
                            pch = 20, ylim =NULL, html = TRUE,
-                           geneNames = positions.merge1$name) {
+                           geneNames = positions.merge1$name,
+                           idtype = idtype, organism = organism) {
     ## For superimposed: one plot per chr
     
     nameIm <- main
@@ -2422,7 +2474,8 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
                       chrom, main,
                       geneNames,
                       html = TRUE,
-                      nameIm = NULL) {   
+                      nameIm = NULL,
+                      idtype = idtype, organism = organism) {   
     ## this puts the chr call
     ## geneNames often = positions.merge1$name
 
@@ -2675,7 +2728,8 @@ sw.plot4 <- function (logratio, location = seq(length(logratio)),
                       p.crit,
                       chrom, main,
                       html = TRUE,
-                      nameIm, geneNames) {
+                      nameIm, geneNames,
+                      idtype = idtype, organism = organism) {
 
     ## this puts the gene names
     
@@ -3120,7 +3174,8 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
         print(paste("Selected index", index))
         cat(FDR.table[index, 3], file ="aceFDR")
 
-        .aceFDR.for.output <<- FDR.table[index, 3] ## xx: oh yes, ugly
+        aceFDR.for.output <- FDR.table[index, 3]
+        
         if(html) {
             ## Place this at bottom of page
             ## what gets change is this itself and the figures
@@ -3190,7 +3245,7 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
 	res <- do.call("rbind", res)
 	rownames(res) <- 1:nrow(res)
         ncr <- ncol(res) - 1
-        colnames(res)[-1] <- paste(c("sample.", "Gain.Loss."), rep((1:ncr), rep(2, ncr)))
+        attr(res, "aceFDR.for.output") <- aceFDR.for.output
 	res
 }
 
@@ -3227,7 +3282,7 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
 	print(FDR.table)
         print(paste("Selected index", index))
         cat(FDR.table[index, 3], file ="aceFDR")
-        .aceFDR.for.output <<- FDR.table[index, 3] ## xx: oh yes, ugly
+        aceFDR.for.output <- FDR.table[index, 3] ## xx: oh yes, ugly
         
         if(html) {
             ## Place this at bottom of page
@@ -3294,8 +3349,10 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
 		class(res[[i]]) <-"summary.ACE"
 		res[[i]] <- do.call("rbind", res[[i]])
 		names(res[[i]])[2] <- array.names[i]
+                names(res[[i]])[3] <- paste("Gain.Loss.", array.names[i], sep = "")
 		}
-		class(res) <- "summary.ACE.array"
+		class(res) <- c("summary.ACE.array", "CGH.ACE.summary")
+        attr(res, "aceFDR.for.output") <- aceFDR.for.output
 		res
 }
 
@@ -3358,7 +3415,8 @@ plot.ace2 <- function(res, chrom,
                       colors = c("orange", "red", "green", "blue"),
                       pch = 20, ylim = NULL,
                       geneNames = positions.merge1$name,
-                      html = TRUE) {
+                      html = TRUE,
+                      idtype = idtype, organism = organism) {
                                         #res is the results
                                         # color code for region status
 
@@ -3370,6 +3428,7 @@ plot.ace2 <- function(res, chrom,
     simplepos <- 1:length(res.dat)
 
     nameIm <- main
+    cat(" nameIm is ", nameIm)
     if(html) {
         imheight <- 500
         imwidth <- 1600
@@ -3471,7 +3530,8 @@ plot.ace2 <- function(res, chrom,
 plot.ace3 <- function(res, chrom, arraynums = 1:numarrays, main = NULL,
                          colors = c("orange", "red", "green", "blue"),
                          pch = "", ylim =c(ymin, ymax), html = TRUE,
-                         geneNames = positions.merge1$name) {
+                         geneNames = positions.merge1$name,
+                      idtype = idtype, organism = organism) {
     ## For superimposed: only all genome plot with map to chromosomes
 
     nameIm <- main
@@ -3544,7 +3604,8 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
                            main = "All_arrays",
                            colors = c("orange", "red", "green", "blue"),
                            pch = 20, ylim =NULL, html = TRUE,
-                           geneNames = positions.merge1$name) {
+                           geneNames = positions.merge1$name,
+                      idtype = idtype, organism = organism) {
     ## For superimposed: one plot per chr
     
     nameIm <- main
@@ -3615,7 +3676,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
 
 print.ACE.results <- function(res,
                               output = paste("ACE.results.FDR=",
-                              .aceFDR.for.output, ".txt", sep ="")){
+                              attr(res, "aceFDR.for.output"), ".txt", sep ="")){
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
 

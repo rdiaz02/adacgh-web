@@ -6,3 +6,7 @@
 * Write an installation doc
 
 * Do the vignette
+
+* Help: make sure all use the ordered data sets
+
+* Help MCR

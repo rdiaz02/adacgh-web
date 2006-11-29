@@ -93,6 +93,12 @@ chrom.numeric[tmpchr == "X"] <- 23
 chrom.numeric[tmpchr == "Y"] <- 24
 rm(tmpchr)
 
+reorder <- order(chrom.numeric,
+                 cghE1$UG.Start,
+                 cghE1$UG.End,
+                 cghE1$Name)
+cghE1 <- cghE1[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
 
 ## ACE
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
@@ -103,22 +109,49 @@ segmentPlot(ace.out.sum, geneNames = cghE1[, 1],
             idtype = "ug",
             organism = "Hs")
 
+segmentPlot(ace.out.sum, geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs",
+            superimposed = TRUE)
+
 ## DNA copy + merging
-CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
+CNA.object <- CNA(as.matrix(cghE1[, 5:7]),
                   chrom = chrom.numeric,
-                  maploc = 1:nrow(cghMCRe),
+                  maploc = 1:nrow(cghE1),
                   data.type = "logratio",
-                  sampleid = colnames(cghMCRe[, 5:7]))
+                  sampleid = colnames(cghE1[, 5:7]))
 smoothed.CNA.object <- smooth.CNA(CNA.object)
 dnacopy.out <- segment(smoothed.CNA.object)
 merged.out <- mergeDNAcopy(dnacopy.out)
 
+segmentPlot(merged.out, geneNames = cghE1[, 1],
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(dnacopy.out, geneNames = cghE1[, 1],
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+
+segmentPlot(ace.out.sum, geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs",
+            superimposed = TRUE)
+
+
 ## PSW
-psw2.out <- pSegmentPSW(cghMCRe[, -c(5:7)], as.matrix(cghMCRe[, 5:7]), chrom.numeric,
+psw2.out <- pSegmentPSW(cghE1[, -c(5:7)], as.matrix(cghE1[, 5:7]), chrom.numeric,
                        sign = - 1, nIter = 5000, prec = 100, p.crit = 0.10)
 
 ## wavelets
-wave.out <- pSegmentWavelets(cghMCRe[, 5:7], chrom.numeric)
+wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 
 
 acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')

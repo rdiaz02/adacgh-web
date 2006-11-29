@@ -288,12 +288,12 @@ segmentPlot <- function(x, geneNames,
     } else if(inherits(x, "mergedDNAcopy")) {
         if(!superimposed) {
             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
+                plot.ace2(x$segm, x$chrom.numeric, arraynum = i, geneNames = geneNames,
                           main = arraynames[i],
                           idtype = idtype, organism = organism)
             }
         } else {
-            plot.ace3(x, chrom.numeric,  geneNames = geneNames,
+            plot.ace3(x$segm, x$chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
                       ylim = yminmax,
                       pch = "",
@@ -465,7 +465,6 @@ pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25, thrLvl = 3
         state <- as.integer(factor(pred.ij, labels=labs))
         return(list(pred.ij = pred.ij, state = state))
     }
-    browser()
     papout <- papply(datalist, funwv,
                      papply_commondata =list(thrLvl = thrLvl,
                      minDiff = minDiff))
@@ -3435,7 +3434,7 @@ plot.ace2 <- function(res, chrom,
         im1 <- imagemap3(nameIm, height = imheight,
                          width = imwidth, ps = 12)
     }
-    
+##    browser()
     plot(logr ~ simplepos, col= col, ylab = "log ratio",
          xlab ="Chromosome location", axes = FALSE, cex = 0.7, main = main,
          pch = pch, ylim = ylim)

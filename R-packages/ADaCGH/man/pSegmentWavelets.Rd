@@ -8,7 +8,7 @@
   wavelet-based segmentation of aCGH data. }
 \usage{
 pSegmentWavelets(acghdata, chrom.numeric, minDiff = 0.25, thrLvl = 3,
-                 init.cluster.levels = 10)
+                 initClusterLevels = 10)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,7 +23,7 @@ pSegmentWavelets(acghdata, chrom.numeric, minDiff = 0.25, thrLvl = 3,
 }
 \details{
   See the original paper for details. See also the
-  \code{\link[waveslim]} package.
+  waveslim package.
 }
 \value{A list with two components:
   \item{Predicted}{A matrix with genes in rows and samples in columns,
@@ -59,6 +59,16 @@ data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+
+## Recall: we must reorder the data by chromosome and
+## by position within chromosome
+reorder <- order(chrom.numeric,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
 wave.out <- pSegmentWavelets(cghMCRe[, 5:7], chrom.numeric)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

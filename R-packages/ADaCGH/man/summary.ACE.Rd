@@ -1,5 +1,6 @@
 \name{summary.ACE}
-\alias{summary.ACE, summary.ACE.array}
+\alias{summary.ACE}
+\alias{summary.ACE.array}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Gains/loss and FDR from an ACE object}
 \description{
@@ -8,7 +9,8 @@
   status of each genes for the selected FDR.
 }
 \usage{
-summary.ACE(object, fdr = NULL, html = TRUE, outhtml = "ace.fdrtable.html")
+summary.ACE(object, fdr = NULL, html = TRUE,
+            outhtml = "ace.fdrtable.html", ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -17,6 +19,7 @@ summary.ACE(object, fdr = NULL, html = TRUE, outhtml = "ace.fdrtable.html")
     the desired. If NULL, the FDR selected is the closest one to 0.15. }
   \item{html}{ If TRUE, produce also an HTML table }
   \item{outhtml}{ The name of the file with the HTML output }
+  \item{...}{Not used.}
 }
 \value{
   Calling this function always returns (prints) a table with the number
@@ -46,6 +49,16 @@ data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+
+## Recall: we must reorder the data by chromosome and
+## by position within chromosome
+reorder <- order(chrom.numeric,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
 ace.out <- pSegmentACE(cghMCRe[, 5:7], chrom.numeric)
 summary(ace.out, fdr = 0.01)
 

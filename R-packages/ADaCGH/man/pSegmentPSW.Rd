@@ -1,7 +1,7 @@
 \name{pSegmentPSW}
 \alias{pSegmentPSW}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{   Parallelized version of \code{\link[cgh]{sw}} }
+\title{   Parallelized version of cgh's sw }
 \description{
   Parallelized version of \code{\link[cgh]{sw}}, with some changes in
   the interfaz to make it more similar to other functions in this
@@ -86,23 +86,32 @@ comparative genome hybridization data. \emph{Nucleic Acids Res.},
  
  \examples{
 data(cghMCRe)
-common <- cghMCRe[, -c(5:7)]
+common <- cghMCRe
 common$MidPoint <- common$Start + 0.5 * (common$End - common$Start)
 colnames(common)[1] <- "ID"
-chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
+
+chrom.numeric <- as.numeric(as.character(common$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+
+## Recall: we must reorder the data by chromosome and
+## by position within chromosome
+reorder <- order(chrom.numeric,
+                 common$Start,
+                 common$End,
+                 common$MidPoint,
+                 common$ID)
+common <- common[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
 
 ## We use nIter = 100 for the example for speed reasons;
 ## you probably want 1000 or more.
 
-psw.out <- pSegmentPSW(common, as.matrix(cghMCRe[, 5:7]), chrom.numeric,
+psw.out <- pSegmentPSW(common[, c(1:4, 8)],
+                       as.matrix(common[, 5:7]), chrom.numeric,
                        sign = - 1, nIter = 100, prec = 100, p.crit = 0.10)
 
-## so you don't want all the stuff in common? just use a smaller common.dat
-common2 <- cghMCRe[, -c(5:7)]
-psw2.out <- pSegmentPSW(common2, as.matrix(cghMCRe[, 5:7]), chrom.numeric,
-                       sign = - 1, nIter = 100, prec = 100, p.crit = 0.10)
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

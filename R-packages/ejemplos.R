@@ -7,6 +7,21 @@
 mpiInit()
 data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
+chrom.numeric[chrom.numeric == "X"] <- 23
+chrom.numeric[chrom.numeric == "Y"] <- 24
+
+## Recall: we must reorder the data by chromosome and
+## by position within chromosome
+reorder <- order(chrom.numeric,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
+
+
+chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
 CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
@@ -85,13 +100,16 @@ summary(ace.out)
 
 
 ##################
-
 data(cghE1)
 tmpchr <- sub("chr", "", cghE1$Chromosome)
 chrom.numeric <- as.numeric(as.character(tmpchr))
 chrom.numeric[tmpchr == "X"] <- 23
 chrom.numeric[tmpchr == "Y"] <- 24
 rm(tmpchr)
+
+## Recall: we must reorder the data by chromosome and by position within
+## chromosome
+
 
 reorder <- order(chrom.numeric,
                  cghE1$UG.Start,
@@ -131,29 +149,100 @@ segmentPlot(merged.out, geneNames = cghE1[, 1],
             idtype = "ug",
             organism = "Hs")
 
+segmentPlot(merged.out, geneNames = cghE1[, 1],
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs",
+            superimposed = TRUE)
+
 segmentPlot(dnacopy.out, geneNames = cghE1[, 1],
             cghdata = cghE1[, 5:7],
             idtype = "ug",
             organism = "Hs")
 
+segmentPlot(dnacopy.out, geneNames = cghE1[, 1],
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs",
+            superimposed = TRUE)
+
+## PSW
+psw.loss.out <- pSegmentPSW(cghE1[, -c(5:7)], as.matrix(cghE1[, 5:7]),
+                        chrom.numeric,
+                        sign = -1, nIter = 5000, prec = 100,
+                        p.crit = 0.10)
+psw.gain.out <- pSegmentPSW(cghE1[, -c(5:7)], as.matrix(cghE1[, 5:7]),
+                        chrom.numeric,
+                        sign = 1, nIter = 5000, prec = 100,
+                        p.crit = 0.10)
+
+segmentPlot(psw.loss.out, geneNames = cghE1[, 1],
+            idtype = "ug",
+            organism = "Hs")
+segmentPlot(psw.gain.out, geneNames = cghE1[, 1],
+            idtype = "ug",
+            organism = "Hs")
 
 
-segmentPlot(ace.out.sum, geneNames = cghE1[, 1],
+## wavelets
+wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
+segmentPlot(wave.out, geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+segmentPlot(wave.out, geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
             idtype = "ug",
             organism = "Hs",
             superimposed = TRUE)
 
+## acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')
+## acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
 
-## PSW
-psw2.out <- pSegmentPSW(cghE1[, -c(5:7)], as.matrix(cghE1[, 5:7]), chrom.numeric,
-                       sign = - 1, nIter = 5000, prec = 100, p.crit = 0.10)
+
+
+
+
+
+
+
+
+#################
+data(cghE1)
+tmpchr <- sub("chr", "", cghE1$Chromosome)
+chrom.numeric <- as.numeric(as.character(tmpchr))
+chrom.numeric[tmpchr == "X"] <- 23
+chrom.numeric[tmpchr == "Y"] <- 24
+rm(tmpchr)
+
+## Recall: we must reorder the data by chromosome and by position within
+## chromosome
+
+
+reorder <- order(chrom.numeric,
+                 cghE1$UG.Start,
+                 cghE1$UG.End,
+                 cghE1$Name)
+cghE1 <- cghE1[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
+### DNA copy
+CNA.object <- CNA(as.matrix(cghE1[, 5:7]),
+                  chrom = chrom.numeric,
+                  maploc = 1:nrow(cghE1),
+                  data.type = "logratio",
+                  sampleid = colnames(cghE1[, 5:7]))
+smoothed.CNA.object <- smooth.CNA(CNA.object)
+dnacopy.out <- segment(smoothed.CNA.object)
 
 ## wavelets
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 
 
-acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')
-acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
 
+### plateau plots
+par(ask = TRUE)
+plateauPlot(dnacopy.out)
+plateauPlot(wave.out, cghE1[, 5:7])

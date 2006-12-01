@@ -59,6 +59,16 @@ data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+
+## Recall: we must reorder the data by chromosome and
+## by position within chromosome
+reorder <- order(chrom.numeric,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
 CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
                   chrom = chrom.numeric,
                   maploc = 1:nrow(cghMCRe),

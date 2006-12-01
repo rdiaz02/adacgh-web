@@ -1,6 +1,10 @@
 \name{writeResults}
-\alias{writeResults, writeResults.CGH.PSW, writeResults.CGH.ACE.summary,
-  writeResults.CGH.wave,  writeResults.DNAcopy,}
+\alias{writeResults}
+\alias{writeResults.CGH.PSW}
+\alias{writeResults.CGH.ACE.summary}
+\alias{writeResults.CGH.wave}
+\alias{writeResults.DNAcopy}
+
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Write results to an external file}
 \description{
@@ -15,13 +19,19 @@ writeResults.CGH.ACE.summary(obj, file = "ACE.output.txt")
 writeResults.CGH.wave(obj, acghdata, commondata,
                                   file = "wavelet.output.txt")
 writeResults.DNAcopy(obj, acghdata, commondata, merged = NULL,
-                                 output = "CBS.output.txt")
+                                 file = "CBS.output.txt")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{obj}{ The output object from previous analysis; in all cases,
     the output from pSegement except for ACE, where it is the output
     from summary.}
+  \item{file}{The name of the output file.}
+  \item{acghdata}{The aCGH data set; see \code{\link{pSegmentWavelets}}.}
+  \item{commondata}{The common data; see
+    \code{\link{pSegmentWavelets}}.}
+  \item{merged}{If you want to use the merged output (see
+    \code{\link{mergeDNAcopy}}) provide the name of the object.}
   \item{\dots}{ Optionally, the file name. For the wavelet-based method,
     you need to provide the commondata (see commondata in, e.g.,
     \code{\link{pSegmentPSW}}) and the acghdata; for DNAcopy you also

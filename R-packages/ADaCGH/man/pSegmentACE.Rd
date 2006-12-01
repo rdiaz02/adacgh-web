@@ -20,11 +20,12 @@ pSegmentACE(acghdata, chrom.numeric, echo = FALSE)
   provided in his Java implementation of ACE.
 }
 \value{
-  ~Describe the value returned
-  If it is a LIST, use
-  \item{comp1 }{Description of 'comp1'}
-  \item{comp2 }{Description of 'comp2'}
-  ...  }
+  A list with as many components as samples. For each sample, a list
+  with as many sublists as chromosomes. Each chromosomes list has as
+  components several vectors: "sample1", "FDR", "calledGenes","Sdev",
+  "called", "ACEPgene", "first","last" . This output, however is rarely
+  of immediate use. This output is later used by the function \code{\link{summary.ACE}}.
+}
 
 \references{
 
@@ -39,14 +40,27 @@ Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
 
 }
 
+
 \author{ Oscar M. Rueda \email{omrueda@cnio.es} }
+
 
 \seealso{ \code{\link{segmentPlot}}, \code{\link{summary.ACE}} }
 \examples{
+
 data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+
+## Recall: we must reorder the data by chromosome and
+## by position within chromosome
+reorder <- order(chrom.numeric,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
 ace.out <- pSegmentACE(cghMCRe[, 5:7], chrom.numeric)
 
 }

@@ -10,3 +10,7 @@
 * Help: make sure all use the ordered data sets
 
 * Help MCR
+
+* Testing
+** More numerical testing
+** Verify parallelized versions same as serial (specially Olshen's)

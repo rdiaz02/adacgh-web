@@ -1,18 +1,8 @@
-.__ADaCGH_WEB_APPL <- FALSE ## set to TRUE in web appl!
+## .__ADaCGH_WEB_APPL <- FALSE ## set to TRUE in web appl!
 
-
-## .First.lib <- function(lib, pkg) {
-## 	   library.dynam("ADaCGH2", pkg, lib)
-## 	   }
-
-## Olshen
-#library(DNAcopy)
-## Price-Smith-Waterman
-#library(cgh)
-## wavelets
-#library("waveslim")
-#library("cluster")  
-##dyn.load("ADaCGH2.so")
+if(!exists(".__ADaCGH_WEB_APPL"))  {
+    .__ADaCGH_WEB_APPL <- FALSE
+}
 
 if(.__ADaCGH_WEB_APPL) {
     warningsForUsers <- vector()
@@ -54,10 +44,13 @@ mpiInit <- function() {
 }
 
 
-pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","perm"),
-                    kmax=25, nmin=200, eta = 0.05, window.size=NULL, overlap=0.25, 
-                    trim = 0.025, undo.splits=c("none","prune","sdundo"),
-                    undo.prune=0.05, undo.SD=3)
+pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
+                            p.method = c("hybrid","perm"),
+                            kmax=25, nmin=200, eta = 0.05,
+                            window.size=NULL, overlap=0.25, 
+                            trim = 0.025,
+                            undo.splits=c("none","prune","sdundo"),
+                            undo.prune=0.05, undo.SD=3)
   {
     if (!inherits(x, 'CNA')) stop("First arg must be a copy number array object")
     call <- match.call()
@@ -107,7 +100,7 @@ pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000, p.method = c("hybrid","p
             segci <- changepoints(genomdati[chromi==ic], data.type, alpha, 
                                   sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
                                   nmin, trimmed.SD, undo.splits, undo.prune,
-                                  undo.SD, verbose)
+                                  undo.SD, verbose = 2)
             sample.lsegs <- c(sample.lsegs, segci$lseg)
             sample.segmeans <- c(sample.segmeans, segci$segmeans)
         }
@@ -266,8 +259,6 @@ segmentPlot <- function(x, geneNames,
         if(is.null(arraynames)) arraynames <- colnames(cghdata)
         if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
     }
-##     classx <- inherits(x, c("DNAcopy", "CGH.wave", "CGH.PSW",
-##                             "CGH.ACE.summary", "mergedDNAcopy"))
     if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
@@ -293,7 +284,8 @@ segmentPlot <- function(x, geneNames,
     } else if(inherits(x, "mergedDNAcopy")) {
         if(!superimposed) {
             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                plot.ace2(x$segm, x$chrom.numeric, arraynum = i, geneNames = geneNames,
+                plot.ace2(x$segm, x$chrom.numeric, arraynum = i,
+                          geneNames = geneNames,
                           main = arraynames[i],
                           idtype = idtype, organism = organism,
                           segment.pos = c(1, 3), segment.height = 1)
@@ -362,7 +354,8 @@ segmentPlot <- function(x, geneNames,
         }
         for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
             sw.plot3(x$plotData[[i]]$logratio, sign=x$plotData[[i]]$sign,
-                     swt.perm = x$plotData[[i]]$swt.perm, rob = x$plotData[[i]]$rob,
+                     swt.perm = x$plotData[[i]]$swt.perm,
+                     rob = x$plotData[[i]]$rob,
                      swt.run = x$plotData[[i]]$swt.run,
                      p.crit = x$plotData[[i]]$p.crit.bonferroni,
                      chrom = x$plotData[[i]]$chrom,
@@ -428,7 +421,8 @@ writeResults.DNAcopy <- function(obj, acghdata, commondata, merged = NULL,
 }
 
 
-pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25, thrLvl = 3,
+pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25,
+                             thrLvl = 3,
                              initClusterLevels = 10) {
 ## level to use for wavelet decomposition and thresholding
 ## The 'recommended' level is floor(log2(log(N)+1)), which
@@ -490,7 +484,8 @@ pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25, thrLvl = 3
         
         ## Categorize the denoised data then combine ("merge") levels that
         ## have predicted values with an absolute difference < 'minDiff' 
-        pred.ij <- segmentW(ratio, recH, minDiff=minDiff, n.levels = initClusterLevels)
+        pred.ij <- segmentW(ratio, recH, minDiff=minDiff,
+                            n.levels = initClusterLevels)
         labs <- as.character(1:length(unique(pred.ij)))
         state <- as.integer(factor(pred.ij, labels=labs))
         return(list(pred.ij = pred.ij, state = state))
@@ -518,6 +513,8 @@ pSegmentACE <- function(acghdata, chrom.numeric,  echo=FALSE) {
 
 ######################################
 
+#### For now, these are not documented nor publicly available
+
 DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
                                    array.chrom = FALSE, chrom.numeric = NULL) {
     numarrays <- ncol(CNA.object) - 2
@@ -538,7 +535,8 @@ DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
                 x <- CNA.object[chrom.numeric == j, (i + 2)]
                 y <- smoothed.CNA.object[chrom.numeric == j, (i + 2)]
                 plot(x, y,
-                     main = paste(colnames(CNA.object[i+2]), "; Chr ", j, sep = ""),
+                     main = paste(colnames(CNA.object[i+2]), "; Chr ", j,
+                     sep = ""),
                      xlab = "Original data", ylab = "Smoothed data")
             }
         }
@@ -608,105 +606,6 @@ WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
 
 
 
-
-caughtOurError <- function(message) {
-    if(.__ADaCGH_WEB_APPL) {
-        webPNG("ErrorFigure.png", width = png.width,
-               height = png.height, 
-               pointsize = png.pointsize,
-               family = png.family)
-        plot(x = c(0, 1), y = c(0, 1),
-             type = "n", axes = FALSE, xlab = "", ylab = "")
-        box()
-        text(0.5, 0.7, "There was a PROBLEM with the code.")
-        text(0.5, 0.5,
-             "Please let us know (send us the URL),")
-        
-        text(0.5, 0.3, "so that we can fix it.")
-        dev.off()
-        sink(file = "results.txt")
-        cat(message)
-        sink()
-        sink(file = "exitStatus")
-        cat("Error\n\n")
-        cat(message)
-        sink()
-        quit(save = "no", status = 11, runLast = TRUE)
-    } else {
-        message <- paste("It looks like you found a bug. Please let us know. ", message)
-        stop(message)
-    }
-}
-    
-
-
-    
-######################################################
-
-#########  Imagemap stuff
-
-
-
-##require(GDD)
-##require(imagemap)
-
-imClose <- function (im) {
-    ## prevent all the "Closing PNG device ..."
-    dev.off(im$Device)
-}
-
-imagemap3 <- function(filename,width=480,height=480,
-                      title='Imagemap from R', ps = 12){
-
-    GDD(file = paste(filename,".png",sep=''),w=width, h=height,
-        type = "png", ps = ps)	  
-	  
-    im <- list()
-    im$Device <- dev.cur()
-    im$Filename=filename
-    im$Height=height
-    im$Width=width
-    im$Objects <- list()
-    im$HTML <- list()
-    im$title <- title
-    
-    class(im) <- "imagemap"
-    im
-}
-
-linkGene2 <- function(id) {
-    ## Returns a string for use in a web page with a call
-    ## to IDClight.
-    if ((idtype == "None") | (organism == "None"))
-        return(id)
-    else 
-        paste("http://idclight.bioinfo.cnio.es/IDClight.prog",
-              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
-              organism, sep = "")
-}
-
-linkGene <- function(id) {
-    ## Returns a string for use in a web page with a call
-    ## to IDClight.
-    if ((idtype == "None") | (organism == "None"))
-        return(id)
-    else 
-        paste("<a href=\"http://idclight.bioinfo.cnio.es/IDClight.prog",
-              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
-              organism," target=\"icl_window\"\">",id,"</a>", sep = "")
-}
-
-
-createIM2 <- function(im, file = "", imgTags = list(),
-                      title = "Genome View") {
-    cat(paste("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n",
-              "<html> <head> <title>", title, "</title></head><body>"),
-        file = file)
-    cat(buildIM(im, imgTags), sep = "\n", file = file, append = TRUE)
-    cat("</body></html>", file = file, append = TRUE)
-}
-
-
 #######################################################
 #######################################################
 #######################################################
@@ -717,11 +616,6 @@ createIM2 <- function(im, file = "", imgTags = list(),
 #######################################################
 #######################################################
 #######################################################
-
-
-
-
-
 
 mpiCBS <- function() {
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
@@ -747,11 +641,6 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
     segmented <-
         res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
     col <- rep(colors[1],length(logr))
-##      col[which(res$profileValues$ZoneGNL==-1)] <- colors[2]
-##      col[which(res$profileValues$ZoneGNL==1)] <- colors[3]
-##      # outliers
-##      outliers <- rep(20,length(res$profileValues$PosOrder))
-##      outliers[which(res$profileValues$OutliersTot!=0)] <- 13
 
 
 
@@ -944,13 +833,6 @@ plot.olshen3 <- function(res, arraynums = 1:numarrays, main = NULL,
     createIM2(im1, file = paste(nameIm, ".html", sep = ""))
     imClose(im1)
 }
-
-
-
-
-
-
-
 
 plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
                          colors = c("orange", "red", "green", "blue"),
@@ -2272,14 +2154,6 @@ sw.plot2 <- function (logratio, location = seq(length(logratio)),
 }
 
 
-
-
-
-
-
-
-
-
 ######## This is the one to use!!!!
 my.sw2 <- function(logratio, chrom, sign = -1, p.crit = PSW.p.crit,
                    main = NULL,
@@ -2634,119 +2508,6 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
     cat("\n")
 }
 
-
-
-##             usr2pngRect <- function(x, y, side = 2) {
-##                 xleft <- x - side
-##                 xright <- x + side
-##                 ytop <- y + side
-##                 ybottom <- y - side
-##                 xycorns <- usr2png(rbind(c(xleft,ytop),c(xright,ybottom)),im2)
-##                 return(c(xycorns[1,1],xycorns[2,2],xycorns[2,1],xycorns[1,2]))
-##             }
-##             write(mapply(usr2pngCircle, location[indexchr],
-##                                 logratio[indexchr]),
-##                   file = "pngCoordChr",
-##                   sep ="\t", ncolumns = 3)
-##             write(mapply(usr2pngRect, location[indexchr],
-##                                 logratio[indexchr]),
-##                   file = "pngCoordChrRect",
-##                   sep ="\t", ncolumns = 4)
-
-##             usr2png <- function (xy, im) {
-##                  xy <- usr2dev(xy, dev.cur())
-##                  cbind(ceiling(xy[, 1] * im$Width), ceiling((1 - xy[, 2]) * 
-##                                                         im$Height))
-##              }
-
-
-
-
-
-
-
-            
-            
-##             if ((idtype == "None") | (organism == "None")) 
-##                 onclf <- function(num, iii) paste("fixedtooltip(", num,
-##                                                   ", '<a class=\'tip\' href=\'javascript:hidetip(1)\'>X</a>",
-##                                                   "<a class=\'tip2\'", geneNames[iii],
-##                                                   ", this, event, '90px'); return false",
-##                                                   sep = "")
-##             else
-##                 onclf <- function(num, iii)
-##                     paste("fixedtooltip(", num,
-##                           ", '<a class=\'tip\' href=\'javascript:hidetip(1)\'>X</a>",
-##                           "<a class=\'tip2\' href=\'http://idclight.bioinfo.cnio.es/idclight.prog?",
-##                           geneNames[iii], "&idtype=",idtype, "&org=", organism,
-##                           "\'>", geneNames[iii], "</a>', this, event, '90px'); return false",
-##                           sep = "")
-                
-##             oncl <- mapply(onclf, pnum, idc)
-##             f2 <- function(i1, click)
-##                 imCircle(location[i1], logratio[i1],
-##                          r = rr, title = geneNames[i1],
-##                          onClick = click)
-##             circlist <- mapply(f2, idc, oncl, SIMPLIFY=FALSE)
-
-##             faddreg <- function(im, value) {
-##                 im$HTML[[length(im$HTML)+1]] <- toHTML(value,im)
-##                 im$Objects[[length(im$Objects)+1]] <- value
-##                 return(im)
-##             }
-##             mapply(faddreg, im2, circlist)
-            
-##             for(lll in 1:length(circlist))
-##                 addRegion(im2) <- circlist[[lll]]
-
-            ## divs
-##             f1 <- function(x)
-##                    paste("document.write('<div id=\"",x,
-##                     "\" class=\"fixedtipdiv\" style=\"visibility:hidden;width:'",
-##                     "+tipwidth+';background-color:'+tipbgcolor+'\" ></div>')", sep ="")
-##             write(mapply(f1, pnum), file = "divs")
-            
-##             ## put together hmtl, divs, and javascript initial stuff
-##             system(paste("cat js.adacgh.squeleton1.html divs js.adacgh.squeleton2.html ",
-##                    paste("Chr", chrom.nums[cnum], "@", nameIm, ".html", sep =""),
-##                    " final.adacgh.squeleton.html > tmphtml; mv tmphtml ",
-##                    paste("Chr", chrom.nums[cnum], "@", nameIm, ".html", sep =""), sep =""))
-
-
-
-
-## Old code            
-##             browser()
-##             cat("\n length(indexchr) ", length(indexchr))
-##             for(pnum in 1:length(indexchr)) {
-##                 cat(" \n .... doing pnum", pnum)
-##                 if ((idtype == "None") | (organism == "None")) {
-##                     oncl <- paste("fixedtooltip(", pnum,
-##                                   ", '<a class=\'tip\' href=\'javascript:hidetip(1)\'>X</a>",
-##                                   "<a class=\'tip2\'", geneNames[indexchr[pnum]],
-##                                   ", this, event, '90px'); return false",
-##                                   sep = "")
-##                     addRegion(im2) <- imCircle(location[indexchr[pnum]], logratio[indexchr[pnum]],
-##                                                r = pixels.point/2, title = geneNames[indexchr[pnum]],
-##                                                alt = geneNames[indexchr[pnum]], 
-##                                                onClick = oncl)
-##                 } else {
-##                     oncl <- paste("fixedtooltip(", pnum,
-##                                   ", '<a class=\'tip\' href=\'javascript:hidetip(1)\'>X</a>",
-##                                   "<a class=\'tip2\' href=\'http://idclight.bioinfo.cnio.es/idclight.prog?",
-##                                   geneNames[indexchr[pnum]], "&idtype=",idtype, "&org=", organism,
-##                                   "\'>", geneNames[indexchr[pnum]], "</a>', this, event, '90px'); return false",
-##                                   sep = "")
-##                     addRegion(im2) <- imCircle(location[indexchr[pnum]], logratio[indexchr[pnum]],
-##                                                r = pixels.point/2, title = geneNames[indexchr[pnum]],
-##                                                alt = geneNames[indexchr[pnum]], 
-##                                                onClick = oncl)
-##                 }
-##             } ## /the javascript calls per point
-##             cat("\n yyyyy por aquí\n")
-##             createIM(im2, file = paste("Chr", chrom.nums[cnum], "@", nameIm, ".html", sep =""))
-##             imClose(im2)
-
           
 sw.plot4 <- function (logratio, location = seq(length(logratio)),
                       threshold.func = function(x) median(x) + 
@@ -2841,17 +2602,17 @@ mpiACE <- function() {
 
 
 
-#data("file.aux.RData")
+##data("file.aux.RData")
 
 
 ace.analysis.C <- function(x, coefs=file.aux, Sdev, array.names="x")
 {
-  #Coefficients of file
-##  coefs <- read.table(file=file.aux, header=TRUE, sep="\t")
+  ##Coefficients of file
+####  coefs <- read.table(file=file.aux, header=TRUE, sep="\t")
 
   if(is.null(array.names)) array.names <- "x"
   
-  #Obtain the null distribution of the (L,H)-pairs
+  ##Obtain the null distribution of the (L,H)-pairs
   alpha1 <- coefs$alpha1
   alpha2 <- coefs$alpha2
   beta1 <- coefs$beta1
@@ -2870,8 +2631,8 @@ ace.analysis.C <- function(x, coefs=file.aux, Sdev, array.names="x")
                 first= as.integer(rep(-1, Ngenes)),
                 last=as.integer(rep(-1, Ngenes)))
                 
-  ##Clean up the variables and add 1 to first and last
-  ##for the difference in array enumeration in C and R
+  ####Clean up the variables and add 1 to first and last
+  ####for the difference in array enumeration in C and R
   obj.ace$called[obj.ace$called==-1] <- NA
   obj.ace$called <- obj.ace$called[!is.na(obj.ace$called)]
   obj.ace$called <- matrix(obj.ace$called, Nlevels)
@@ -2901,9 +2662,9 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
     Ngenes = length(x)
     if(is.null(array.names)) array.names <- "x"
     
-                                        #Step 1		
-                                        #Segmentation
-                                        #Compute running mean
+                                        ##Step 1		
+                                        ##Segmentation
+                                        ##Compute running mean
     
     yhat <- rep(NA, Ngenes)
     yhat[1:2] = x[1:2]
@@ -2917,9 +2678,9 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
     yhat[Ngenes - 1] = x[Ngenes - 1]
     yhat[Ngenes] = x[Ngenes]
     
-                                        #Find change points
+                                        ##Find change points
     
-                                        #nknots <- 0
+                                        ##nknots <- 0
     knots <- rep(NA, Ngenes)
     signo <- (yhat>=0)
     for (i in 3:(Ngenes-2)) {
@@ -2936,9 +2697,9 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
     knots <- c(0, knots, Ngenes)
     
     
-                                        #Step 2
-                                        #Feature extraction
-                                        #Compute size, height, first, last tuples
+                                        ##Step 2
+                                        ##Feature extraction
+                                        ##Compute size, height, first, last tuples
     
     Nclusters <- length(knots) - 1
     first <- knots[1:Nclusters] + 1
@@ -2950,13 +2711,13 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
     
     
 	
-                                        #Step 3
-                                        #Obtain the null distribution of the (L,H)-pairs
+                                        ##Step 3
+                                        ##Obtain the null distribution of the (L,H)-pairs
     
-                                        #Step 6
-                                        #Report genes
-                                        #Adjust start/end positions of clusters
-                                        #Could be optimized
+                                        ##Step 6
+                                        ##Report genes
+                                        ##Adjust start/end positions of clusters
+                                        ##Could be optimized
     for (j in 1:Nclusters) {
         fi <- first[j]
         la <- last[j]
@@ -2966,14 +2727,14 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
         r <- floor(max(0, min(16, (la-fi)/2)-1))
         for (p in fi:(fi+r)) {
             for(q in la:(la-r)) {
-                                        #Hay que vigilar que se cumplan las condiciones de los for
+                                        ##Hay que vigilar que se cumplan las condiciones de los for
                 e1 <- ifelse(fi<p,sum(x[fi:(p-1)]^2),0)
-                                        #Hay que vigilar que se cumplan las condiciones de los for
+                                        ##Hay que vigilar que se cumplan las condiciones de los for
                 e2 <- ifelse(p<=q,sum((x[p:q]-height[j])^2),0)
-                                        #Hay que vigilar que se cumplan las condiciones de los for
+                                        ##Hay que vigilar que se cumplan las condiciones de los for
                 e3 <- ifelse(q+1<=la,sum(x[(q+1):la]^2),0)
                 err <- (e1 + e2 + e3) /(la-fi)
-                ##In case that (la-fi)==0
+                ####In case that (la-fi)==0
                 err <- ifelse(is.nan(err), 99999999999, err)
                 if (err < err.opt) {
                     err.opt <- err
@@ -2993,9 +2754,9 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
     alpha2 <- coefs$alpha2 * Sdev
     beta1 <- coefs$beta1 * Sdev
     beta2 <- coefs$beta2 * Sdev
-                                        #Step 4
-                                        #Find significant genes
-                                        #Determine which clusters are inside/outside
+                                        ##Step 4
+                                        ##Find significant genes
+                                        ##Determine which clusters are inside/outside
     Nlevels <- nrow(coefs)
     called <- matrix(NA, Nlevels, Nclusters)
     
@@ -3011,11 +2772,11 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
     if (nrow(v2)!=Nlevels) {
         v2 <- t(v2)
     }
-                                        #number of rejections
+                                        ##number of rejections
     called <- !(v1<=0 & v2>=0)
     
-                                        #Step 5
-                                        #Estimate the positive false discovery rate
+                                        ##Step 5
+                                        ##Estimate the positive false discovery rate
     
     
     ACEPgene <- coefs$Pgene
@@ -3042,9 +2803,9 @@ sd.ACE.analysis<- function(obj.ACE.analysis) {
 		first <- obj.ACE.analysis$first
 		last <- obj.ACE.analysis$last
 		called <- obj.ACE.analysis$called
-		#Estimation of the variance parameter: with all samples and chromosomes, 
-		#so we save the number of genes to make weighted mean
-		#Indexes have changed from 21 to 41 in this version
+		##Estimation of the variance parameter: with all samples and chromosomes, 
+		##so we save the number of genes to make weighted mean
+		##Indexes have changed from 21 to 41 in this version
 		indexes <- unlist(mapply(function(f,l)c(f:l), 
 			f=first[!called[41,]], l=last[!called[41,]]))	
 		n <- length(indexes)
@@ -3124,47 +2885,6 @@ ace.analysisP <-function(x) {
  	}
  	invisible(res)
  }
-
-## ACE <- function(x, Chrom, coefs = file.aux, Sdev=0.2) {
-## 	####### x is log2.ratio
-## 	####### Chrom ---MUST BE NUMERIC-- 
-## 	###### only for 1 array at a time
-## 	if (!is.numeric(Chrom)) {
-## 		stop("Chromosome variable must be numeric")
-## 	}
-
-## 	array.names <- colnames(x)
-		
-## 	nchrom <- length(unique(Chrom))
-## 	if(is.null(dim(x))) {
-## 		genes <- split(x, Chrom)
-## 		first.estimate <- lapply(genes, ace.analysis.C, Sdev=Sdev, array.names=array.names)
-## 		Sdevs.estimate <- lapply(first.estimate, sd.ACE.analysis)
-## 		Sdevs <- unlist(lapply(Sdevs.estimate, "[", 1))
-## 		Sdevs <- mean(Sdevs[Sdevs>0])
-## 		res <- lapply(genes, ace.analysis.C, Sdev=Sdevs, array.names=array.names)
-## 		class(res) <- "ACE"
-## 		}
-## 	else {
-## 		Sdevs <- matrix(NA, ncol(x),nchrom)
-## 		res <- list()
-## 		for(i in 1:ncol(x)) {
-			
-## 			genes <- split(x[,i], Chrom)
-## 			first.estimate <- lapply(genes, ace.analysis.C, Sdev=Sdev, array.names=array.names[i])
-## 			Sdevs.estimate <- lapply(first.estimate, sd.ACE.analysis)
-## 			Sdevs[i,] <- unlist(lapply(Sdevs.estimate, "[", 1))
-## 		}
-## 		Sdevs <- mean(Sdevs[Sdevs>0])
-## 		for (i in 1:ncol(x)) {
-## 			genes <- split(x[,i], Chrom)
-## 			res[[i]] <- lapply(genes, ace.analysis.C, Sdev=Sdevs, array.names=array.names[i])	
-## 			class(res[[i]]) <- "ACE"
-## 		}
-## 		class(res) <- "ACE.array"
-## 	}
-## 	invisible(res)
-## }
 
 get.FDR <- function(object, nchrom) {
 	 ### Table to select FDR. Only interesting columns
@@ -3783,212 +3503,145 @@ print.ACE.results <- function(res,
 
 
 
-##### cghMCR examples
-
-## library(cghMCR)
-## data("sampleData")
-## segments <- getSegments(sampleData)
-
-## names(segments)
-## segments2 <- segments
-## segments2$data <- ""
-
-## mc1 <- cghMCR(segments)
-## mc2 <- cghMCR(segments2)
+##################################################
+##################################################
+##################################################
+##################################################
 
 
+##### Internal stuff, mostly for the web-based part
 
-## dim(segments[[1]])
-## ##
-## > segments[[1]][1:10,1:4]
-##             probe chrom  maploc     array1
-## 960  A_14_P136500     1  799681      .23
-
-
-## segments[[2]][1:10,]
-##                                                           ID chrom loc.start
-## 1  X.home.john.lib64.R.library.cghMCR.sampledata.sample1.agi     1    799681
-## 2  X.home.john.lib64.R.library.cghMCR.sampledata.sample1.agi    10   1036908
-##      loc.end num.mark seg.mean
-## 1  244806850      424   0.1789
-## 2 
-
-
-
-
-
-###############################3  Parallelization notes
-
-### DNAcopy: look into segment, the loop over nsample.
-
-### PSW: we already loop over samples... but my.sw2 loops over chromos.
-### Use both?
-### each sample is assigned as many CPUs as chromosomes, and then we do simultaneously as
-### many samples as possible.
-
-
-### ACE:
-##  we loop over samples (inside ACE); trivial to use a papply instead of lapply
-##     inside ace.analysis there are several loops, but none is trivial to parallelize.
-
-
-#### Serial code
-
-#### wave.aCGH <- function(dat, chrom, minDiff) {
-#### ## level to use for wavelet decomposition and thresholding
-#### ## The 'recommended' level is floor(log2(log(N)+1)), which
-#### ## equals 3 for:  21 <= N <= 1096
-####     thrLvl <- 3
-
-####     ncloneschrom <- tapply(dat[, 1], chrom, function(x) length(x))
-####     if((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21))
-####         warningsForUsers <-
-####             c(warningsForUsers,
-####               paste("The number of clones/genes is either",
-####                     "larger than 1096 or smaller than 21",
-####                     "in at least one chromosome. The wavelet",
-####                     "thresholding of 3 might not be appropriate."))
+caughtOurError <- function(message) {
+    if(.__ADaCGH_WEB_APPL) {
+        webPNG("ErrorFigure.png", width = png.width,
+               height = png.height, 
+               pointsize = png.pointsize,
+               family = png.family)
+        plot(x = c(0, 1), y = c(0, 1),
+             type = "n", axes = FALSE, xlab = "", ylab = "")
+        box()
+        text(0.5, 0.7, "There was a PROBLEM with the code.")
+        text(0.5, 0.5,
+             "Please let us know (send us the URL),")
         
+        text(0.5, 0.3, "so that we can fix it.")
+        dev.off()
+        sink(file = "results.txt")
+        cat(message)
+        sink()
+        sink(file = "exitStatus")
+        cat("Error\n\n")
+        cat(message)
+        sink()
+        quit(save = "no", status = 11, runLast = TRUE)
+    } else {
+        message <- paste("It looks like you found a bug. Please let us know. ", message)
+        stop(message)
+    }
+}
     
-####     Nsamps  <- ncol(dat)
-####     Nclones <- nrow(dat)
+
+
+
+my.html.data.frame <- function (object, first.col = "Name",
+                             file = paste(first.word(deparse(substitute(object))), 
+                             "html", sep = "."), append = FALSE, link = NULL, linkCol = 1, 
+                             linkType = c("href", "name"), ...) 
+{
+    ## modifying html, from Hmisc: Their function always has first column
+    ## named "Name". I allow to pass a name.
+   
+    linkType <- match.arg(linkType)
+    x <- format.df(object, ...)
+    adj <- attr(x, "col.just")
+    if (any(adj == "r")) 
+        for (i in seq(along = adj)[adj == "r"]) x[, i] <- paste("<div align=right>", 
+            x[, i], "</div>", sep = "")
+    if (length(r <- dimnames(x)[[1]])) 
+        x <- cbind(first.col = r, x)
+    colnames(x)[1] <- first.col
+    cat("<TABLE BORDER>\n", file = file, append = append)
+    cat("<tr>", paste("<td>", dimnames(x)[[2]], "</td>", sep = ""), 
+        "</tr>\n", sep = "", file = file, append = file != "")
+    if (length(link)) 
+        x[, linkCol] <- ifelse(link == "", x[, linkCol], paste("<a ", 
+            linkType, "=\"", link, "\">", x[, linkCol], "</a>", 
+            sep = ""))
+    for (i in 1:nrow(x)) cat("<tr>", paste("<td>", x[i, ], "</td>", 
+        sep = ""), "</tr>\n", sep = "", file = file, append = file != 
+        "")
+    cat("</TABLE>\n", file = file, append = file != "")
+    structure(list(file = file), class = "html")
+}
+
+
+
+
+
+
     
-####     state <- matrix(NA, nrow=Nclones, ncol=Nsamps)
-####     pred  <- matrix(NA, nrow=Nclones, ncol=Nsamps)
+######################################################
 
-####     uniq.chrom <- unique(chrom)
-####     for (i in 1:Nsamps)
-####     {
-####         ratio.i <- dat[,i]
-####         noNA  <- !is.na(ratio.i)
-        
-####         for (j in uniq.chrom)
-####         {
-####             chr.j <- (chrom == j)
-####             use.ij <- which(noNA & chr.j)
-            
-####             ratio.ij <- ratio.i[use.ij]
-            
-####             ## do wavelet deconstruction, threshold, then reconstruct
-####             wc   <- modwt(ratio.ij, "haar", n.levels=thrLvl)
-            
-####             ## These are the three different thresholding functions used
-####             ##thH  <- our.sure(wc, max.level=thrLvl, hard=FALSE)
-####             thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
-####             ##thH  <- nominal.thresh(wc, max.level=thrLvl, hard=FALSE, sig=.05)
-            
-####             ## reconstruct the thresheld ('denoised') data
-####             recH <- imodwt(thH)
-            
-####             ## Categorize the denoised data then combine ("merge") levels that
-####             ## have predicted values with an absolute difference < 'minDiff' 
-####             pred.ij <- segmentW(ratio.ij, recH, minDiff=minDiff)
-            
-####             pred[use.ij, i]  <- pred.ij
-            
-####             labs <- as.character(1:length(unique(pred.ij)))
-####             state[use.ij, i] <- as.integer(factor(pred.ij, labels=labs))
-####         }
-####     }
-####     out <- list(Predicted =pred, State = state)
-#### ##    rownames(out) <- rownames(dat)
-####     return(out)
-#### }
+#########  Imagemap stuff
 
 
 
+##require(GDD)
+##require(imagemap)
 
-##### sw.plot2 <- function (logratio, location = seq(length(logratio)),
-#####                       threshold.func = function(x) median(x) + 
-#####                       0.2 * mad(x), sign = -1, highest = TRUE, expected = NULL, 
-#####                       rob = NULL, legend = TRUE, xlab = "Chromosomal location", 
-#####                       ylab = "log ratio", ...) 
-##### {
-#####     my.line <- function(x, y, ...) {
-#####         len <- length(x)
-#####         run <- rle(y)[[1]]
-#####         run.len <- length(run)
-#####         j <- 1
-#####         m <- 2 * x[1] - x[2]
-#####         if (run.len == 1) 
-#####             lines(x = c(3/2 * x[1] - 1/2 * x[2], 3/2 * x[len] - 
-#####                 1/2 * x[len - 1]), y = c(y[1], y[len]), ...)
-#####         else {
-#####             for (i in 1:(run.len - 1)) {
-#####                 k <- run[i]
-#####                 lines(x = c((x[j] + m)/2, (x[j + k - 1] + x[j + 
-#####                   k])/2), y = c(y[j], y[j]), ...)
-#####                 lines(x = rep((x[j + k - 1] + x[j + k])/2, 2), 
-#####                   y = c(y[j], y[j + k]), ...)
-#####                 m <- x[j + k - 1]
-#####                 j <- j + k
-#####             }
-#####             lines(x = c((m + x[j])/2, 3/2 * x[len] - 1/2 * x[len - 
-#####                 1]), y = c(y[j], y[j]), ...)
-#####         }
-#####     }
-#####     island.line <- function(x, y, start = 1, len = length(x), 
-#####         edge = 0, ...) {
-#####         if (is.null(start) || is.null(len) || length(start) == 
-#####             0 || length(len) == 0 || len <= 0) 
-#####             return
-#####         lenx <- length(x)
-#####         x1 <- c(2 * x[1] - x[2], x, 2 * x[lenx] - x[lenx - 1])
-#####         x2 <- x1[1:(lenx + 1)] + diff(x1)/2
-#####         lines(x = c(rep(x2[start], 2), rep(x2[start + len], 2)), 
-#####             y = c(y - edge, y, y, y - edge), ...)
-#####     }
-#####     log2 <- log(2)
-#####     len <- length(logratio)
-#####     par <- par()
-#####     par(mar = c(5, 5, 5, 5), yaxs = "r")
-#####     par(oma = c(0, 0, 0, 0))
-#####     threshold <- threshold.func(sign * logratio)
-#####     plot(y = logratio, x = location, type = "n", xlab = "", ylab = "", 
-#####         ..., axes = FALSE)
+imClose <- function (im) {
+    ## prevent all the "Closing PNG device ..."
+    dev.off(im$Device)
+}
+
+imagemap3 <- function(filename,width=480,height=480,
+                      title='Imagemap from R', ps = 12){
+
+    GDD(file = paste(filename,".png",sep=''),w=width, h=height,
+        type = "png", ps = ps)	  
+	  
+    im <- list()
+    im$Device <- dev.cur()
+    im$Filename=filename
+    im$Height=height
+    im$Width=width
+    im$Objects <- list()
+    im$HTML <- list()
+    im$title <- title
     
-#####     rug(location, ticksize = 0.01)
-#####     maxlr <- max(logratio)
-#####     minlr <- min(logratio)
-#####     axis(side = 4, at = seq(minlr, maxlr, length = 5), labels = c("0", 
-#####         ".25", " .50", ".75", "1"))
-#####     box()
-#####     axis(2)
-#####     mtext(xlab, side = 1, line = 3, cex = 0.8)
-#####     mtext(ylab, side = 2, line = 3, cex = 0.8)
-##### ##    abline(h = maxlr, lty = 2)
-##### ##    abline(h = minlr, lty = 2)
-#####     if (!is.null(rob)) {
-#####         mtext("Robustness", side = 4, line = 3, cex = 0.8)
-#####         my.line(y = (maxlr - minlr) * rob + minlr, x = location, 
-#####             col = "#99ffff", lwd = 2)
-#####     }
-#####     if (highest) {
-#####         x <- sign * logratio - threshold
-#####         swx <- sw(x)
-#####         if (length(swx$score)) {
-#####             island.line(x = location, y = maxlr + (maxlr - minlr) * 
-#####                 0.02, start = swx$start[1], len = swx$length[1], 
-#####                 edge = (maxlr - minlr) * 0.01, col = "green")
-#####         }
-#####     }
-##### ##    my.line(y = rep(sign * threshold, len), x = location, col = "#00ff00")
-#####     if (!is.null(expected)) {
-#####         my.line(y = log2(expected) - 1, x = location, col = "#ff0000")
-#####     }
-##### ##    points(y = logratio, x = location, pch = 20, col = "orange", cex = 0.5)
-#####     points(y = logratio, x = location, pch = 20, col = "orange", cex = 1)
-#####     if (legend) { ## I make changes here; essentially, I break a few things!
-##### ##         legend.str <- c("highest-scoring island", "robustness", "signif.")
-##### ##         legend.col <- c("green", "#99ffff", "red")
-##### ##         legend(location[1], minlr + (maxlr - minlr) * 0.25, legend.str, 
-##### ##             lty = rep(1, 3), col = legend.col, cex = 0.8)
-#####         legend.str <- c("robustness", "signif.")
-#####         legend.col <- c("#99ffff", "red")
-#####         legend(location[1], minlr + (maxlr - minlr) * 0.25, legend.str, 
-#####             lty = rep(1, 2), col = legend.col, cex = 0.8)
+    class(im) <- "imagemap"
+    im
+}
 
-#####     }
-#####     abline(h = 0, lty = 2, col = "blue")
-#####     par(mar = par$mar, yaxs = par$yaxs)
-##### }
+linkGene2 <- function(id) {
+    ## Returns a string for use in a web page with a call
+    ## to IDClight.
+    if ((idtype == "None") | (organism == "None"))
+        return(id)
+    else 
+        paste("http://idclight.bioinfo.cnio.es/IDClight.prog",
+              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
+              organism, sep = "")
+}
+
+linkGene <- function(id) {
+    ## Returns a string for use in a web page with a call
+    ## to IDClight.
+    if ((idtype == "None") | (organism == "None"))
+        return(id)
+    else 
+        paste("<a href=\"http://idclight.bioinfo.cnio.es/IDClight.prog",
+              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
+              organism," target=\"icl_window\"\">",id,"</a>", sep = "")
+}
+
+
+createIM2 <- function(im, file = "", imgTags = list(),
+                      title = "Genome View") {
+    cat(paste("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n",
+              "<html> <head> <title>", title, "</title></head><body>"),
+        file = file)
+    cat(buildIM(im, imgTags), sep = "\n", file = file, append = TRUE)
+    cat("</body></html>", file = file, append = TRUE)
+}
+

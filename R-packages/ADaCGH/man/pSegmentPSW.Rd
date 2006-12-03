@@ -7,7 +7,8 @@
   the interfaz to make it more similar to other functions in this
   package and including the Smith-Waterman algorithm run, the
   thresholding, the permutation, and the
-  robustness calculation.
+  robustness calculation. See details for deviations from original
+  implementation. 
 }
 \usage{
 pSegmentPSW(common.dat, acghdata, chrom.numeric, sign = -1,
@@ -34,13 +35,33 @@ pSegmentPSW(common.dat, acghdata, chrom.numeric, sign = -1,
   \item{name}{ Sample name or ID }
 }
 \details{
-  You should only use this function if you are using two or more CPUs.
 
   You are expected to provide both a Chromosome in the common.dat and a
   numeric chromosome indicator. Given the first, we could obtain the
   second, but how we would do that might not be how you would do it, so
   we prefer you decide how you want the mapping from your "Chromosome"
   to a numeric representation.
+
+The method implemented here is a small departure from the one described
+originally: here we use all the data for a subject/array for the
+thresholding, but subsequent analyses (finding islands and robustness
+analysis and permutation tests) are carried out chromosome by
+chromosome. This should allow to detect cases where a complete
+chromosome is gained or lost, as well as cases where smaller regions are
+gained or lost. Note that this approach is probably not advisable for
+the X chromosome, at least for males. You probably want to analyze the X
+separately, since you only expect one copy of the genomic DNA in
+males. Finally, the function for calculating the threshold (the default
+used by T. Price originally, which we also use ---median + 0.2 * MAD---)
+was validated by Price and collaborators on a 75-probe dataset that
+spanned the telomeric 2MB of chromosome 16p, using subjects with
+well-characterized deletions in the region and healthy controls. But it
+has not been validated with whole-genome chips or other DNA sources. (If
+you want to play around with the code, the sources are available from
+http://www.well.ox.ac.uk/~tprice/cgh/ and as the R package
+\code{cgh}). (I thank Tom Price for his discussion on these issues; some
+sentences here are copied almost verbatim from his emails.)
+
 }
 \value{A list with two lists as components.
   \item{Data}{A data frame. The first columns are those from the data

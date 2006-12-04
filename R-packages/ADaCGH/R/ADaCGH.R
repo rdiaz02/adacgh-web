@@ -203,7 +203,7 @@ mergeDNAcopy <- function(object) {
 }    
 
 
-pSegmentPSW <- function(common.dat,
+pSegmentPSW <- function(common.data,
                         acghdata,
                         chrom.numeric,
                         sign = -1,
@@ -582,13 +582,20 @@ WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
     ##         pdf("Autocorrelation.plots.pdf", width = 17.6, height = 12.5)
     ##        par(mfrow = c(6,4))
     ##        par(oma = c(2, 2, 2, 2))
-    for(i in 1:ncrom)
-        hist(ar1s[, i], main = paste("Chr", i), xlab = "Autocorrelation, lag 1")
-    mtext("Autocorrelation coefficient lag 1", side = 3,
-          outer = TRUE, line = 0.5, font = 2)
-    ##        dev.off()
-
-
+    if (numarrays > 1) {
+        for(i in 1:ncrom)
+            hist(ar1s[, i], main = paste("Chr", i), xlab = "Autocorrelation, lag 1")
+        mtext("Autocorrelation coefficient lag 1", side = 3,
+              outer = TRUE, line = 0.5, font = 2)
+        ##        dev.off()
+    } else {
+        plot(x = c(0, 1), y = c(0, 1),
+             type = "n", axes = FALSE, xlab = "", ylab = "")
+        box()
+        text(0.5, 0.7, "Only one array.")
+        text(0.5, 0.5,
+             "No histogram possible.")
+    }
 
 ##### example
 ##### data(cghMCRe)

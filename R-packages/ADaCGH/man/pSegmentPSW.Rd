@@ -11,13 +11,13 @@
   implementation. 
 }
 \usage{
-pSegmentPSW(common.dat, acghdata, chrom.numeric, sign = -1,
+pSegmentPSW(common.data, acghdata, chrom.numeric, sign = -1,
             nIter = 1000, prec = 100,
             p.crit = 0.10, name = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{common.dat}{A data frame with columns that contain the common
+  \item{common.data}{A data frame with columns that contain the common
     information about the clones/genes. We do nothing with this, except
     it is part of the output. It is common practice that this data frame
     contains columns ID, Chrosome (need not be

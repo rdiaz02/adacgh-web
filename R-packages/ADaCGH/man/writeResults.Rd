@@ -28,8 +28,8 @@ writeResults.DNAcopy(obj, acghdata, commondata, merged = NULL,
     from summary.}
   \item{file}{The name of the output file.}
   \item{acghdata}{The aCGH data set; see \code{\link{pSegmentWavelets}}.}
-  \item{commondata}{The common data; see
-    \code{\link{pSegmentWavelets}}.}
+  \item{commondata}{The common data; see \code{common.data} in 
+    \code{\link{pSegmentPSW}}.}
   \item{merged}{If you want to use the merged output (see
     \code{\link{mergeDNAcopy}}) provide the name of the object.}
   \item{\dots}{ Optionally, the file name. For the wavelet-based method,

@@ -1,4 +1,23 @@
-rm(list = ls())
+####  Copyright (C) 2005, 2006, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
+
+#### This program is free software; you can redistribute it and/or
+#### modify it under the terms of the GNU General Public License
+#### as published by the Free Software Foundation; either version 2
+#### of the License, or (at your option) any later version.
+
+#### This program is distributed in the hope that it will be useful,
+#### but WITHOUT ANY WARRANTY; without even the implied warranty of
+#### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#### GNU General Public License for more details.
+
+#### You should have received a copy of the GNU General Public License
+#### along with this program; if not, write to the Free Software
+#### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+#### USA.
+
+
+
+rm(list = ls()) ## Just in case.
 
 .Last <- function(){
     ## the next four lines are a way to ensure that the OS writes
@@ -16,11 +35,8 @@ rm(list = ls())
         } 
         try(print("Please use mpi.quit() to quit R"), silent = TRUE)
         cat("\n\n Normal termination\n")
-        try(stopCluster(TheCluster), silent = TRUE)
-        ##        .Call("mpi_finalize")
         try(mpi.quit(save = "yes"), silent = TRUE)
     }
-    try(stopCluster(TheCluster), silent = TRUE)
     cat("\n\n Normal termination\n")
     ## In case the CGI is not called (user kills browser)
     ## have a way to stop lam
@@ -63,56 +79,19 @@ sink(file = "mpiOK")
 cat("MPI started OK\n")
 sink()
 
-
+assign(".__ADaCGH_WEB_APPL", TRUE)
 library(Hmisc)
-## Price-Smith-Waterman
 library(cgh)
 library(aCGH)
-## wavelets
 library("waveslim") ## we will have to load ADaCGH soon,
 ## but we must mask certain defs. in waveslim. So load
 ## waveslim here
 library("cluster") 
 library(cghMCR)
 library(DNAcopy)
-
 library(GDD)
 library(imagemap)
-
-library(ADaCGH2)
-
-
-## modifying html, from Hmisc: Their function always has first column
-## named "Name". I allow to pass a name.
-
-html.data.frame <- function (object, first.col = "Name",
-                             file = paste(first.word(deparse(substitute(object))), 
-                             "html", sep = "."), append = FALSE, link = NULL, linkCol = 1, 
-                             linkType = c("href", "name"), ...) 
-{
-    linkType <- match.arg(linkType)
-    x <- format.df(object, ...)
-    adj <- attr(x, "col.just")
-    if (any(adj == "r")) 
-        for (i in seq(along = adj)[adj == "r"]) x[, i] <- paste("<div align=right>", 
-            x[, i], "</div>", sep = "")
-    if (length(r <- dimnames(x)[[1]])) 
-        x <- cbind(first.col = r, x)
-    colnames(x)[1] <- first.col
-    cat("<TABLE BORDER>\n", file = file, append = append)
-    cat("<tr>", paste("<td>", dimnames(x)[[2]], "</td>", sep = ""), 
-        "</tr>\n", sep = "", file = file, append = file != "")
-    if (length(link)) 
-        x[, linkCol] <- ifelse(link == "", x[, linkCol], paste("<a ", 
-            linkType, "=\"", link, "\">", x[, linkCol], "</a>", 
-            sep = ""))
-    for (i in 1:nrow(x)) cat("<tr>", paste("<td>", x[i, ], "</td>", 
-        sep = ""), "</tr>\n", sep = "", file = file, append = file != 
-        "")
-    cat("</TABLE>\n", file = file, append = file != "")
-    structure(list(file = file), class = "html")
-}
-
+library(ADaCGH)
 
 
 
@@ -122,24 +101,13 @@ pid <- Sys.getpid()
 write.table(file = "pid.txt", pid,
             row.names = FALSE,
             col.names = FALSE)
-
 trylam <- try(
-              lamSESSION <- scan("lamSuffix", sep = "\t", strip.white = TRUE))
+              lamSESSION <- scan("lamSuffix", sep = "\t",
+                                 strip.white = TRUE)
+              )
 
 
-
-
-
-
-## library(Rmpi)
-## library(survival)
-## library(combinat)
-## library(MASS)
-## library(SurvSignature)
-## library(papply)
-## library(snow)
-
-## still used to generate the error message figures
+## CGIwithR is still used to generate the error message figures
 library(CGIwithR)
 graphDir <- paste(getwd(), "/", sep = "")
 png.width = 7
@@ -147,33 +115,16 @@ png.height = 7
 png.pointsize = 14
 png.family = "Helvetica"
 
-
-
-
-
-
-## defaults for DNA copy:  zz: ojo, quitar luego!!!
+## defaults for DNA copy
 DNA.undo.splits = "prune" ## don't touch this
 DNA.undo.sd = 3  ## not needed, really
-
-## DNA.smooth.region = 2
-## DNA.outlier.SD.scale = 4
-## DNA.smooth.SD.scale = 2
-## DNA.trim = 0.025
-## DNA.copy.alpha = 0.01
-## DNA.kmax = 25
-## DNA.nmin = 200
-## DNA.nperm = 10000
-## DNA.overlap = 0.25
-## DNA.trim = 0.025
-## DNA.undo.prune = 0.05
-
 
 
 ##############################################
 ##############################################
 ######                              ##########
 ######         Error checking       ##########
+######          utilities           ##########
 ######                              ##########
 ##############################################
 ##############################################
@@ -255,7 +206,6 @@ warningsForUsers <- vector()
 ## name and pos.
 
 
-
 idtype <- try(scan("idtype", what = "", n = 1))
 organism <- try(scan("organism", what = "", n = 1))
 
@@ -288,14 +238,10 @@ if (methodaCGH == "CBS") {
 }
 
 
-
-
 twoFiles <- try(scan("twofiles", what = "", n = 1))
 centering <- try(scan("centering", what = "", n = 1))
 
 ## positionInfo         has  name, chromosome, start, end
-
-
 trypositionInfo <-
     try(
         positionInfo <- read.table("positionInfo", header = FALSE,
@@ -322,8 +268,6 @@ if(length(arrayNames) > 0) {
     }
 }
 
-
-
 tryxdata <-
     try(
         xdata <- scan("covarR", what = double(0), sep = "\t")
@@ -346,88 +290,6 @@ if(nrow(xdata) != nrow(positionInfo))
                           nrow(positionInfo), "genes/clones in you positions file.\n"))
 colnames(xdata) <- arrayNames
 
-
-## if(twoFiles == "Two.files") {## data in one place, positions in other
-##     tryxdata <-
-##         try(
-##             xdata <- read.table("acghData", header = FALSE, sep = "\t",
-##                                 strip.white = TRUE,
-##                                 comment.char = "#",
-##                                 quote = ""))
-##     if(class(tryxdata) == "try-error")
-##         caughtUserError(paste("The acgh data file is not of the appropriate format\n",
-##                               "In case it helps this is the error we get\n",
-##                               tryxdata, sep =""))
-
-##     if(ncol(xdata) < 2)
-##         caughtUserError(paste("The acgh data file does not contain any data\n",
-##                               "(recall that the first column is only identifiers)\n"))
-                        
-##     xdata <- xdata[, -1, drop = FALSE]
-##     ## read positionInfo
-##     trypositionInfo <-
-##         try(
-##             positionInfo <- read.table("positionInfo", header = FALSE,
-##                                        sep = "\t",
-##                                        strip.white = TRUE,
-##                                        comment.char = "#",
-##                                        quote = ""))
-##     if(class(trypositionInfo) == "try-error")
-##         caughtUserError("The position file is not of the appropriate format\n")
-
-
-##     if(nrow(xdata) != nrow(positionInfo))
-##         caughtUserError(paste("Different number of genes/clones in your\n",
-##                               "data and position (coordinate) files.\n",
-##                               nrow(xdata), "genes/clones in you data file\n",
-##                               nrow(positionInfo), "genes/clones in you positions file.\n"))
-    
-##     arrayNames <- scan("arrayNames", sep = "\t", what = "char", quote = "")
-##     if(length(arrayNames) > 0) {
-##         ##arrayNames <- arrayNames[-1]
-##         if(length(unique(arrayNames)) < length(arrayNames)) {
-##             dupnames <- which(duplicated(arrayNames))
-##             message <- paste("Array names are not unique.\n",
-##                              "Please change them so that they are unique.\n",
-##                              "The duplicated names are ", dupnames, "\n")
-##             caughtUserError(message)
-##         }
-##         colnames(xdata) <- arrayNames
-##     }
-## }
-## else {
-##     tryxdata <-
-##         try(
-##             xdata <- read.table("acghAndPosition", header = FALSE, sep = "\t",
-##                                 strip.white = TRUE,
-##                                 comment.char = "#",
-##                                 quote = ""))
-##     if(class(tryxdata) == "try-error")
-##       caughtUserError(paste("The acgh data file is not of the appropriate format\n",
-##                             "In case it helps this is the error we get\n",
-##                             tryxdata, sep =""))
-
-##     if(ncol(xdata) < 5)
-##         caughtUserError(paste("The acgh data file does not contain any data\n",
-##                               "columns or you forgot to attach the position \n",
-##                               "information.\n"))
-
-    
-##     positionInfo <- xdata[, c(1, 2, 3, 4)]
-##     xdata <- xdata[, -c(1, 2, 3, 4), drop = FALSE]
-##     arrayNames <- scan("arrayNames", sep = "\t", what = "char", quote = "")
-##     if(length(arrayNames) > 0) {
-##         ##arrayNames <- arrayNames[-c(1, 2, 3, 4)]
-##         if(length(unique(arrayNames)) < length(arrayNames)) {
-##             dupnames <- which(duplicated(arrayNames))
-##             message <- paste("Array names are not unique.\n",
-##                              "Please change them so that they are unique.\n",
-##                              "The duplicated names are ", dupnames, "\n")
-##             caughtUserError(message)
-##         }
-##         colnames(xdata) <- arrayNames
-##     }
-## }
 colnames(positionInfo) <- c("name", "chromosome", "start", "end")
 
 if(!length(arrayNames))
@@ -446,9 +308,6 @@ if(any(!is.numeric(as.matrix(positionInfo[, c(3, 4)])))) {
     caughtUserError(paste("Your position information contains non-numeric values \n",
                           "for the start and/or end positions."))
 }
-
-
-
 
 ## Get rid of possible chr, Chr, etc. and possible " in the chr
 positionInfo$chromosome <- as.character(positionInfo$chromosome)
@@ -500,7 +359,6 @@ xdata <- xdata[reorder, , drop = FALSE]
 
 
 
-
 #######################################################
 #######################################################
 #######################################################
@@ -529,7 +387,7 @@ xdata.merge1 <- apply(xdata, 2,
 positions.merge1 <- positionInfo[!duplicated(positionInfo$ov), ]
 
 ## Do we have any identical MidPos in the same chromosome??  Just to solve
-## it quickly and without downstream nasty consequences, we add a runif to
+## it quickly and without nasty downstream consequences, we add a runif to
 ## midPos.
 
 tmp <- paste(positions.merge1$chromosome, positions.merge1$MidPoint, sep = ".")
@@ -736,12 +594,12 @@ a3 <- apply(xdata.merge1, 2,
 
 round(a3, 3)
 
-
-
-
-tmphtml <- html(a1, file = "stats.subj.by.chrom.mean.BEFORE.html", dec = 4, first.col = "Chromosome")
-tmphtml <- html(a2, file = "stats.subj.by.chrom.median.BEFORE.html", dec = 4, first.col = "Chromosome")
-tmphtml <- html(a3, file = "stats.subj.by.chrom.mad.BEFORE.html", dec = 4, first.col = "Chromosome")
+tmphtml <- html(a1, file = "stats.subj.by.chrom.mean.BEFORE.html", dec = 4,
+                first.col = "Chromosome")
+tmphtml <- html(a2, file = "stats.subj.by.chrom.median.BEFORE.html", dec = 4,
+                first.col = "Chromosome")
+tmphtml <- html(a3, file = "stats.subj.by.chrom.mad.BEFORE.html", dec = 4,
+                first.col = "Chromosome")
 
 
 
@@ -765,12 +623,6 @@ medians <- apply(xcenter, 2, median)
 mads <- apply(xcenter, 2, mad)
 
 
-
-
-
-
-
-
 cat("\n\n\n*********************************************************************\n")
 cat("*********************************************************************\n")
 cat("*********                                        ********************\n")
@@ -783,15 +635,12 @@ cat("*********************************************************************\n\n")
 
 tmpdf <- data.frame(means, medians, mads)
 colnames(tmpdf) <- c("Mean", "Median", "MAD")
-tmphtml <- html(tmpdf, file = "stats.after.centering.html", dec = 4, first.col = "Array name")
+tmphtml <- html(tmpdf, file = "stats.after.centering.html", dec = 4,
+                first.col = "Array name")
 
 
 cat("\n\n Means, medians, MAD of log ratios  per subject/array\n")
 round(data.frame(tmpdf), 5)
-
-
-
-
 
 
 ## Same, by chromosome:
@@ -847,11 +696,6 @@ if(quantile(xcenter, 0.25) < -300)
 
 if(quantile(xcenter, 0.75) > 300)
     caughtUserError("At least 25 % of your vales are larger > 300; \n there is likely an error with the data (this would mean \n that you have many values with log2 ratio >  300 !!!)")
-
-
-
-
-
 
 
 if(length(warningsForUsers)) {
@@ -989,36 +833,24 @@ if(methodaCGH == "CBS") {
                                                        p.method = "hybrid",
                                                        verbose = 2)
             } else {
-                segment.smoothed.CNA.object <- segmentCBSp(smoothed.CNA.object,
-                                                           alpha = DNA.copy.alpha,
-                                                           kmax = DNA.kmax,
-                                                           nmin = DNA.nmin,
-                                                           nperm = DNA.nperm,
-                                                           overlap = DNA.overlap,
-                                                           trim = DNA.trim,
-                                                           undo.splits = DNA.undo.splits,
-                                                           undo.prune = DNA.undo.prune,
-                                                           undo.SD = DNA.undo.sd,
-                                                           p.method = "hybrid",
-                                                           verbose = 2)
+                segment.smoothed.CNA.object <-
+                    pSegmentDNAcopy(smoothed.CNA.object,
+                                    alpha = DNA.copy.alpha,
+                                    kmax = DNA.kmax,
+                                    nmin = DNA.nmin,
+                                    nperm = DNA.nperm,
+                                    overlap = DNA.overlap,
+                                    trim = DNA.trim,
+                                    undo.splits = DNA.undo.splits,
+                                    undo.prune = DNA.undo.prune,
+                                    undo.SD = DNA.undo.sd,
+                                    p.method = "hybrid")
+##                                    verbose = 2)
             }
             })
     if(class(trythis) == "try-error")
-##    if((!is.null(class(trythis))) & (class(trythis == "try-error")))
         caughtOurError(paste("Function segment (in CBS) bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
-    
-
-##     we might later parallelize and do all arrays at once
-##     segmeans <- tapply(   ID, ) ## here an array with means
-##     datalist <- list()
-##     klist <- 1
-##     for(i in 1:nsample) {
-##         datalist[[klist]][[1]] <- x[, i + 2]
-##         datalist[[klist]][[2]]  <- y[ID == i]
-##             klist <- klist + 1
-##     }
-
 save.image()                             
     ### Minimal common regions
     if(numarrays > 1) {
@@ -1044,8 +876,8 @@ save.image()
 
         sink(file = "mcr.results.html")
         ##cat("<h3>Minimal common regions</h3>\n")
-        cat("<p>(Yes, this output might be ugly. We want your comments on how to",
-            "make the output more useful to you.)</p>\n")
+##         cat("<p>(Yes, this output might be ugly. We want your comments on how to",
+##             "make the output more useful to you.)</p>\n")
         if (nrow(mcrsc) == 0)
           cat("\n<p> No common minimal regions found.</p>\n")
         else 
@@ -1055,34 +887,36 @@ save.image()
         
         sink(file = "results.txt")
         cat("\n\n\nMinimal common regions\n")
-        cat("(Yes, this output is ugly. We want your comments on how to",
-            "make the output more useful for you.)\n")
+##         cat("(Yes, this output is ugly. We want your comments on how to",
+##             "make the output more useful for you.)\n")
         if (nrow(mcrsc) == 0)
           cat("\n No common minimal regions found.\n")
         else 
           print(mcrsc)
         sink()
-        ## Do the output here!
     }
 
 
     if(DNA.merge == "No") {
         trythis <- try({
             ## The segmented plots, one per array
-            for(i in 1:numarrays) {
-                plot.olshen2(segment.smoothed.CNA.object,
-                             i, main = colnames(xcenter)[i],
-                             html = TRUE)
-            }
+            segmentPlot(segment.smoothed.CNA.object,
+                        arraynames = colnames(xcenter),
+                        chrom.numeric = chrom.numeric,
+                        idtype = idtype,
+                        organism = organism,
+                        geneNames = positions.merge1$name,
+                        yminmax = c(ymin, ymax),
+                        supperimposed = FALSE)
             ## Supperimposed
-            plot.olshen3(segment.smoothed.CNA.object,
-                         main = "All_arrays", ylim = c(ymin, ymax),
-                         html = TRUE) ## all genome
-            
-            plot.olshen4(segment.smoothed.CNA.object,
-                         main = "All_arrays", ylim = c(ymin, ymax),
-                         html = TRUE) ## by chromosome
-            
+            segmentPlot(segment.smoothed.CNA.object,
+                        arraynames = colnames(xcenter),
+                        chrom.numeric = chrom.numeric,
+                        idtype = idtype,
+                        organism = organism,
+                        geneNames = positions.merge1$name,
+                        yminmax = c(ymin, ymax),
+                        supperimposed = TRUE)
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Error in segment plots  with error",
@@ -1092,65 +926,40 @@ save.image()
         
         trythis <- try({ ## fix this later, using GDD
             pdf("CBS.plateau.plots.pdf", height = 6, width = 9)
-            ## For each sample:
-            plot.DNAcopy2(segment.smoothed.CNA.object)
-            ## superimposing all:
-            plot.DNAcopy3(segment.smoothed.CNA.object, pt.pch = "", pt.cex = 0)
-            ## One for all
-            plot.DNAcopy4(segment.smoothed.CNA.object)
+            plateauPlot(segment.smoothed.CNA.object)
             dev.off()
         })
     } else { ## If we used mergeLevels, then we can pretend we are using ACE for plotting
         ## there is some data duplication here.
-
-        res <- segment.smoothed.CNA.object
-        merged_segments <- list()
-        for(arraynum in 1:numarrays) {
-            obs <- res$data[, 2 + arraynum]
-            segmented <-
-                res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
-            segmentus <- res$data$maploc
-            for(i in 1:nrow(segmented)) {
-                segmentus[(segmented[i,'loc.end'] >= segmentus) &
-                          (segmented[i,'loc.start'] <= segmentus)] <- segmented[i,'seg.mean']
-            }
-            segmentus2 <- mergeLevels(obs, segmentus)$vecMerged
-            classes.ref <- which.min(abs(unique(segmentus2)))
-            classes.ref <- unique(segmentus2)[classes.ref]
-            ref <- rep(0, length(segmentus))
-            ref[segmentus2 > classes.ref] <- 1
-            ref[segmentus2 < classes.ref] <- -1
-            merged_segments[[arraynum]] <- cbind(segmentus, obs, ref)
-        }
-        
+        merged_segments <- mergeDNAcopy(segment.smoothed.CNA.object)
         trythis <- try({
           save.image()
-            ## The segmented plots, one per array
-            for(i in 1:numarrays) {
-                plot.ace2(merged_segments, positions.merge1$chrom.numeric, arraynum = i,
-                          main = colnames(xcenter)[i])
-            }
-            
-            ## Supperimposed
-            plot.ace3(merged_segments, positions.merge1$chrom.numeric, 
-                      main = "All_arrays",
-                      ylim = c(ymin, ymax),
-                      pch = "")
-            plot.ace4(merged_segments, positions.merge1$chrom.numeric, 
-                      main = "All_arrays",
-                      ylim = c(ymin, ymax))
-            
-        })
+          segmentPlot(merged_segments,
+                      arraynames = colnames(xcenter),
+                      geneNames = positions.merge1$name,
+                      idtype = idtype,
+                      organism = organism,
+                      yminmax = c(ymin, ymax),
+                      superimposed = FALSE)
+          segmentPlot(merged_segments,
+                      arraynames = colnames(xcenter),
+                      geneNames = positions.merge1$name,
+                      idtype = idtype,
+                      organism = organism,
+                      yminmax = c(ymin, ymax),
+                      superimposed = TRUE)
+      })
     }
-                   
+    
     if(class(trythis) == "try-error")
         caughtOurError(paste("Error in plateau plots with error",
                              trythis, ". \n Please let us know so we can fix the code."))
 
     ## return final results
-    print.olshen.results(segment.smoothed.CNA.object, xcenter,
-                         merged = merged_segments)
-    ##save(file = "CBS.RData", list = ls())
+    writeResults(segment.smoothed.CNA.object, xcenter,
+                 commondata = positions.merge1,
+                 merged = ifelse(exists("merged_segments"),
+                 merged_segments, NULL))
     quit()
     
     
@@ -1170,78 +979,49 @@ save.image()
 
     mpiWave()
     
-    dat <- as.matrix(xcenter)
+    ## lets try the diagnostic plots code
+    pdf("Autocorrelation.plots.pdf", width = 17.6, height = 12.5)
+    par(mfrow = c(6,4))
+    par(oma = c(2, 2, 2, 2))
+    WaveletsDiagnosticPlots(xcenter, chrom.numeric)
+    dev.off()
     
-    ar1s <- matrix(nrow = numarrays, ncol = ncrom)
-    for(cn in 1:ncrom) { ## zz: parallelize this?
-        index.dat <- which(positions.merge1$chrom.numeric == cn)
-        for(subject in 1:numarrays) {
-            trythis <- try(
-            ar1s[subject, cn] <-
-                as.vector(acf(dat[index.dat, subject],
-                              lag.max = 1, plot = FALSE)$acf)[2]
-                           )
-            if(class(trythis) == "try-error")
-                caughtOurError(paste("acf bombed unexpectedly with error",
-                                     trythis, ". \n Please let us know so we can fix the code."))
-
-        }
-    }
-    rm(cn, subject, index.dat)
-
-    if (numarrays > 1) {
-        pdf("Autocorrelation.plots.pdf", width = 17.6, height = 12.5)
-        par(mfrow = c(6,4))
-        par(oma = c(2, 2, 2, 2))
-        for(i in 1:ncrom)
-            hist(ar1s[, i], main = paste("Chr", i), xlab = "Autocorrelation, lag 1")
-        mtext("Autocorrelation coefficient lag 1", side = 3,
-              outer = TRUE, line = 0.5, font = 2)
-        dev.off()
-    }
-    else  {
-        pdf("Autocorrelation.plots.pdf", width = 17.6, height = 12.5)
-        par(mfrow = c(6,4))
-        par(oma = c(2, 2, 2, 2))
-        plot(x = c(0, 1), y = c(0, 1),
-             type = "n", axes = FALSE, xlab = "", ylab = "")
-        box()
-        text(0.5, 0.7, "Only one array.")
-        text(0.5, 0.5,
-             "No histogram possible.")
-        dev.off()
-    }
-        
     trythis <- try(
-                out.wave <- wave.aCGH(dat, positions.merge1$chrom.numeric, minDiff = Wave.minDiff)
-                )
+                   out.wave <-
+                   pSegmentWavelets(as.matrix(xcenter),
+                                    chrom.numeric = positions.merge1$chrom.numeric,
+                                    minDiff = Wave.minDiff)
+                   )
     if(class(trythis) == "try-error")
         caughtOurError(paste("Function wave.aCGH bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
 
     trythis <- try({
-        ## The segmented plots, one per array
-        for(i in 1:numarrays) {
-            plot.wavelets2(out.wave, xcenter, positions.merge1$chrom.numeric, arraynum = i,
-                           main = colnames(dat)[i])
-        }
-        
-        ## Supperimposed
-        plot.wavelets3(out.wave, xcenter, positions.merge1$chrom.numeric, 
-                      main = "All_arrays",
-                      ylim = c(ymin, ymax),
-                      pch = "")
-        plot.wavelets4(out.wave, xcenter, positions.merge1$chrom.numeric, 
-                       main = "All_arrays",
-                       ylim = c(ymin, ymax))
-        
+        segmentPlot(out.wave,
+                    chrom.numeric = positions.merge1$chrom.numeric,
+                    cghdata = xcenter,
+                    arraynames = colnames(xcenter),
+                    geneNames = positions.merge1$name,
+                    idtype = idtype,
+                    organism = organism,
+                    yminmax = c(ymin, ymax),
+                    superimposed = FALSE)
+        segmentPlot(out.wave,
+                    chrom.numeric = positions.merge1$chrom.numeric,
+                    cghdata = xcenter,
+                    arraynames = colnames(xcenter),
+                    geneNames = positions.merge1$name,
+                    idtype = idtype,
+                    organism = organism,
+                    yminmax = c(ymin, ymax),
+                    superimposed = TRUE)
     })
     if(class(trythis) == "try-error")
         caughtOurError(paste("Error in segment plots  with error",
                              trythis, ". \n Please let us know so we can fix the code."))
-
+    
     trythis <- try(
-                   print.wavelets.results(out.wave, xcenter)
+                   writeResults(out.wave, xcenter, commondata = positions.merge1)
                    )
     if(class(trythis) == "try-error")
             caughtOurError(paste("Function print.wavelets.results bombed unexpectedly with error",
@@ -1252,13 +1032,7 @@ save.image()
 
     trythis <- try({ ## we should change this to use GDD, etc. Not for now.
         pdf("WS.plateau.plots.pdf", height = 6, width = 9)
-        ## by array:
-        plateau.wavelets(out.wave, xcenter, by.array = TRUE)
-        ## arrays, superimposed
-        plateau.wavelets(out.wave, xcenter, by.array = TRUE, superimpose = TRUE,
-                         ylim = c(ymin, ymax))
-        ## all, collapsed
-        plateau.wavelets(out.wave, xcenter, by.array = FALSE)
+        plateauPlot(out.wave, xcenter)
         dev.off()
     })
     if(class(trythis) == "try-error")
@@ -1301,77 +1075,47 @@ save.image()
 
 ### Gains
     trythis <- try({
-        for(i in 1:numarrays) {
-            tmp <- my.sw3(xcenter[, i], positions.merge1$chrom.numeric,
-                          sign = +1, p.crit = PSW.p.crit,
-                          main = colnames(xcenter)[i],
-                          nIter = PSW.nIter,
-                          prec = PSW.prec,
-                          name = paste("Gains.", colnames(xcenter)[i], sep = ""))
-            out.gains <- cbind(out.gains, tmp$out)
-            plotdat <- tmp$plotdat
-            p.crit.bonferroni <- plotdat$p.crit/ncrom
-            sw.plot3(plotdat$logratio, sign=plotdat$sign,
-                     swt.perm = plotdat$swt.perm, rob = plotdat$rob,
-                     swt.run = plotdat$swt.run,
-                     p.crit = p.crit.bonferroni, chrom = plotdat$chrom,
-                     main = paste("Gains.", colnames(xcenter)[i], sep = ""),
-                     geneNames = positions.merge1$name)
-        }
-    }
-                   )
-
+        out.gains <-
+            pSegmentPSW(out.gains,
+                        xcenter,
+                        chrom.numeric =  positions.merge1$chrom.numeric,
+                        sign = +1, p.crit = PSW.p.crit,
+                        nIter = PSW.nIter,
+                        prec = PSW.prec,
+                        name = "Gains.")
+        segmentPlot(out.gains, geneNames = positions.merge1$name,
+                    idtype = idtype, organism = organism)
+    })
     if(class(trythis) == "try-error")
-        caughtOurError(paste("Function my.sw2 (positive) bombed unexpectedly with error",
+        caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
-    write.table(out.gains, file = "Gains.Price.Smith.Waterman.output.txt",
-                sep = "\t", col.names = NA,
-                row.names = TRUE, quote = FALSE)
-    
+    writeResults(out.gains, file = "Gains.Price.Smith.Waterman.output.txt")
 
 ### Losses
     trythis <- try({
-        for(i in 1:numarrays) {
-            tmp <- my.sw3(xcenter[, i], positions.merge1$chrom.numeric,
-                          sign = +1, p.crit = PSW.p.crit,
-                          main = colnames(xcenter)[i],
-                          nIter = PSW.nIter,
-                          prec = PSW.prec,
-                          name = paste("Losses.", colnames(xcenter)[i], sep = ""))
-            out.losses <- cbind(out.losses, tmp$out)
-            plotdat <- tmp$plotdat
-            p.crit.bonferroni <- plotdat$p.crit/ncrom
-            sw.plot3(plotdat$logratio, sign=plotdat$sign,
-                     swt.perm = plotdat$swt.perm, rob = plotdat$rob,
-                     swt.run = plotdat$swt.run,
-                     p.crit = p.crit.bonferroni, chrom = plotdat$chrom,
-                     main = paste("Losses.", colnames(xcenter)[i], sep = ""),
-                     geneNames = positions.merge1$name)
-        }
-    }
-                   )
+        out.losses <-
+            pSegmentPSW(out.losses,
+                        xcenter,
+                        chrom.numeric =  positions.merge1$chrom.numeric,
+                        sign = -1, p.crit = PSW.p.crit,
+                        nIter = PSW.nIter,
+                        prec = PSW.prec,
+                        name = "Gains.")
+        segmentPlot(out.losses, geneNames = positions.merge1$name,
+                    idtype = idtype, organism = organism)
+    })
     if(class(trythis) == "try-error")
-        caughtOurError(paste("Function my.sw2 (negative) bombed unexpectedly with error",
+        caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
-    write.table(out.losses, file = "Losses.Price.Smith.Waterman.output.txt",
-                sep = "\t", col.names = NA,
-                row.names = TRUE, quote = FALSE)
-	     
+    write.table(out.losses, file = "Losses.Price.Smith.Waterman.output.txt")
+    
     ##save(file = "PSW.RData", list = ls())
     quit()
     
     
 } else if(methodaCGH == "ACE") {
-
     mpiACE()
     
-##    load("file.aux.RData")
-##     mpi.bcast.Robj2slave("ACE")
-##     mpi.bcast.Robj2slave("ace.analysis")
-##     mpi.bcast.Robj2slave("sd.ACE.analysis")
-##     mpi.bcast.Robj2slave("file.aux")
-##    library(papply)
-
     ## zz: ugly hack: it it is a 1 dimension array, make it a vector
     ## so that the correct methods are used.
 
@@ -1381,11 +1125,11 @@ save.image()
     }
     
     trythis <- try(
-                   ACE.object <- ACE(as.matrix(xcenter),
+                   ACE.object <- pSegmentACE(as.matrix(xcenter),
                                      Chrom = positions.merge1$chrom.numeric)
                    )
     if(class(trythis) == "try-error")
-        caughtOurError(paste("Function ACE bombed unexpectedly with error",
+        caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
         
 
@@ -1393,15 +1137,14 @@ save.image()
                    ACE.summ <- summary(ACE.object, fdr = ACE.fdr)
                    )
     if(class(trythis) == "try-error")
-        caughtOurError(paste("Function ACE.summary bombed unexpectedly with error",
+        caughtOurError(paste("Function summary.ACE bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
 
-
     trythis <- try(
-                   print.ACE.results(ACE.summ)
+                   writeResults(ACE.summ)
                    )
     if(class(trythis) == "try-error")
-            caughtOurError(paste("Function print.ACE.results bombed unexpectedly with error",
+            caughtOurError(paste("Function writeResults.CGH.ACE.summary bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
 
 
@@ -1416,20 +1159,16 @@ save.image()
 
     trythis <- try({
         ## The segmented plots, one per array
-        for(i in 1:numarrays) {
-            plot.ace2(ACE.summ, positions.merge1$chrom.numeric, arraynum = i,
-                           main = colnames(xcenter)[i])
-        }
-        
+        segmentPlot(ACE.summ,
+                    chrom.numeric = positions.merge1$chrom.numeric,
+                    geneNames = positions.merge1$name,
+                    idtype = idtype, organism = organism)
         ## Supperimposed
-        plot.ace3(ACE.summ, positions.merge1$chrom.numeric, 
-                      main = "All_arrays",
-                      ylim = c(ymin, ymax),
-                      pch = "")
-        plot.ace4(ACE.summ, positions.merge1$chrom.numeric, 
-                       main = "All_arrays",
-                       ylim = c(ymin, ymax))
-        
+        segmentPlot(ACE.summ,
+                    chrom.numeric = positions.merge1$chrom.numeric,
+                    geneNames = positions.merge1$name,
+                    idtype = idtype, organism = organism,
+                    superimposed = TRUE)
     })
     if(class(trythis) == "try-error")
         caughtOurError(paste("Error in ACE plots  with error",

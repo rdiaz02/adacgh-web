@@ -203,6 +203,7 @@ mergeDNAcopy <- function(object) {
 }    
 
 
+
 pSegmentPSW <- function(common.data,
                         acghdata,
                         chrom.numeric,
@@ -214,7 +215,7 @@ pSegmentPSW <- function(common.data,
     numarrays <- ncol(acghdata)
     ncrom <- length(unique(chrom.numeric))
     out <- list()
-    out$Data <- common.dat
+    out$Data <- common.data
     out$plotData <- list()
     for(i in 1:numarrays) {
         tmp <- my.sw3(acghdata[, i], chrom.numeric,

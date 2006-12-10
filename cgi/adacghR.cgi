@@ -286,8 +286,23 @@ fs = cgi.FieldStorage()
 
 idtype = radioUpload('idtype', acceptedIDTypes)
 organism = radioUpload('organism', acceptedOrganisms)
-tmp = valueNumUpload('MCR.gain', 'float', -999999999)
-tmp = valueNumUpload('MCR.loss', 'float', -999999999)
+tmp = valueNumUpload('MCR.gapAllowed', 'float', 1)
+tmp1 = valueNumUpload('MCR.alteredLow', 'float', 0)
+tmp2 = valueNumUpload('MCR.alteredHigh', 'float', 0)
+tmp = valueNumUpload('MCR.recurrence', 'float', 1)
+
+if tmp1 >= tmp2:
+    commonOutput()
+    print "<h1> ERROR </h1>"
+    print "<p> It makes no sense to have an alteredLow larger or equal to \
+    an alteredHigh </p>"
+    print "</body></html>"
+    sys.exit()
+    
+
+
+
+
 
 
 methodaCGH = radioUpload('methodaCGH', acceptedMethodaCGH)

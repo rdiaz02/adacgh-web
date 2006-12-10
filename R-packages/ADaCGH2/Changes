@@ -1,5 +1,0 @@
-0.8-3. 2006-10-03.
-	- Minor changes to accommodate merge levels and cghMCR.
-0.8-2. 2006-03-08.
-	- Fixed bug in ACE that, with large numbers of genes,
-	led to problems in output for figures.

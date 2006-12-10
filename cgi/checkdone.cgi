@@ -172,7 +172,7 @@ def printOKRun():
     outf.write("<html><head><title>ADaCGH results</title></head><body>\n")
 
     if os.path.exists(tmpDir + "/ErrorFigure.png"):
-        outf.write('<IMG WIDTH="500" HEIGHT="500" BORDER="0" SRC="ErrorFigure.png">')
+        outf.write('<IMG BORDER="0" SRC="ErrorFigure.png">')
         outf.write("<br /><br /> <hr>")
         outf.write("<pre>")
         outf.write('<br /><br /><h2> Results <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')

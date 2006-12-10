@@ -14,12 +14,12 @@
 }
 \usage{
 writeResults(obj, ...)
-writeResults.CGH.PSW(obj, file = "PSW.output.txt")
-writeResults.CGH.ACE.summary(obj, file = "ACE.output.txt")
+writeResults.CGH.PSW(obj, file = "PSW.output.txt", ...)
+writeResults.CGH.ACE.summary(obj, file = "ACE.output.txt", ...)
 writeResults.CGH.wave(obj, acghdata, commondata,
-                                  file = "wavelet.output.txt")
+                     file = "wavelet.output.txt", ...)
 writeResults.DNAcopy(obj, acghdata, commondata, merged = NULL,
-                                 file = "CBS.output.txt")
+                     file = "CBS.output.txt", ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

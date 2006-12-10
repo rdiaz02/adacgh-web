@@ -195,7 +195,8 @@ mergeDNAcopy <- function(object) {
         ref <- rep(0, length(segmentus))
         ref[segmentus2 > classes.ref] <- 1
         ref[segmentus2 < classes.ref] <- -1
-        merged_segments$segm[[arraynum]] <- cbind(merged.mean = segmentus, obs, alteration = ref)
+        merged_segments$segm[[arraynum]] <- cbind(merged.mean = segmentus,
+                                                  obs, alteration = ref)
     }
     class(merged_segments) <- c(class(merged_segments),
                                 "mergedDNAcopy")
@@ -397,26 +398,26 @@ plateauPlot.CGH.wave <- function(obj, cghdata, ...) {
 }
 
 writeResults <- function(obj, ...) {
-    UseMethod("writeResults", ...)
+    UseMethod("writeResults")
 }
 
-writeResults.CGH.PSW <- function(obj, file = "PSW.output.txt") {
-    write.table(obj, file = file,
+writeResults.CGH.PSW <- function(obj, file = "PSW.output.txt", ...) {
+    write.table(obj$Data, file = file,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
 }
 
-writeResults.CGH.ACE.summary <- function(obj, file = "ACE.output.txt") {
+writeResults.CGH.ACE.summary <- function(obj, file = "ACE.output.txt", ...) {
     print.ACE.results(obj, output = file)
 }
 
 writeResults.CGH.wave <- function(obj, acghdata, commondata,
-                                  file = "wavelet.output.txt") {
+                                  file = "wavelet.output.txt", ...) {
     print.wavelets.results(obj, acghdata, commondata, output = file)
 }
 
 writeResults.DNAcopy <- function(obj, acghdata, commondata, merged = NULL,
-                                 file = "CBS.output.txt") {
+                                 file = "CBS.output.txt", ...) {
     print.olshen.results(obj, acghdata, commondata,
                          merged = merged, output = file) 
 }
@@ -946,7 +947,7 @@ print.olshen.results <- function(res, xcenter,
         t2 <- xcenter[, i]
         out <- cbind(out, t2, t1)
         if(!is.null(merged)) {
-            out <- cbind(out, merged[[i]][ , 3])
+            out <- cbind(out, merged$segm[[i]][ , c(1, 3)])
         }
     }
     if(is.null(merged)) {
@@ -955,8 +956,10 @@ print.olshen.results <- function(res, xcenter,
                   c(".Original", ".Smoothed"), sep = "")
     } else {
         colnames(out)[6:(ncol(out))] <-
-            paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
-                  c(".Original", ".Smoothed", ".Merged"), sep = "")
+            paste(rep(colnames(xcenter),rep(4, ncol(xcenter))),
+                  c(".Original", ".Smoothed", ".Smoothed.Merged",
+                    ".Status.Merged"),
+                  sep = "")
     }
     write.table(out, file = output,
                 sep = "\t", col.names = NA,
@@ -3519,12 +3522,16 @@ print.ACE.results <- function(res,
 
 ##### Internal stuff, mostly for the web-based part
 
+png.height <- 400
+png.width  <- 400
+png.pointsize <- 10
+
 caughtOurError <- function(message) {
     if(.__ADaCGH_WEB_APPL) {
-        webPNG("ErrorFigure.png", width = png.width,
+        GDD("ErrorFigure.png", width = png.width,
                height = png.height, 
-               pointsize = png.pointsize,
-               family = png.family)
+               ps = png.pointsize)
+##               family = png.family)
         plot(x = c(0, 1), y = c(0, 1),
              type = "n", axes = FALSE, xlab = "", ylab = "")
         box()

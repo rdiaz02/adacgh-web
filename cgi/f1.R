@@ -110,10 +110,10 @@ trylam <- try(
 ## CGIwithR is still used to generate the error message figures
 library(CGIwithR)
 graphDir <- paste(getwd(), "/", sep = "")
-png.width = 7
-png.height = 7
-png.pointsize = 14
-png.family = "Helvetica"
+png.width = 400
+png.height = 400
+png.pointsize = 10
+# png.family = "Helvetica"
 
 ## defaults for DNA copy
 DNA.undo.splits = "prune" ## don't touch this
@@ -131,10 +131,10 @@ DNA.undo.sd = 3  ## not needed, really
 
 
 caughtUserError <- function(message) {
-    webPNG("ErrorFigure.png", width = png.width,
+    GDD("ErrorFigure.png", width = png.width,
            height = png.height, 
-           pointsize = png.pointsize,
-           family = png.family)
+           ps = png.pointsize)
+##           family = png.family)
     plot(x = c(0, 1), y = c(0, 1),
          type = "n", axes = FALSE, xlab = "", ylab = "")
     box()
@@ -154,12 +154,14 @@ caughtUserError <- function(message) {
     quit(save = "no", status = 11, runLast = TRUE)
 }
 
-
+## FIXME: this is here and in the package code. Can we eliminate
+##        from here? But it gives a clear message structure: User and
+##        ours.
 caughtOurError <- function(message) {
-    webPNG("ErrorFigure.png", width = png.width,
+    GDD("ErrorFigure.png", width = png.width,
            height = png.height, 
-           pointsize = png.pointsize,
-           family = png.family)
+           ps = png.pointsize)
+##           family = png.family)
     plot(x = c(0, 1), y = c(0, 1),
          type = "n", axes = FALSE, xlab = "", ylab = "")
     box()
@@ -209,8 +211,12 @@ warningsForUsers <- vector()
 idtype <- try(scan("idtype", what = "", n = 1))
 organism <- try(scan("organism", what = "", n = 1))
 
-MCR.gain <- try(scan("MCR.gain", what = double(0), n = 1))
-MCR.loss <- try(scan("MCR.loss", what = double(0), n = 1))
+MCR.gapAllowed <- try(scan("MCR.gapAllowed", what = double(0), n = 1))
+MCR.alteredLow <- try(scan("MCR.alteredLow", what = double(0), n = 1))
+MCR.alteredHigh <- try(scan("MCR.alteredHigh", what = double(0), n = 1))
+MCR.recurrence <- try(scan("MCR.recurrence", what = double(0), n = 1))
+
+
 
 methodaCGH <- scan("methodaCGH", what = "", n = 1)
 if (methodaCGH == "CBS") {
@@ -252,7 +258,7 @@ trypositionInfo <-
 if(class(trypositionInfo) == "try-error")
     caughtUserError(paste("The position file is not of the appropriate format\n",
                     "In case it helps this is the error we get\n",
-                    tryxdata, sep =""))
+                    trypositionInfo, sep =""))
 
 if(ncol(positionInfo) > 4) positionInfo <- positionInfo[, 1:4]
 
@@ -472,8 +478,13 @@ if (methodaCGH == "CBS") {
 
 
 cat("<h4>Minimal common regions </h4>\n")
-cat("<p>        MCR.gain\t\t:             ",       MCR.gain,"</p>\n")
-cat("<p>        MCR.loss\t\t:             ",       MCR.loss,"</p>\n")            
+cat("<p>        MCR.gapAllowed\t\t:             ",       MCR.gapAllowed,"</p>\n")
+cat("<p>        MCR.alteredLow\t\t:             ",       MCR.alteredLow,"</p>\n")            
+cat("<p>        MCR.alteredHigh\t\t:             ",       MCR.alteredHigh,"</p>\n")
+cat("<p>        MCR.recurrence\t\t:             ",       MCR.recurrence,"</p>\n")            
+
+
+
 
 cat("<h4>Centering:              </h4>", centering,"\n")
 sink()
@@ -517,9 +528,10 @@ if (methodaCGH == "CBS") {
 }
 
 cat("\n\n\n\nMinimal common regions\n")
-cat("\n\nMCR.gain\t\t:             ",       MCR.gain)
-cat("\n\nMCR.loss\t\t:             ",       MCR.loss)            
-
+cat("\n\nMCR.gapAllowed\t\t:             ",       MCR.gapAllowed)
+cat("\n\nMCR.alteredLow\t\t:             ",       MCR.alteredLow)            
+cat("\n\nMCR.alteredHigh\t\t:             ",       MCR.alteredHigh)
+cat("\n\nMCR.recurrence\t\t:             ",       MCR.recurrence)            
 
 cat("\n\n\n\n Centering:              ", centering)
 
@@ -745,7 +757,7 @@ if(methodaCGH == "CBS") {
 #######################################################
 #######################################################
     
-    mpiCBS()
+    ADaCGH:::mpiCBS()
 
     trythis <- try(
                    CNA.object <- CNA(as.matrix(xcenter), chrom = positions.merge1$chrom.numeric,
@@ -775,6 +787,7 @@ if(methodaCGH == "CBS") {
 
 
     trythis <- try({
+## FIXME: eventually, use the DNAcopyDiagnosticPlots function
                                         #    pdf("CBS.diagnostic.plots.%03d.pdf", height = 12, width = 18)
         pdf("CBS.diagnostic.plots.pdf", height = 12, width = 18)
         par(mfrow = c(4, 6))  ## zz: change this to a smaller number when few arrays.
@@ -858,9 +871,9 @@ save.image()
         res <-  segment.smoothed.CNA.object
         class(res[[1]]) <- "data.frame"
         cghmcr <- cghMCR(res,
-                         margin = 0,
-                         gain.threshold = MCR.gain,
-                         loss.threshold = MCR.loss)
+                         gapAllowed = MCR.gapAllowed,
+                         alteredLow = MCR.alteredLow,
+                         alteredHigh = MCR.alteredHigh)
         mcrs <- MCR(cghmcr)
         msamples <- sapply(mcrs[, 9],
                            function(x) length(unlist(strsplit(x, ","))))
@@ -902,7 +915,7 @@ save.image()
             ## The segmented plots, one per array
             segmentPlot(segment.smoothed.CNA.object,
                         arraynames = colnames(xcenter),
-                        chrom.numeric = chrom.numeric,
+                        chrom.numeric = positions.merge1$chrom.numeric,
                         idtype = idtype,
                         organism = organism,
                         geneNames = positions.merge1$name,
@@ -911,7 +924,7 @@ save.image()
             ## Supperimposed
             segmentPlot(segment.smoothed.CNA.object,
                         arraynames = colnames(xcenter),
-                        chrom.numeric = chrom.numeric,
+                        chrom.numeric = positions.merge1$chrom.numeric,
                         idtype = idtype,
                         organism = organism,
                         geneNames = positions.merge1$name,
@@ -956,10 +969,10 @@ save.image()
                              trythis, ". \n Please let us know so we can fix the code."))
 
     ## return final results
+    merged_segments <- if(exists("merged_segments")) merged_segments else NULL
     writeResults(segment.smoothed.CNA.object, xcenter,
                  commondata = positions.merge1,
-                 merged = ifelse(exists("merged_segments"),
-                 merged_segments, NULL))
+                 merged = merged_segments)
     quit()
     
     
@@ -977,13 +990,14 @@ save.image()
 #######################################################
 
 
-    mpiWave()
+    ADaCGH:::mpiWave()
     
     ## lets try the diagnostic plots code
     pdf("Autocorrelation.plots.pdf", width = 17.6, height = 12.5)
     par(mfrow = c(6,4))
     par(oma = c(2, 2, 2, 2))
-    WaveletsDiagnosticPlots(xcenter, chrom.numeric)
+    ADaCGH:::WaveletsDiagnosticPlots(xcenter,
+                                     chrom.numeric = positions.merge1$chrom.numeric)
     dev.off()
     
     trythis <- try(
@@ -1053,7 +1067,7 @@ save.image()
 #######################################################
 #######################################################
 
-    mpiPSW()
+    ADaCGH:::mpiPSW()
     
 ## zz: PSW.nIter <- 1000; PSW.prec <- 100; PSW.p.crit <- 0.1
 ## p.crit is the largest p-value for
@@ -1107,14 +1121,28 @@ save.image()
     if(class(trythis) == "try-error")
         caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
-    write.table(out.losses, file = "Losses.Price.Smith.Waterman.output.txt")
+    writeResults(out.losses, file = "Losses.Price.Smith.Waterman.output.txt")
     
     ##save(file = "PSW.RData", list = ls())
     quit()
     
     
 } else if(methodaCGH == "ACE") {
-    mpiACE()
+#######################################################
+#######################################################
+#######################################################
+###
+###            ACE
+###            
+###
+#######################################################
+#######################################################
+#######################################################
+
+
+
+
+  ADaCGH:::mpiACE()
     
     ## zz: ugly hack: it it is a 1 dimension array, make it a vector
     ## so that the correct methods are used.
@@ -1126,7 +1154,7 @@ save.image()
     
     trythis <- try(
                    ACE.object <- pSegmentACE(as.matrix(xcenter),
-                                     Chrom = positions.merge1$chrom.numeric)
+                                     chrom.numeric = positions.merge1$chrom.numeric)
                    )
     if(class(trythis) == "try-error")
         caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
@@ -1162,11 +1190,13 @@ save.image()
         segmentPlot(ACE.summ,
                     chrom.numeric = positions.merge1$chrom.numeric,
                     geneNames = positions.merge1$name,
+                    cghdata = xcenter,
                     idtype = idtype, organism = organism)
         ## Supperimposed
         segmentPlot(ACE.summ,
                     chrom.numeric = positions.merge1$chrom.numeric,
                     geneNames = positions.merge1$name,
+                    cghdata = xcenter,
                     idtype = idtype, organism = organism,
                     superimposed = TRUE)
     })

@@ -1,6 +1,6 @@
 Package: ADaCGH
-Version: 0.9-2
-Date: 2006-11-22
+Version: 0.9-3
+Date: 2006-12-11
 Title: Analysis of data from aCGH experiments
 Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <omrueda@cnio.es>
 Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>
@@ -15,4 +15,4 @@ Description: Analysis and plotting of array CGH data. Allows usage of
 LazyLoad: Yes
 License: GPL version 2 or newer
 URL: http://www.r-project.org, http://adacgh.bioinfo.cnio.es,
-Packaged: Sun Dec 10 18:05:36 2006; www-data
+Packaged: Mon Dec 11 17:21:44 2006; www-data

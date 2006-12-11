@@ -219,12 +219,15 @@ pSegmentPSW <- function(common.data,
     out$Data <- common.data
     out$plotData <- list()
     for(i in 1:numarrays) {
-        tmp <- my.sw3(acghdata[, i], chrom.numeric,
-                      sign = sign, p.crit = p.crit,
+        tmp <- my.sw3(logratio = acghdata[, i],
+                      chrom = chrom.numeric,
+                      sign = sign,
+                      p.crit = p.crit,
                       main = colnames(acghdata)[i],
                       nIter = nIter,
                       prec = prec,
-                      name = paste(name, colnames(acghdata)[i], sep = ""))
+                      name = paste(name, colnames(acghdata)[i], sep = ""),
+                      highest = FALSE)
         out$Data <- cbind(out$Data, tmp$out)
         p.crit.bonferroni <- tmp$plotdat$p.crit / ncrom
         out$plotData[[i]] <- c(tmp$plotdat,
@@ -258,9 +261,10 @@ segmentPlot <- function(x, geneNames,
             yminmax <- c(min(as.matrix(cghdata)),
                          max(as.matrix(cghdata)))
         }
-        if(is.null(arraynames)) arraynames <- colnames(cghdata)
-        if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
-    }
+      }
+    if(is.null(arraynames)) arraynames <- colnames(cghdata)
+    if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
+
     if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
@@ -308,69 +312,75 @@ segmentPlot <- function(x, geneNames,
                       segment.pos = c(1, 3), segment.height = 1)
         }
     } else if(inherits(x, "CGH.ACE.summary")) {
-        if(!superimposed) {
-            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
-                          main = arraynames[i],
-                          idtype = idtype, organism = organism)
-            }
-        } else {
-            plot.ace3(x, chrom.numeric,  geneNames = geneNames,
-                      main = "All_arrays",
-                      ylim = yminmax,
-                      pch = "",
-                      idtype = idtype, organism = organism,
-                      arraynums = 1:numarrays)
-            plot.ace4(x, chrom.numeric,  geneNames = geneNames,
-                      main = "All_arrays",
-                      ylim = yminmax,
-                      idtype = idtype, organism = organism,
-                      arraynums = 1:numarrays)
-        }
-    } else if(inherits(x, "CGH.wave")) {
-        if(!superimposed) {
-            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                plot.wavelets2(x, cghdata, chrom.numeric, arraynum = i,
-                               geneNames = geneNames,
-                               main = arraynames[i],
-                               idtype = idtype, organism = organism)
-            }
-        } else {
-            plot.wavelets3(x, cghdata, chrom.numeric,  geneNames = geneNames,
-                           main = "All_arrays",
-                           ylim = yminmax,
-                           pch = "",
-                           arraynums = 1:numarrays,
-                           idtype = idtype, organism = organism)
-            plot.wavelets4(x, cghdata, chrom.numeric,  geneNames = geneNames,
-                           main = "All_arrays",
-                           ylim = yminmax,
-                           arraynums = 1:numarrays,
-                           idtype = idtype, organism = organism)
-        }
-    } else if(inherits(x, "CGH.PSW")) {
-        if(x$plotData[[1]]$sign < 0) {
-            main <- "Losses"
-        } else {
-            main <- "Gains"
-        }
+      if(numarrays == 1) { ## reformat the object
+        tmpx <- list()
+        tmpx[[1]] <- cbind(x[[1]], x[[2]], x[[3]])
+        x <- tmpx
+        rm(tmpx)
+      }
+      if(!superimposed) {
         for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-            sw.plot3(x$plotData[[i]]$logratio, sign=x$plotData[[i]]$sign,
-                     swt.perm = x$plotData[[i]]$swt.perm,
-                     rob = x$plotData[[i]]$rob,
-                     swt.run = x$plotData[[i]]$swt.run,
-                     p.crit = x$plotData[[i]]$p.crit.bonferroni,
-                     chrom = x$plotData[[i]]$chrom,
-                     main = paste(main, arraynames[i], sep = ""),
-                     geneNames = geneNames,
-                     idtype = idtype, organism = organism)
-        }
+                                plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
+                                          main = arraynames[i],
+                                          idtype = idtype, organism = organism)
+                              }
+      } else {
+        plot.ace3(x, chrom.numeric,  geneNames = geneNames,
+                  main = "All_arrays",
+                  ylim = yminmax,
+                  pch = "",
+                  idtype = idtype, organism = organism,
+                  arraynums = 1:numarrays)
+        plot.ace4(x, chrom.numeric,  geneNames = geneNames,
+                  main = "All_arrays",
+                  ylim = yminmax,
+                  idtype = idtype, organism = organism,
+                  arraynums = 1:numarrays)
+      }
+    } else if(inherits(x, "CGH.wave")) {
+      if(!superimposed) {
+        for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
+                                plot.wavelets2(x, cghdata, chrom.numeric, arraynum = i,
+                                               geneNames = geneNames,
+                                               main = arraynames[i],
+                                               idtype = idtype, organism = organism)
+                              }
+      } else {
+        plot.wavelets3(x, cghdata, chrom.numeric,  geneNames = geneNames,
+                       main = "All_arrays",
+                       ylim = yminmax,
+                       pch = "",
+                       arraynums = 1:numarrays,
+                       idtype = idtype, organism = organism)
+        plot.wavelets4(x, cghdata, chrom.numeric,  geneNames = geneNames,
+                       main = "All_arrays",
+                       ylim = yminmax,
+                       arraynums = 1:numarrays,
+                       idtype = idtype, organism = organism)
+      }
+    } else if(inherits(x, "CGH.PSW")) {
+      if(x$plotData[[1]]$sign < 0) {
+        main <- "Losses."
+      } else {
+        main <- "Gains."
+      }
+      for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
+                              sw.plot3(x$plotData[[i]]$logratio, sign=x$plotData[[i]]$sign,
+                                       swt.perm = x$plotData[[i]]$swt.perm,
+                                       rob = x$plotData[[i]]$rob,
+                                       swt.run = x$plotData[[i]]$swt.run,
+                                       p.crit = x$plotData[[i]]$p.crit.bonferroni,
+                                       chrom = x$plotData[[i]]$chrom,
+                                       main = paste(main, arraynames[i], sep = ""),
+                                       geneNames = geneNames,
+                                       idtype = idtype, organism = organism)
+                            }
     } else {
-        stop("No plotting for this class of objects")
+      stop("No plotting for this class of objects")
     }
     
-}
-  
+  }
+
 
 plateauPlot <- function(obj, ...) {
     UseMethod("plateauPlot")
@@ -2054,10 +2064,14 @@ library(cgh)
 
 
 mpiPSW <- function() {
-    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+##    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+    mpi.remote.exec(library(cluster))
+    mpi.remote.exec(library(waveslim))
+    mpi.remote.exec(library(cghMCR))
+    mpi.remote.exec(library(DNAcopy))
     mpi.remote.exec(library(cgh))
     mpi.remote.exec(library(ADaCGH))
-}
+    }
 
 
 ## I modify a few things from original sw.plot
@@ -3007,6 +3021,7 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
 	rownames(res) <- 1:nrow(res)
         ncr <- ncol(res) - 1
         attr(res, "aceFDR.for.output") <- aceFDR.for.output
+        class(res) <- c("summary.ACE", "CGH.ACE.summary")
 	res
 }
 
@@ -3015,7 +3030,7 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
 
 print.summary.ACE <- function(x, ...) {
 	class(x) <- "data.frame"
-	rownmames(x) <- 1:nrow(x)
+	rownames(x) <- 1:nrow(x)
 	print(x)
 	invisible(x)
 }
@@ -3112,9 +3127,10 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
 		names(res[[i]])[2] <- array.names[i]
                 names(res[[i]])[3] <- paste("Gain.Loss.", array.names[i], sep = "")
 		}
-		class(res) <- c("summary.ACE.array", "CGH.ACE.summary")
+        class(res) <- c("summary.ACE.array", "CGH.ACE.summary")
         attr(res, "aceFDR.for.output") <- aceFDR.for.output
-		res
+        class(res) <- c("summary.ACE.array", "CGH.ACE.summary")
+        res
 }
 
 print.summary.ACE.array <- function(x, ...) {
@@ -3499,8 +3515,8 @@ print.ACE.results <- function(res,
             out <- cbind(out, outtmp)
         }
     } else {
-        outtmp <- cbind(res[, 2],
-                        res[, 3])
+        outtmp <- cbind(res[[2]],
+                        res[[3]])
         colnames(outtmp) <- paste(names(res)[2],
                                   c(".Original", ".State"),
                                   sep = "")

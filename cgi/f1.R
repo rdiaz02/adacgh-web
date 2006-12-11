@@ -107,9 +107,6 @@ trylam <- try(
               )
 
 
-## CGIwithR is still used to generate the error message figures
-library(CGIwithR)
-graphDir <- paste(getwd(), "/", sep = "")
 png.width = 400
 png.height = 400
 png.pointsize = 10
@@ -878,7 +875,7 @@ save.image()
         msamples <- sapply(mcrs[, 9],
                            function(x) length(unlist(strsplit(x, ","))))
         mcrselect <- which(msamples > 1)
-        mcrs <- mcrs[mcrselect,]
+        mcrs <- mcrs[mcrselect, ,drop = FALSE]
         mcrsc <- data.frame(chromosome = mcrs[, 1],
                             samples = mcrs[, 9],
                             mcr.start  = as.numeric(mcrs[, 7]),
@@ -891,11 +888,12 @@ save.image()
         ##cat("<h3>Minimal common regions</h3>\n")
 ##         cat("<p>(Yes, this output might be ugly. We want your comments on how to",
 ##             "make the output more useful to you.)</p>\n")
-        if (nrow(mcrsc) == 0)
+        if (nrow(mcrsc) == 0) {
           cat("\n<p> No common minimal regions found.</p>\n")
-        else 
+        } else {
           html.data.frame(mcrsc, first.col = "Case",
                           file = "mcr.results.html", append = TRUE)
+        }
         sink()
         
         sink(file = "results.txt")
@@ -907,7 +905,7 @@ save.image()
         else 
           print(mcrsc)
         sink()
-    }
+      }
 
 
     if(DNA.merge == "No") {
@@ -920,7 +918,7 @@ save.image()
                         organism = organism,
                         geneNames = positions.merge1$name,
                         yminmax = c(ymin, ymax),
-                        supperimposed = FALSE)
+                        superimposed = FALSE)
             ## Supperimposed
             segmentPlot(segment.smoothed.CNA.object,
                         arraynames = colnames(xcenter),
@@ -929,7 +927,8 @@ save.image()
                         organism = organism,
                         geneNames = positions.merge1$name,
                         yminmax = c(ymin, ymax),
-                        supperimposed = TRUE)
+                        superimposed = TRUE)
+            
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Error in segment plots  with error",
@@ -962,7 +961,7 @@ save.image()
                       yminmax = c(ymin, ymax),
                       superimposed = TRUE)
       })
-    }
+      }
     
     if(class(trythis) == "try-error")
         caughtOurError(paste("Error in plateau plots with error",
@@ -1098,6 +1097,7 @@ save.image()
                         prec = PSW.prec,
                         name = "Gains.")
         segmentPlot(out.gains, geneNames = positions.merge1$name,
+                    cghdata = xcenter,
                     idtype = idtype, organism = organism)
     })
     if(class(trythis) == "try-error")
@@ -1116,6 +1116,7 @@ save.image()
                         prec = PSW.prec,
                         name = "Gains.")
         segmentPlot(out.losses, geneNames = positions.merge1$name,
+                    cghdata = xcenter,
                     idtype = idtype, organism = organism)
     })
     if(class(trythis) == "try-error")
@@ -1178,9 +1179,6 @@ save.image()
 
     ## re-hack. or re-do the kuldge:
     if(is.null(dim(xcenter))) {
-        tmp.l <- list()
-        tmp.l[[1]] <- ACE.summ
-        ACE.summ <- tmp.l
         xcenter <- matrix(xcenter, ncol = 1)
         colnames(xcenter) <- one.name
     }

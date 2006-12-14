@@ -325,8 +325,8 @@ def printOKRun():
             outf.write('<br />')
 
             outf.write('<p>Smith-Waterman results for all genes/clones are available from files ' +
-                       '<a href="./Gains.Price.Smith.Waterman.output.txt">"Gains.Price.Smith.Waterman.output.txt"</a>' +
-                       ' <a href="./Losses.Price.Smith.Waterman.output.txt">"Losses.Price.Smith.Waterman.output.txt."</a></p>')
+                       '<a href="./Gains.Price.Smith.Waterman.results.txt">"Gains.Price.Smith.Waterman.results.txt"</a>' +
+                       ' <a href="./Losses.Price.Smith.Waterman.results.txt">"Losses.Price.Smith.Waterman.results.txt."</a></p>')
 
             if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
             if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')

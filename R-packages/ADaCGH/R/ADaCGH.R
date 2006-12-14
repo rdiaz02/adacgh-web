@@ -417,7 +417,7 @@ writeResults.CGH.PSW <- function(obj, file = "PSW.output.txt", ...) {
                 row.names = TRUE, quote = FALSE)
 }
 
-writeResults.CGH.ACE.summary <- function(obj, file = "ACE.output.txt", ...) {
+writeResults.CGH.ACE.summary <- function(obj, file = NULL, ...) {
     print.ACE.results(obj, output = file)
 }
 
@@ -941,7 +941,8 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
 print.olshen.results <- function(res, xcenter,
                                  commondata,
                                  merged = NULL,
-                                 output = "CBS.results.txt"){
+                                 output = "CBS.results.txt",
+                                 send_to_pals = TRUE){
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
 
@@ -974,9 +975,39 @@ print.olshen.results <- function(res, xcenter,
     write.table(out, file = output,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
+
+    if (.__ADaCGH_WEB_APPL & send_to_pals & !is.null(merged)) {
+        cols.look <- seq(from = 9, to = ncol(out), by = 4)
+
+        Ids <- apply(out[, cols.look], 2,
+                     function(z) commondata$names[which( z == -1)])
+        writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
+        
+        Ids <- apply(out[, cols.look], 2,
+                     function(z) commondata$names[which( z == 1)])
+        writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
+
+        Ids <- apply(out[, cols.look], 2,
+                     function(z) commondata$names[which( z != 0)])
+        writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
+    }
+
 }
 
-    
+writeForPaLS <- function(alist, names, outfile) {
+    ## alist: a list with as many lists as subjects; each sublist are the
+    ##        genes of interest.
+    ## names: subject or array names
+    ## outfile: guess what? is the name of the output file
+    if(length(names) != length(alist))
+        stop("ERROR in writeForPaLS: names and alist should have the same length")
+    write(
+          unlist(
+                 mapply(function(x, y) return(c(paste("#", y, sep = ""), x)),
+                        alist, names)
+                 ),
+          file = outfile)
+}
     
 
 
@@ -3493,9 +3524,10 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
 }
 
 
-print.ACE.results <- function(res,
-                              output = paste("ACE.results.FDR=",
-                              attr(res, "aceFDR.for.output"), ".txt", sep ="")){
+print.ACE.results <- function(res, output = NULL) {
+    if(is.null(output)) {
+        output <-  paste("ACE.results.FDR=",
+                         attr(res, "aceFDR.for.output"), ".txt", sep ="")
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
 

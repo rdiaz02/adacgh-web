@@ -1,7 +1,10 @@
 * Python code: when, how
 
 * Plots using
-  quansmooth (BioC) o lodplot (CRAN)  
+  quansmooth (BioC) o lodplot (CRAN) 
+
+  NO!!! They would lead to the false
+  sensation that distnace is taken into accouunt.
 
 * Write an installation doc
 
@@ -10,6 +13,8 @@
 * Help: make sure all use the ordered data sets
 
 * Help MCR
+
+* Extend merging to WS
 
 * Testing
 ** More numerical testing

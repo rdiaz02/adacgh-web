@@ -971,7 +971,8 @@ save.image()
     merged_segments <- if(exists("merged_segments")) merged_segments else NULL
     writeResults(segment.smoothed.CNA.object, xcenter,
                  commondata = positions.merge1,
-                 merged = merged_segments)
+                 merged = merged_segments,
+                 file = "CBS.results.txt")
     quit()
     
     
@@ -1034,7 +1035,8 @@ save.image()
                              trythis, ". \n Please let us know so we can fix the code."))
     
     trythis <- try(
-                   writeResults(out.wave, xcenter, commondata = positions.merge1)
+                   writeResults(out.wave, xcenter, commondata = positions.merge1,
+                                file = "Wavelets.results.txt")
                    )
     if(class(trythis) == "try-error")
             caughtOurError(paste("Function print.wavelets.results bombed unexpectedly with error",
@@ -1103,7 +1105,7 @@ save.image()
     if(class(trythis) == "try-error")
         caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
-    writeResults(out.gains, file = "Gains.Price.Smith.Waterman.output.txt")
+    writeResults(out.gains, file = "Gains.Price.Smith.Waterman.results.txt")
 
 ### Losses
     trythis <- try({
@@ -1122,7 +1124,7 @@ save.image()
     if(class(trythis) == "try-error")
         caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
-    writeResults(out.losses, file = "Losses.Price.Smith.Waterman.output.txt")
+    writeResults(out.losses, file = "Losses.Price.Smith.Waterman.results.txt")
     
     ##save(file = "PSW.RData", list = ls())
     quit()
@@ -1170,7 +1172,7 @@ save.image()
                              trythis, ". \n Please let us know so we can fix the code."))
 
     trythis <- try(
-                   writeResults(ACE.summ)
+                   writeResults(ACE.summ, file = NULL)
                    )
     if(class(trythis) == "try-error")
             caughtOurError(paste("Function writeResults.CGH.ACE.summary bombed unexpectedly with error",

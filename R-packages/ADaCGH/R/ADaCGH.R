@@ -1,16 +1,14 @@
 ## .__ADaCGH_WEB_APPL <- FALSE ## set to TRUE in web appl!
 
-if(!exists(".__ADaCGH_WEB_APPL"))  {
-    .__ADaCGH_WEB_APPL <- FALSE
-}
-
-if(.__ADaCGH_WEB_APPL) {
+if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
     warningsForUsers <- vector()
 } else {
     warningsForUsers <- warning
 }
 
 
+print("Loaded ADaCGH")
+print(paste( "   is .__ADaCGH_WEB_APPL defined? ", exists(".__ADaCGH_WEB_APPL")))
 
 ## where do we live? to call the python script
 .calltoMap.py <- function() {
@@ -219,6 +217,8 @@ pSegmentPSW <- function(common.data,
     out$Data <- common.data
     out$plotData <- list()
     if (.__ADaCGH_WEB_APPL) { ## send to PaLS
+      print("testing value of .AD...")
+      print(paste(".__ADaCGH_WEB_APPL  is", .__ADaCGH_WEB_APPL))
         palsVect <- vector()
         palsL <- list()
     }
@@ -238,7 +238,8 @@ pSegmentPSW <- function(common.data,
                               p.crit.bonferroni = p.crit.bonferroni)
         
         if (.__ADaCGH_WEB_APPL) { ## send to PaLS
-            selectedGenes <- common.data$ID[tmp$out[, 3] <= p.crit.bonferroni]
+            selectedGenes <-
+              as.character(common.data$ID[which(tmp$out[, 3] <= p.crit.bonferroni)])
             palsVect <- c(palsVect, paste("#", colnames(acghdata)[i], sep = ""),
                           selectedGenes)
             palsL[[i]] <- selectedGenes 
@@ -246,13 +247,18 @@ pSegmentPSW <- function(common.data,
     }
     class(out) <- c(class(out), "CGH.PSW")
     if (.__ADaCGH_WEB_APPL) { ## send to PaLS
-        namef <- ifelse(sign == -1,
-                        "Lost_for_PaLS.txt",
-                        "Gained_for_PaLS.txt")
-        write(palsVect, file = namef)
-        names(palsL) <- colnames(acghdata)
-        assign(paste(".__PSW_PALS.", namef, sep = ""),
-               palsL)
+      print("Entered inside the send to PaLS in PSW")
+##      browser()
+      namef <- ifelse(sign == -1,
+                      "Lost_for_PaLS.txt",
+                      "Gained_for_PaLS.txt")
+      
+      print("and this is namef")
+      print(namef)
+      write(palsVect, file = namef)
+      names(palsL) <- colnames(acghdata)
+      assign(paste(".__PSW_PALS.", namef, sep = ""),
+             palsL, env = .GlobalEnv)
     }
     return(out)
 }
@@ -998,18 +1004,19 @@ print.olshen.results <- function(res, xcenter,
                 row.names = TRUE, quote = FALSE)
 
     if (.__ADaCGH_WEB_APPL & send_to_pals & !is.null(merged)) {
+      print("Entered the PaLS part in DNA copy")
         cols.look <- seq(from = 9, to = ncol(out), by = 4)
 
         Ids <- apply(out[, cols.look], 2,
-                     function(z) commondata$names[which( z == -1)])
+                     function(z) commondata$name[which( z == -1)])
         writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
         
         Ids <- apply(out[, cols.look], 2,
-                     function(z) commondata$names[which( z == 1)])
+                     function(z) commondata$name[which( z == 1)])
         writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
 
         Ids <- apply(out[, cols.look], 2,
-                     function(z) commondata$names[which( z != 0)])
+                     function(z) commondata$name[which( z != 0)])
         writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
     }
 
@@ -1029,7 +1036,7 @@ writeForPaLS <- function(alist, names, outfile) {
         stop("ERROR in writeForPaLS: names and alist should have the same length")
     write(
           unlist(
-                 mapply(function(x, y) return(c(paste("#", y, sep = ""), x)),
+                 mapply(function(x, y) return(c(paste("#", y, sep = ""), as.character(x))),
                         alist, names)
                  ),
           file = outfile)
@@ -3586,15 +3593,16 @@ print.ACE.results <- function(res, commondata,
                 row.names = TRUE, quote = FALSE)
 
     if (.__ADaCGH_WEB_APPL & send_to_pals) {
-        cols.look <- seq(from = 7, to = ncol(out), by = 2)
+      print("Inside sending to PaLS in ACE")
+      cols.look <- seq(from = 7, to = ncol(out), by = 2)
         Ids <- apply(out[, cols.look], 2,
-                     function(z) commondata$names[which( z == -1)])
+                     function(z) commondata$name[which( z == -1)])
         writeForPaLS(Ids, subjectnames, "Lost_for_PaLS.txt")
         Ids <- apply(out[, cols.look], 2,
-                     function(z) commondata$names[which( z == 1)])
+                     function(z) commondata$name[which( z == 1)])
         writeForPaLS(Ids, subjectnames, "Gained_for_PaLS.txt")
         Ids <- apply(out[, cols.look], 2,
-                     function(z) commondata$names[which( z != 0)])
+                     function(z) commondata$name[which( z != 0)])
         writeForPaLS(Ids, subjectnames, "Gained_or_Lost_for_PaLS.txt")
     }
 }

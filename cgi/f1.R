@@ -80,6 +80,8 @@ cat("MPI started OK\n")
 sink()
 
 assign(".__ADaCGH_WEB_APPL", TRUE)
+print("testing existence of indicator")
+print(exists(".__ADaCGH_WEB_APPL"))
 library(Hmisc)
 library(cgh)
 library(aCGH)
@@ -1069,6 +1071,11 @@ save.image()
 #######################################################
 
     ADaCGH:::mpiPSW()
+
+print("testing existence of indicator")
+print(exists(".__ADaCGH_WEB_APPL"))
+
+
     
 ## zz: PSW.nIter <- 1000; PSW.prec <- 100; PSW.p.crit <- 0.1
 ## p.crit is the largest p-value for
@@ -1087,6 +1094,9 @@ save.image()
                              End = positions.merge1$end,
                              MidPoint = positions.merge1$MidPoint)
 
+
+    print("testing existence of indicator before gains")
+    print(exists(".__ADaCGH_WEB_APPL"))
 
 ### Gains
     trythis <- try({
@@ -1107,6 +1117,9 @@ save.image()
                              trythis, ". \n Please let us know so we can fix the code."))
     writeResults(out.gains, file = "Gains.Price.Smith.Waterman.results.txt")
 
+    print("testing existence of indicator before losses")
+    print(exists(".__ADaCGH_WEB_APPL"))
+
 ### Losses
     trythis <- try({
         out.losses <-
@@ -1116,7 +1129,7 @@ save.image()
                         sign = -1, p.crit = PSW.p.crit,
                         nIter = PSW.nIter,
                         prec = PSW.prec,
-                        name = "Gains.")
+                        name = "Losses.")
         segmentPlot(out.losses, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
@@ -1126,9 +1139,9 @@ save.image()
                              trythis, ". \n Please let us know so we can fix the code."))
     writeResults(out.losses, file = "Losses.Price.Smith.Waterman.results.txt")
     
-
+    save(file = "PSW.RData", list = ls(all.names = TRUE))
     ADaCGH:::PSWtoPaLS()
-    ##save(file = "PSW.RData", list = ls())
+    
     quit()
     
     
@@ -1173,8 +1186,12 @@ save.image()
         caughtOurError(paste("Function summary.ACE bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
 
+    save(file = "ace.RData", list = ls())
+
+  
     trythis <- try(
-                   writeResults(ACE.summ, file = NULL)
+                   writeResults(ACE.summ, commondata = positions.merge1,
+                                file = NULL)
                    )
     if(class(trythis) == "try-error")
             caughtOurError(paste("Function writeResults.CGH.ACE.summary bombed unexpectedly with error",
@@ -1187,6 +1204,8 @@ save.image()
         colnames(xcenter) <- one.name
     }
 
+    save(file = "ace.RData", list = ls())
+  
     trythis <- try({
         ## The segmented plots, one per array
         segmentPlot(ACE.summ,

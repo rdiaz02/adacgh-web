@@ -15,7 +15,7 @@
 \usage{
 writeResults(obj, ...)
 writeResults.CGH.PSW(obj, file = "PSW.output.txt", ...)
-writeResults.CGH.ACE.summary(obj, file = "ACE.output.txt", ...)
+writeResults.CGH.ACE.summary(obj, commondata, file = NULL, ...)
 writeResults.CGH.wave(obj, acghdata, commondata,
                      file = "wavelet.output.txt", ...)
 writeResults.DNAcopy(obj, acghdata, commondata, merged = NULL,

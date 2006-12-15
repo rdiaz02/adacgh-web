@@ -26,6 +26,34 @@ R_MAX_time = 12 * 3600 ## 4 hours is max duration allowd for any process
 ## For redirections, from Python Cookbook
 
 
+def printPalsURLADaCGH(newDir, application_url = "http://adacgh.bioinfo.cnio.es"):
+    """ Based on Pomelo II's Send_to_Pals.cgi."""
+	f=open("idtype")
+	idtype = f.read().strip()
+	f.close()
+	f=open("organism")
+	organism = f.read().strip()
+	f.close()
+	if (idtype != "None" and organism != "None"):
+		url_org_id = "org=" + organism + "&idtype=" + idtype + "&"
+	else:
+		url_org_id = ""
+	gl_base = application_url + '/tmp/' + newDir + '/'
+        gl1 = gl_base + 'Lost_for_PaLS.txt'
+        gl2 = gl_base + 'Gained_for_PaLS.txt'
+        gl3 = gl_base + 'Gained_or_Lost_for_PaLS.txt'
+
+        outstr ='<br /> <hr> ' + 
+        '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
+             url_org_id + 'datafile=' + gl1 + '"> genes with copy number LOSS to PaLS</a></p>' + \
+        '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
+             url_org_id + 'datafile=' + gls + '"> genes with copy number GAIN to PaLS</a></p>' + \
+        '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
+             url_org_id + 'datafile=' + gl1 + '"> genes with copy number ALTERATION (either gain or loss) to PaLS</a></p>'
+	return(outstr)
+
+
+
 
 def pdf2html(rootname, tmpDir, outf, compressedFile, maxsthumb = 350):
     """ From a multipage pdf obtain jpegs; the thumbnails are
@@ -267,7 +295,11 @@ def printOKRun():
                 except: None
             allResults.close()
             outf.write('<hr> <a href="http://adacgh.bioinfo.cnio.es/tmp/' +
-                       newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
+                       newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  ç
+
+            if(open('DNA.merge').read().strip() == 'Yes'):
+                outf.write(printPalsURLADaCGH(newDir))
+
             outf.write("</body></html>")
             outf.close()
             Rresults.close()
@@ -343,6 +375,9 @@ def printOKRun():
             allResults.close()
             outf.write('<hr> <a href="http://adacgh.bioinfo.cnio.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
+
+            outf.write(printPalsURLADaCGH(newDir))
+
             outf.write("</body></html>")
             outf.close()
             Rresults.close()
@@ -382,6 +417,9 @@ def printOKRun():
             allResults.close()
             outf.write('<hr> <a href="http://adacgh.bioinfo.cnio.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
+
+            outf.write(printPalsURLADaCGH(newDir))
+
             outf.write("</body></html>")
             outf.close()
             Rresults.close()

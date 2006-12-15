@@ -1126,6 +1126,8 @@ save.image()
                              trythis, ". \n Please let us know so we can fix the code."))
     writeResults(out.losses, file = "Losses.Price.Smith.Waterman.results.txt")
     
+
+    ADaCGH:::PSWtoPaLS()
     ##save(file = "PSW.RData", list = ls())
     quit()
     

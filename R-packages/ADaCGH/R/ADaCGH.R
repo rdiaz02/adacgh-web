@@ -218,6 +218,10 @@ pSegmentPSW <- function(common.data,
     out <- list()
     out$Data <- common.data
     out$plotData <- list()
+    if (.__ADaCGH_WEB_APPL) { ## send to PaLS
+        palsVect <- vector()
+        palsL <- list()
+    }
     for(i in 1:numarrays) {
         tmp <- my.sw3(logratio = acghdata[, i],
                       chrom = chrom.numeric,
@@ -233,11 +237,27 @@ pSegmentPSW <- function(common.data,
         out$plotData[[i]] <- c(tmp$plotdat,
                               p.crit.bonferroni = p.crit.bonferroni)
         
+        if (.__ADaCGH_WEB_APPL) { ## send to PaLS
+            selectedGenes <- common.data$ID[tmp$out[, 3] <= p.crit.bonferroni]
+            palsVect <- c(palsVect, paste("#", colnames(acghdata)[i], sep = ""),
+                          selectedGenes)
+            palsL[[i]] <- selectedGenes 
+        }
     }
     class(out) <- c(class(out), "CGH.PSW")
+    if (.__ADaCGH_WEB_APPL) { ## send to PaLS
+        namef <- ifelse(sign == -1,
+                        "Lost_for_PaLS.txt",
+                        "Gained_for_PaLS.txt")
+        write(palsVect, file = namef)
+        names(palsL) <- colnames(acghdata)
+        assign(paste(".__PSW_PALS.", namef, sep = ""),
+               palsL)
+    }
     return(out)
 }
         
+
 
 
 segmentPlot <- function(x, geneNames,
@@ -3588,6 +3608,23 @@ print.ACE.results <- function(res, commondata,
 
 
 ##### Internal stuff, mostly for the web-based part
+
+
+
+PSWtoPaLS <- function(x = .__PSW_PALS.Lost_for_PaLS.txt,
+                      y = .__PSW_PALS.Gained_for_PaLS.txt,
+                      out = "Gained_or_Lost_for_PaLS.txt") {
+    ## Creat the gained or lost
+    ooo <- function(u, v) mapply(function(x, y, nx)
+                                 return(c(paste("#", nx, sep = ""), x, y)),
+                                 u, v, names(u))
+    write(unlist(ooo(x, y)), file = out)     
+}
+
+
+
+
+
 
 png.height <- 400
 png.width  <- 400

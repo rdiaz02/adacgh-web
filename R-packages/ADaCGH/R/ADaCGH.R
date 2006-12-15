@@ -232,6 +232,7 @@ pSegmentPSW <- function(common.data,
         p.crit.bonferroni <- tmp$plotdat$p.crit / ncrom
         out$plotData[[i]] <- c(tmp$plotdat,
                               p.crit.bonferroni = p.crit.bonferroni)
+        
     }
     class(out) <- c(class(out), "CGH.PSW")
     return(out)
@@ -417,8 +418,8 @@ writeResults.CGH.PSW <- function(obj, file = "PSW.output.txt", ...) {
                 row.names = TRUE, quote = FALSE)
 }
 
-writeResults.CGH.ACE.summary <- function(obj, file = NULL, ...) {
-    print.ACE.results(obj, output = file)
+writeResults.CGH.ACE.summary <- function(obj, commondata, file = NULL, ...) {
+    print.ACE.results(obj, commondata, output = file)
 }
 
 writeResults.CGH.wave <- function(obj, acghdata, commondata,
@@ -999,6 +1000,11 @@ writeForPaLS <- function(alist, names, outfile) {
     ##        genes of interest.
     ## names: subject or array names
     ## outfile: guess what? is the name of the output file
+
+    if(!is.list(alist) & is.vector(alist) & (length(names) == 1)) {
+        ## we suppose we are dealing with a one-array data set
+        alist <- list(alist)
+    }
     if(length(names) != length(alist))
         stop("ERROR in writeForPaLS: names and alist should have the same length")
     write(
@@ -1008,9 +1014,6 @@ writeForPaLS <- function(alist, names, outfile) {
                  ),
           file = outfile)
 }
-    
-
-
 
 plot.DNAcopy2 <- function (x, plot.type = "plateau", xmaploc = FALSE, altcol = TRUE, sbyc.layout = NULL, 
     cbys.nchrom = 1, cbys.layout = NULL, include.means = TRUE, 
@@ -2406,14 +2409,12 @@ my.sw3 <- function(logratio, chrom, sign = -1, p.crit = PSW.p.crit,
                     p.crit = p.crit,
                     chrom = chrom)
                     
-
-    
     out.values <- cbind(rep(sign, length(logratio)),
                         swt.rob, perm.p.values)
     colnames(out.values) <-
         paste(name, c(".Sign", ".Robust", ".p.value"),
               sep = "")
-
+  
     out <- list(out=out.values,
                 plotdat = plotdat)
     class(out) <- c(class(out), "CGH.PSW")
@@ -3524,23 +3525,27 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
 }
 
 
-print.ACE.results <- function(res, output = NULL) {
+print.ACE.results <- function(res, commondata,
+                              output = NULL,
+                              send_to_pals = TRUE) {
     if(is.null(output)) {
         output <-  paste("ACE.results.FDR=",
                          attr(res, "aceFDR.for.output"), ".txt", sep ="")
+    }
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
 
-    out <- data.frame(ID = positions.merge1$name,
-                      Chromosome = positions.merge1$chromosome,
-                      Start = positions.merge1$start,
-                      End = positions.merge1$end,
-                      MidPoint = positions.merge1$MidPoint)
-
+    out <- data.frame(ID = commondata$name,
+                      Chromosome = commondata$chromosome,
+                      Start = commondata$start,
+                      End = commondata$end,
+                      MidPoint = commondata$MidPoint)
+    subjectnames <- vector()
     if(!is.null(dim(xcenter))) {
         for(i in 1: length(res)) {
             outtmp <- cbind(res[[i]][, 2],
                             res[[i]][, 3])
+            subjectnames <- c(subjectnames, names(res[[i]])[2])
             colnames(outtmp) <- paste(names(res[[i]])[2],
                                       c(".Original", ".State"),
                                       sep = "")
@@ -3549,15 +3554,29 @@ print.ACE.results <- function(res, output = NULL) {
     } else {
         outtmp <- cbind(res[[2]],
                         res[[3]])
-        colnames(outtmp) <- paste(names(res)[2],
+        subjectnames <- names(res)[2]
+        colnames(outtmp) <- paste(subjectnames,
                                   c(".Original", ".State"),
                                   sep = "")
         out <- outtmp
     }
-        
+    
     write.table(out, file = output,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
+
+    if (.__ADaCGH_WEB_APPL & send_to_pals) {
+        cols.look <- seq(from = 7, to = ncol(out), by = 2)
+        Ids <- apply(out[, cols.look], 2,
+                     function(z) commondata$names[which( z == -1)])
+        writeForPaLS(Ids, subjectnames, "Lost_for_PaLS.txt")
+        Ids <- apply(out[, cols.look], 2,
+                     function(z) commondata$names[which( z == 1)])
+        writeForPaLS(Ids, subjectnames, "Gained_for_PaLS.txt")
+        Ids <- apply(out[, cols.look], 2,
+                     function(z) commondata$names[which( z != 0)])
+        writeForPaLS(Ids, subjectnames, "Gained_or_Lost_for_PaLS.txt")
+    }
 }
 
 

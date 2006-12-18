@@ -42,8 +42,12 @@ def printPalsURLADaCGH(newDir, application_url = "http://adacgh.bioinfo.cnio.es"
     gl1 = gl_base + 'Lost_for_PaLS.txt'
     gl2 = gl_base + 'Gained_for_PaLS.txt'
     gl3 = gl_base + 'Gained_or_Lost_for_PaLS.txt'
-    
-    outstr ='<br /> <hr> ' + \
+
+    outstr0 = '<br /> <hr> ' + \
+              '<h3> Send results to <a href = "http://pals.bioinfo.cnio.es">' + \
+              '<IMG BORDER="0" SRC="../../palsfavicon40.png" align="middle"></a></h3>'
+
+    outstr = outstr0 + \
              '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
              url_org_id + 'datafile=' + gl1 + '"> genes with copy number LOSS to PaLS</a></p>' + \
              '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \

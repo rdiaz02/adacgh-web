@@ -15,4 +15,4 @@ Description: Analysis and plotting of array CGH data. Allows usage of
 LazyLoad: Yes
 License: GPL version 2 or newer
 URL: http://www.r-project.org, http://adacgh.bioinfo.cnio.es,
-Packaged: Fri Dec 15 21:45:22 2006; www-data
+Packaged: Sun Dec 17 16:06:34 2006; www-data

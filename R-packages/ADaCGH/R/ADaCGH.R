@@ -1,4 +1,4 @@
-## .__ADaCGH_WEB_APPL <- FALSE ## set to TRUE in web appl!
+## .__ADaCGH_WEB_APPL <- TRUE in web appl!
 
 if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
     warningsForUsers <- vector()
@@ -1007,15 +1007,15 @@ print.olshen.results <- function(res, xcenter,
       print("Entered the PaLS part in DNA copy")
         cols.look <- seq(from = 9, to = ncol(out), by = 4)
 
-        Ids <- apply(out[, cols.look], 2,
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
                      function(z) commondata$name[which( z == -1)])
         writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
         
-        Ids <- apply(out[, cols.look], 2,
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
                      function(z) commondata$name[which( z == 1)])
         writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
 
-        Ids <- apply(out[, cols.look], 2,
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
                      function(z) commondata$name[which( z != 0)])
         writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
     }
@@ -1028,6 +1028,8 @@ writeForPaLS <- function(alist, names, outfile) {
     ## names: subject or array names
     ## outfile: guess what? is the name of the output file
 
+  if(dim(alist)[2] == 1) alist <- as.vector(alist)
+  
     if(!is.list(alist) & is.vector(alist) & (length(names) == 1)) {
         ## we suppose we are dealing with a one-array data set
         alist <- list(alist)
@@ -3585,7 +3587,7 @@ print.ACE.results <- function(res, commondata,
         colnames(outtmp) <- paste(subjectnames,
                                   c(".Original", ".State"),
                                   sep = "")
-        out <- outtmp
+        out <- cbind(out, outtmp)
     }
     
     write.table(out, file = output,
@@ -3595,13 +3597,13 @@ print.ACE.results <- function(res, commondata,
     if (.__ADaCGH_WEB_APPL & send_to_pals) {
       print("Inside sending to PaLS in ACE")
       cols.look <- seq(from = 7, to = ncol(out), by = 2)
-        Ids <- apply(out[, cols.look], 2,
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
                      function(z) commondata$name[which( z == -1)])
         writeForPaLS(Ids, subjectnames, "Lost_for_PaLS.txt")
-        Ids <- apply(out[, cols.look], 2,
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
                      function(z) commondata$name[which( z == 1)])
         writeForPaLS(Ids, subjectnames, "Gained_for_PaLS.txt")
-        Ids <- apply(out[, cols.look], 2,
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
                      function(z) commondata$name[which( z != 0)])
         writeForPaLS(Ids, subjectnames, "Gained_or_Lost_for_PaLS.txt")
     }

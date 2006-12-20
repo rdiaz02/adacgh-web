@@ -139,20 +139,19 @@ pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
                      verbose = 2,
                      maploc = x$maploc),
                      do_trace = TRUE)                     
+    ## I could have just one statement for ID, but lets try to follow original
+    ## code closely
 
+    allsegs$ID <- rep(1:nsample, unlist(lapply(papout, function(x) x$nseg)))
+    allsegs$ID <- sampleid[allsegs$ID]
+    allsegs$ID <- as.character(allsegs$ID)
     allsegs$chrom <- unlist(lapply(papout, function(x) x$chrom.o))
     allsegs$loc.start <- unlist(lapply(papout, function(x) x$loc.start))
     allsegs$loc.end <- unlist(lapply(papout, function(x) x$loc.end))
     allsegs$num.mark <- unlist(lapply(papout, function(x) x$num.mark))
     allsegs$seg.mean <- unlist(lapply(papout, function(x) x$seg.mean))
-    ## I could have just one statement for ID, but lets try to follow original
-    ## code closely
-    allsegs$ID <- rep(1:nsample, unlist(lapply(papout, function(x) x$nseg)))
-
-    allsegs$ID <- sampleid[allsegs$ID]
     allsegs$seg.mean <- round(allsegs$seg.mean, 4)
     allsegs <- as.data.frame(allsegs)
-    allsegs$ID <- as.character(allsegs$ID)
     segres$output <- allsegs
     segres$call <- call    
     class(segres) <- "DNAcopy"

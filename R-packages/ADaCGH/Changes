@@ -1,4 +1,8 @@
-0.0-3	2006-12-11
+0.9-5	2006-12-19
+	- Some changes in interfaces
+	- Further testing incorporated
+
+0.9-3	2006-12-11
 	- Bug fixes and improvements from extensive testing with the
 	ADaCGH web-based application.
 	

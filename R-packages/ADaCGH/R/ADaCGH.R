@@ -1023,7 +1023,11 @@ writeForPaLS <- function(alist, names, outfile) {
     ## names: subject or array names
     ## outfile: guess what? is the name of the output file
 
-  if(dim(alist)[2] == 1) alist <- as.vector(alist)
+  if(is.array(alist) | is.matrix(alist) )
+    if (dim(alist)[2] == 1) alist <- as.vector(alist)
+
+##   if(is.data.frame(alist))
+##     if (dim(alist)[2] == 1) alist <- as.vector(unlist(alist))
   
     if(!is.list(alist) & is.vector(alist) & (length(names) == 1)) {
         ## we suppose we are dealing with a one-array data set

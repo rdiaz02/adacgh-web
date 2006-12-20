@@ -7,9 +7,6 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 }
 
 
-print("Loaded ADaCGH")
-print(paste( "   is .__ADaCGH_WEB_APPL defined? ", exists(".__ADaCGH_WEB_APPL")))
-
 ## where do we live? to call the python script
 .calltoMap.py <- function() {
     tmp <- library()[[2]]
@@ -215,7 +212,7 @@ pSegmentPSW <- function(common.data,
     out <- list()
     out$Data <- common.data
     out$plotData <- list()
-    if (.__ADaCGH_WEB_APPL) { ## send to PaLS
+    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) { ## send to PaLS
       print("testing value of .AD...")
       print(paste(".__ADaCGH_WEB_APPL  is", .__ADaCGH_WEB_APPL))
         palsVect <- vector()
@@ -236,7 +233,7 @@ pSegmentPSW <- function(common.data,
         out$plotData[[i]] <- c(tmp$plotdat,
                               p.crit.bonferroni = p.crit.bonferroni)
         
-        if (.__ADaCGH_WEB_APPL) { ## send to PaLS
+        if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) { ## send to PaLS
             selectedGenes <-
               as.character(common.data$ID[which(tmp$out[, 3] <= p.crit.bonferroni)])
             palsVect <- c(palsVect, paste("#", colnames(acghdata)[i], sep = ""),
@@ -245,7 +242,7 @@ pSegmentPSW <- function(common.data,
         }
     }
     class(out) <- c(class(out), "CGH.PSW")
-    if (.__ADaCGH_WEB_APPL) { ## send to PaLS
+    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) { ## send to PaLS
       print("Entered inside the send to PaLS in PSW")
 ##      browser()
       namef <- ifelse(sign == -1,
@@ -262,7 +259,6 @@ pSegmentPSW <- function(common.data,
     return(out)
 }
         
-
 
 
 segmentPlot <- function(x, geneNames,
@@ -1002,7 +998,7 @@ print.olshen.results <- function(res, xcenter,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
 
-    if (.__ADaCGH_WEB_APPL & send_to_pals & !is.null(merged)) {
+    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals & !is.null(merged)) {
       print("Entered the PaLS part in DNA copy")
         cols.look <- seq(from = 9, to = ncol(out), by = 4)
 
@@ -3593,7 +3589,7 @@ print.ACE.results <- function(res, commondata,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
 
-    if (.__ADaCGH_WEB_APPL & send_to_pals) {
+    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals) {
       print("Inside sending to PaLS in ACE")
       cols.look <- seq(from = 7, to = ncol(out), by = 2)
         Ids <- apply(out[, cols.look, drop = FALSE], 2,
@@ -3640,7 +3636,7 @@ png.width  <- 400
 png.pointsize <- 10
 
 caughtOurError <- function(message) {
-    if(.__ADaCGH_WEB_APPL) {
+    if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
         GDD("ErrorFigure.png", width = png.width,
                height = png.height, 
                ps = png.pointsize)

@@ -83,7 +83,7 @@ enctype="multipart/form-data" method="POST">
 </table>
 </center>
 
-<h2><center>ADaCGH: analysis of data from aCGH</center></h2>
+<h2><center>ADaCGH: analysis of data from aCGH (v.20061207)</center></h2>
 
 
 <p style="font-family: 'Bitstream Vera Sans',Verdana,sans"> ADaCGH is a
@@ -354,15 +354,28 @@ href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>
 href="./help/adacgh-help.html#MCR">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</FONT>)</h2>
 
 <table>
-<tr><td width="150">Gain threshold</td>
-  <td><input type="TEXT" name="MCR.gain" value="0.5" size="5"
+<tr><td width="100">gapAllowed</td>
+  <td><input type="TEXT" name="MCR.gapAllowed" value="500" size="5"
     maxlength="5"></td>
-<td width="50"></td>
-<td width="150">Loss threshold</td>
-  <td><input type="TEXT" name="MCR.loss" value="-0.5" size="5"
+<td width="30"></td>
+<td width="100">alteredLow</td>
+  <td><input type="TEXT" name="MCR.alteredLow" value="0.03" size="5"
+    maxlength="5"></td>
+<td width="30"></td>
+<td width="100">alteredHigh</td>
+  <td><input type="TEXT" name="MCR.alteredHigh" value="0.97" size="5"
+    maxlength="5"></td>
+<td width="30"></td>
+<td width="100">recurrence</td>
+  <td><input type="TEXT" name="MCR.recurrence" value="75" size="5"
     maxlength="5"></td>
 </tr>
 </table>
+
+
+
+
+
 
 
 

@@ -463,21 +463,34 @@ Zheng and Feng do. Note that you can find "common regions" that do not
 correspond to any region of gain/loss found by the <a
 href="#mergeLevels">mergeLevels</a> algorithm (see <a href="#examples">examples</a>).</p>
 
-<p>Please note that this is a beta version of how to best display this
-information. <FONT COLOR="red">We want your feedback about how you want us
-to show this information</FONT>; please use our <a
-href="http://bioinformatics.org/bugs/?group_id=630">bug/features request
-page</a> (this is the best way, because it is trackable and nicely organized)
-or, else, email us.</p>
+<!-- <p>Please note that this is a beta version of how to best display this -->
+<!-- information. <FONT COLOR="red">We want your feedback about how you want us -->
+<!-- to show this information</FONT>; please use our <a -->
+<!-- href="http://bioinformatics.org/bugs/?group_id=630">bug/features request -->
+<!-- page</a> (this is the best way, because it is trackable and nicely organized) -->
+<!-- or, else, email us.</p> -->
 
 
 
 <h4><a name="MCRparams">Parameters</a></h4>
 
-<p>There are two parameters: <b>Gain threshold</b> is the minimum positive
-value for a chromosome segment to be considered a gain, and <b>Loss
-threshold</b> is the maximum negative value to be considered a loss.</p>
+<p>(We are using version 1.4.0 of cghMCR, released on 2006-10-03. Note
+there have been important changes in the arguments used by cghMCR, such
+as from version 1.2.0, and thus there are changes in the ADaCGH interface.)</p>
 
+<p>There are four parameters. We copy, verbatim, the help from the
+cghMCR function. <b>gapAllowed</b>: an integer specifying low
+threshold of base pair number to separate two adjacent segments,
+belower which the two segments will be joined as an altered
+span. <b>alteredLow</b>: a positive number between 0 and 1 specifying
+the lower threshold percential value. Only segments with values falling
+below this threshold are considered as altered
+span. <b>alteredHigh</b>: a positive number between 0 and 1 specifying
+the upper threshold percential value. Only segments with values falling
+over this threshold are considered as altered span. <b>recurrence</b>:
+an integer between 1 and 100 that specifies the rate of occurrence for
+a gain or loss that are observed across sample. Only gains/losses with
+ocurrence rate grater than the threshold values are declared as MCRs.</p>
 
 
 
@@ -711,6 +724,32 @@ FDR and pressing submit.</p>
 
 
 
+<h3><a name="pals">Sending results to <a
+href="http://pals.bioinfo.cnio.es">PaLS</a> (<FONT
+COLOR="red">New!!</FONT>) </h3>
+<p>It is now possible to send the results to <a
+href="http://pals.bioinfo.cnio.es">PaLS</a>, for those cases where
+assignment of genes to "gain", "loss", and "no change" is provided
+(for now, ACE, CBS with merge, and PSW). PaLS "analyzes sets
+of lists of genes or single lists of genes. It filters those
+genes/clones/proteins that are referenced by a given percentage of
+PubMed references, Gene Ontology terms, KEGG pathways or Reactome
+pathways." (from <a
+href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's
+help</a>). By sending your results to PaLS, it might be easier to make
+biological sense of your results, because you are "annotating" your
+results with additional biological information.</p>
+
+
+<p>Scroll to the bottom of the main outpu, where you will find the <img src="../palsfavicon40.png"
+align="middle">PaLS icon and three lists t. When you click on any of the links, the
+corresponding list of genes will be sent to PaLS. There, you can
+configure the options as you want (please, consult <a
+href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's help</a>
+for details) and then submit the list. In PaLS, you can always go
+back, and keep playing with the very same gene list, modifying the options.</p>
+
+
 
 
 
@@ -723,7 +762,7 @@ examples (from a somewhat less interactive version) are also available there.</p
 
 
 
-    <h2><a name="authors">Author and Acknowledgements</a></h2>
+    <h2><a name="authors">Authors and Acknowledgements</a></h2>
     
     <p>This program was developped by <a href="http://ligarto.org/rdiaz"
       target="_blank">Ramón Díaz-Uriarte</a> and <a
@@ -922,7 +961,7 @@ This document is copyrighted. Copyright © 2005, 2006 Ramón
 Díaz-Uriarte. Please, respect the copyright and the license.
 <hr>
 
-<!-- hhmts start -->Last modified: 26 January 2006 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: 21 December 2006 <!-- hhmts end -->
 
 <hr>
 <p>

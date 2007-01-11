@@ -1,3 +1,6 @@
+## Linking to Toronto DB for a chromosome
+##http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr13&cols=
+
 ## .__ADaCGH_WEB_APPL <- TRUE in web appl!
 
 if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
@@ -46,7 +49,7 @@ pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
                             trim = 0.025,
                             undo.splits=c("none","prune","sdundo"),
                             undo.prune=0.05, undo.SD=3)
-  {
+{
     if (!inherits(x, 'CNA')) stop("First arg must be a copy number array object")
     call <- match.call()
     nsample <- ncol(x)-2
@@ -261,6 +264,12 @@ pSegmentPSW <- function(common.data,
         
 
 
+       
+       
+                                
+                                                        
+
+
 segmentPlot <- function(x, geneNames,
                         chrom.numeric = NULL,
                         cghdata = NULL,
@@ -289,13 +298,29 @@ segmentPlot <- function(x, geneNames,
 
     if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
-            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                plot.olshen2(x,
-                             i, main = arraynames[i],
-                             html = TRUE,
-                             geneNames = geneNames,
-                             idtype = idtype, organism = organism)
-            }
+            tmp_papout <- papply(anum = as.list(1:numarrays),
+                                 function(z) {
+                                     cat("\n Doing sample ", z, "\n")
+                                     plot.olshen2(res = thedata,
+                                                  arraynum = z,
+                                                  main = arraynames[z],
+                                                  html = TRUE,
+                                                  geneNames = geneNames,
+                                                  idtype = idtype,
+                                                  organism = organism)
+                                 },
+                                 papply_commondata = list(res = x,
+                                 arraynames = arraynames,
+                                 geneNames = geneNames,
+                                 idtype = idtype,
+                                 organism = organism))
+            
+            ##             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
+            ##                 plot.olshen2(x,
+            ##                              i, main = arraynames[i],
+            ##                              html = TRUE,
+            ##                              geneNames = geneNames,
+            ##                              idtype = idtype, organism = organism)
         } else {
             plot.olshen3(x, geneNames = geneNames,
                          main = "All_arrays", ylim = yminmax,
@@ -674,7 +699,8 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
                          nsupimp = 0,
                          geneNames = positions.merge1$name,
                          idtype = idtype,
-                         organism = organism) {
+                         organism = organism,
+                         writeDir = getwd()) {
                                         #res is the results
                                         # color code for region status
 ## Like plot.olshen2, but with identifiers and imagemap
@@ -686,6 +712,9 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
 
 
     nameIm <- main
+
+## FIXME: need to differentiate between name for main and filename
+
     if(html) {
         imheight <- 500
         imwidth <- 1600
@@ -1043,10 +1072,14 @@ writeForPaLS <- function(alist, names, outfile) {
           file = outfile)
 }
 
-plot.DNAcopy2 <- function (x, plot.type = "plateau", xmaploc = FALSE, altcol = TRUE, sbyc.layout = NULL, 
-    cbys.nchrom = 1, cbys.layout = NULL, include.means = TRUE, 
-    zeroline = TRUE, pt.pch = ".", pt.cex = NULL, pt.cols = NULL, 
-    segcol = NULL, zlcol = NULL, ylim = NULL, lwd = NULL, ...) 
+plot.DNAcopy2 <- function (x, plot.type = "plateau", xmaploc = FALSE,
+                           altcol = TRUE, sbyc.layout = NULL, 
+                           cbys.nchrom = 1, cbys.layout = NULL,
+                           include.means = TRUE, 
+                           zeroline = TRUE, pt.pch = ".", pt.cex = NULL,
+                           pt.cols = NULL, 
+                           segcol = NULL, zlcol = NULL, ylim = NULL,
+                           lwd = NULL, ...) 
 {
     if (!inherits(x, "DNAcopy")) 
         stop("First arg must be the result of segment")

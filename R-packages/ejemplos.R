@@ -36,6 +36,9 @@ segmentPlot(segment.smoothed.CNA.object, arraynames = colnames(cghMCRe[, 5:7]),
 
 
 
+
+
+
 mpiInit()
 data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
@@ -277,3 +280,14 @@ wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 par(ask = TRUE)
 plateauPlot(dnacopy.out)
 plateauPlot(wave.out, cghE1[, 5:7])
+
+
+
+
+
+############ HMM
+
+h1 <- hmmWrapper(cghMCRe[, 5],
+                 Clone = 1:nrow(cghMCRe),
+                 Chrom = chrom.numeric,
+                 Pos = 1:nrow(cghMCRe))

@@ -42,6 +42,25 @@ mpiInit <- function(wdir = getwd()) {
 }
 
 
+
+
+pSegmentHMM <- function(x, geneNames, chrom.numeric, Pos) {
+    out <- papply(data.frame(x),
+                  function(z) hmmWrapper(z,
+                                         Clone = slave_clone,
+                                         Chrom = slave_chrom,
+                                         kb    = slave_kb),
+                  papply_commondata = list(
+                  slave_clone = geneNames,
+                  slave_chrom = chrom.numeric,
+                  slave_kb    = Pos))
+    return(out)
+}
+
+
+
+
+
 pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
                             p.method = c("hybrid","perm"),
                             kmax=25, nmin=200, eta = 0.05,
@@ -180,7 +199,7 @@ mergeDNAcopy <- function(object) {
         segmented <-
             object$output[object$output$ID ==
                           colnames(object$data)[2 + arraynum], ]
-        segmentus <- object$data$maploc
+        segmentus <- object$data$maploc  ##fill it up
         for(i in 1:nrow(segmented)) {
             segmentus[(segmented[i,'loc.end'] >= segmentus) &
                       (segmented[i,'loc.start'] <= segmentus)] <-
@@ -192,7 +211,7 @@ mergeDNAcopy <- function(object) {
         ref <- rep(0, length(segmentus))
         ref[segmentus2 > classes.ref] <- 1
         ref[segmentus2 < classes.ref] <- -1
-        merged_segments$segm[[arraynum]] <- cbind(merged.mean = segmentus,
+        merged_segments$segm[[arraynum]] <- cbind(merged.mean = segmentus2,
                                                   obs, alteration = ref)
     }
     class(merged_segments) <- c(class(merged_segments),
@@ -280,7 +299,6 @@ segmentPlot <- function(x, geneNames,
                         html = TRUE,
                         yminmax = NULL,
                         numarrays = NULL,
-##                        writeDir = getwd(),
                         ...) {
     if(inherits(x, "CGH.PSW")) {
         numarrays <- length(x[[2]])
@@ -295,30 +313,29 @@ segmentPlot <- function(x, geneNames,
             yminmax <- c(min(as.matrix(cghdata)),
                          max(as.matrix(cghdata)))
         }
-      }
+    }
     if(is.null(arraynames)) arraynames <- colnames(cghdata)
     if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
-
+    
     if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
             tmp_papout <- papply(as.list(1:numarrays),
                                  function(z) {
                                      cat("\n Doing sample ", z, "\n")
                                      ADaCGH:::plot.olshen2(res = res,
-                                                  arraynum = z,
-                                                  main = arraynames[z],
-                                                  html = TRUE,
-                                                  geneNames = geneNames,
-                                                  idtype = idtype,
-                                                  organism = organism)
-##                                                  writeDir = writeDir)
+                                                           arraynum = z,
+                                                           main = arraynames[z],
+                                                           html = TRUE,
+                                                           geneNames = geneNames,
+                                                           idtype = idtype,
+                                                           organism = organism)
                                  },
                                  papply_commondata = list(res = x,
                                  arraynames = arraynames,
                                  geneNames = geneNames,
                                  idtype = idtype,
                                  organism = organism))
-##                                 writeDir = writeDir))
+            ##                                 writeDir = writeDir))
             
             ##             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
             ##                 plot.olshen2(x,
@@ -341,13 +358,26 @@ segmentPlot <- function(x, geneNames,
         }
     } else if(inherits(x, "mergedDNAcopy")) {
         if(!superimposed) {
-            for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                plot.ace2(x$segm, x$chrom.numeric, arraynum = i,
-                          geneNames = geneNames,
-                          main = arraynames[i],
-                          idtype = idtype, organism = organism,
-                          segment.pos = c(1, 3), segment.height = 1)
-            }
+            tmp_papout <- papply(as.list(1:numarrays),
+                                 function(z) {
+                                     cat("\n Doing sample ", z, "\n")
+                                     ADaCGH:::plot.ace2(res = res,
+                                                        chrom = cnum_slave,
+                                                        arraynum = z,
+                                                        main = arraynames[z],
+                                                        html = TRUE,
+                                                        geneNames = geneNames,
+                                                        idtype = idtype,
+                                                        organism = organism,
+                                                        segment.pos = c(1,3),
+                                                        segment.height = 1)
+                                 },
+                                 papply_commondata = list(res = x$segm,
+                                 cnum_slave= x$chrom.numeric,
+                                 arraynames = arraynames,
+                                 geneNames = geneNames,
+                                 idtype = idtype,
+                                 organism = organism))
         } else {
             plot.ace3(x$segm, x$chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
@@ -364,40 +394,68 @@ segmentPlot <- function(x, geneNames,
                       segment.pos = c(1, 3), segment.height = 1)
         }
     } else if(inherits(x, "CGH.ACE.summary")) {
-      if(numarrays == 1) { ## reformat the object
-        tmpx <- list()
-        tmpx[[1]] <- cbind(x[[1]], x[[2]], x[[3]])
-        x <- tmpx
-        rm(tmpx)
-      }
-      if(!superimposed) {
-        for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                                plot.ace2(x, chrom.numeric, arraynum = i, geneNames = geneNames,
-                                          main = arraynames[i],
-                                          idtype = idtype, organism = organism)
-                              }
+        if(numarrays == 1) { ## reformat the object
+            tmpx <- list()
+            tmpx[[1]] <- cbind(x[[1]], x[[2]], x[[3]])
+            x <- tmpx
+            rm(tmpx)
+        }
+        if(!superimposed) {
+            tmp_papout <- papply(as.list(1:numarrays),
+                                 function(z) {
+                                     cat("\n Doing sample ", z, "\n")
+                                     ADaCGH:::plot.ace2(res = res,
+                                                        chrom = cnum_slave,
+                                                        arraynum = z,
+                                                        main = arraynames[z],
+                                                        html = TRUE,
+                                                        geneNames = geneNames,
+                                                        idtype = idtype,
+                                                        organism = organism)
+                                 },
+                                 papply_commondata = list(res = x,
+                                 cnum_slave= chrom.numeric,
+                                 arraynames = arraynames,
+                                 geneNames = geneNames,
+                                 idtype = idtype,
+                                 organism = organism))
+            
       } else {
-        plot.ace3(x, chrom.numeric,  geneNames = geneNames,
-                  main = "All_arrays",
-                  ylim = yminmax,
-                  pch = "",
-                  idtype = idtype, organism = organism,
-                  arraynums = 1:numarrays)
-        plot.ace4(x, chrom.numeric,  geneNames = geneNames,
-                  main = "All_arrays",
-                  ylim = yminmax,
-                  idtype = idtype, organism = organism,
-                  arraynums = 1:numarrays)
+          plot.ace3(x, chrom.numeric,  geneNames = geneNames,
+                    main = "All_arrays",
+                    ylim = yminmax,
+                    pch = "",
+                    idtype = idtype, organism = organism,
+                    arraynums = 1:numarrays)
+          plot.ace4(x, chrom.numeric,  geneNames = geneNames,
+                    main = "All_arrays",
+                    ylim = yminmax,
+                    idtype = idtype, organism = organism,
+                    arraynums = 1:numarrays)
       }
     } else if(inherits(x, "CGH.wave")) {
-      if(!superimposed) {
-        for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                                plot.wavelets2(x, cghdata, chrom.numeric, arraynum = i,
-                                               geneNames = geneNames,
-                                               main = arraynames[i],
-                                               idtype = idtype, organism = organism)
-                              }
-      } else {
+        if(!superimposed) {
+            tmp_papout <- papply(as.list(1:numarrays),
+                                 function(z) {
+                                     cat("\n Doing sample ", z, "\n")
+                                     ADaCGH:::plot.wavelets2(res = res,
+                                                             xdata = data_slave,
+                                                             chrom = cnum_slave,
+                                                             arraynum = z,
+                                                             main = arraynames[z],
+                                                             geneNames = geneNames,
+                                                             idtype = idtype,
+                                                             organism = organism)
+                                 },
+                                 papply_commondata = list(res = x,
+                                 data_slave = cghdata,
+                                 cnum_slave= chrom.numeric,
+                                 arraynames = arraynames,
+                                 geneNames = geneNames,
+                                 idtype = idtype,
+                                 organism = organism))
+            
+        } else {
         plot.wavelets3(x, cghdata, chrom.numeric,  geneNames = geneNames,
                        main = "All_arrays",
                        ylim = yminmax,
@@ -411,27 +469,39 @@ segmentPlot <- function(x, geneNames,
                        idtype = idtype, organism = organism)
       }
     } else if(inherits(x, "CGH.PSW")) {
-      if(x$plotData[[1]]$sign < 0) {
-        main <- "Losses."
-      } else {
-        main <- "Gains."
-      }
-      for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-                              sw.plot3(x$plotData[[i]]$logratio, sign=x$plotData[[i]]$sign,
-                                       swt.perm = x$plotData[[i]]$swt.perm,
-                                       rob = x$plotData[[i]]$rob,
-                                       swt.run = x$plotData[[i]]$swt.run,
-                                       p.crit = x$plotData[[i]]$p.crit.bonferroni,
-                                       chrom = x$plotData[[i]]$chrom,
-                                       main = paste(main, arraynames[i], sep = ""),
-                                       geneNames = geneNames,
-                                       idtype = idtype, organism = organism)
-                            }
+        if(x$plotData[[1]]$sign < 0) {
+            main <- "Losses."
+        } else {
+            main <- "Gains."
+        }
+        tmp_papout <-
+            papply(as.list(1:numarrays),
+                   function(z) {
+                       cat("\n Doing sample ", z, "\n")
+                       ADaCGH:::sw.plot3(logratio = data_slave[[z]]$logratio,
+                                         sign = data_slave[[z]]$sign,
+                                         swt.perm = data_slave[[z]]$swt.perm,
+                                         rob = data_slave[[z]]$rob,
+                                         swt.run = data_slave[[z]]$swt.run,
+                                         p.crit = data_slave[[z]]$p.crit.bonferroni,
+                                         chrom = data_slave[[z]]$chrom,
+                                         main = paste(main_slave, arraynames[z], sep=""),
+                                         geneNames = geneNames,
+                                         idtype = idtype,
+                                         organism = organism)
+                   },
+                   papply_commondata = list(
+                   data_slave = x$plotData,
+                   main_slave = main,
+                   arraynames = arraynames,
+                   geneNames = geneNames,
+                   idtype = idtype,
+                   organism = organism))
     } else {
-      stop("No plotting for this class of objects")
+        stop("No plotting for this class of objects")
     }
-    
-  }
+}
+
 
 
 plateauPlot <- function(obj, ...) {
@@ -1008,7 +1078,7 @@ print.olshen.results <- function(res, xcenter,
                                  send_to_pals = TRUE){
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
-
+    
     out <- data.frame(ID = commondata$name,
                       Chromosome = commondata$chromosome,
                       Start = commondata$start,
@@ -3825,3 +3895,45 @@ createIM2 <- function(im, file = "", imgTags = list(),
     cat("</body></html>", file = file, append = TRUE)
 }
 
+
+
+
+
+
+
+
+
+
+
+
+#### HMM + mergeLevels
+
+
+hmmWrapper(xcenter[, 1],
+           Clone = positions.merge1$name,
+           Chrom = positions.merge1$chrom.numeric,
+           Pos   = positions.merge1$MidPoint)
+
+
+
+hmmWrapper <- function(logratio, Clone, Chrom, Pos){
+    ## Fit HMM, and do mergeLevels
+    obj.aCGH <- create.aCGH(data.frame(logratio),
+                            data.frame(Clone = Clone,
+                                       Chrom = Chrom,
+                                       kb = Pos))
+    res <- find.hmm.states(obj.aCGH)
+    hmm(obj.aCGH) <- res
+    segmentus2 <-
+        mergeLevels(vecObs  = obj.aCGH$hmm$states.hmm[[1]][, 8],
+                    vecPred = obj.aCGH$hmm$states.hmm[[1]][, 6])$vecMerged
+    
+    classes.ref <- which.min(abs(unique(segmentus2)))
+    classes.ref <- unique(segmentus2)[classes.ref]
+    ref <- rep(0, length(segmentus2))
+    ref[segmentus2 > classes.ref] <- 1
+    ref[segmentus2 < classes.ref] <- -1
+    return(cbind(merged.mean = segmentus2,
+                 obs = obj.aCGH$hmm$states.hmm[[1]][, 8],
+                 alteration = ref))
+}

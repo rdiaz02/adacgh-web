@@ -1,19 +1,24 @@
 #!/usr/bin/python
 import sys
+import os
 from toMapMod import *
 
-nameMap = sys.argv[1]
-idtype = sys.argv[2]
+nameMap  = sys.argv[1]
+idtype   = sys.argv[2]
 organism = sys.argv[3]
 
+print nameMap
+## work_dir = sys.argv[4]
 
 nameSrc = nameMap + '.png'
 nameHTML = nameMap + '.html'
 
-gene_F = open('geneNamesChr', mode = 'r')
+## os.chdir(work_dir)
+
+gene_F = open('geneNamesChr_' + nameMap, mode = 'r')
 gene_Names = [L.rstrip('\n') for L in gene_F]
 gene_F.close()
-map_F = open('pngCoordChr', mode = 'r')
+map_F = open('pngCoordChr_', + nameMap, mode = 'r')
 map_coord = [L.rstrip('\n') for L in map_F]
 map_F.close()
 

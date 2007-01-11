@@ -25,7 +25,7 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 
 ###  Visible stuff
 
-mpiInit <- function() {
+mpiInit <- function(wdir = getwd()) {
     library(Rmpi)
     mpi.spawn.Rslaves(nslaves= mpi.universe.size())
     mpi.setup.rngstream() ## or mpi.setup.sprng()
@@ -37,8 +37,8 @@ mpiInit <- function() {
     mpi.remote.exec(library(DNAcopy))
     mpi.remote.exec(library(cgh))
     mpi.remote.exec(library(ADaCGH))
-    
-
+    mpi.bcast.Robj2slave(wdir)
+    mpi.remote.exec(setwd(wdir))    
 }
 
 
@@ -280,6 +280,7 @@ segmentPlot <- function(x, geneNames,
                         html = TRUE,
                         yminmax = NULL,
                         numarrays = NULL,
+##                        writeDir = getwd(),
                         ...) {
     if(inherits(x, "CGH.PSW")) {
         numarrays <- length(x[[2]])
@@ -289,6 +290,8 @@ segmentPlot <- function(x, geneNames,
             if(!is.null(cghdata)) numarrays <- ncol(cghdata)
         }
         if(is.null(yminmax)) {
+            if(is.null(cghdata))
+                stop("At least one of yminmax or cghdata has to be specified")
             yminmax <- c(min(as.matrix(cghdata)),
                          max(as.matrix(cghdata)))
         }
@@ -298,22 +301,24 @@ segmentPlot <- function(x, geneNames,
 
     if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
-            tmp_papout <- papply(anum = as.list(1:numarrays),
+            tmp_papout <- papply(as.list(1:numarrays),
                                  function(z) {
                                      cat("\n Doing sample ", z, "\n")
-                                     plot.olshen2(res = thedata,
+                                     ADaCGH:::plot.olshen2(res = res,
                                                   arraynum = z,
                                                   main = arraynames[z],
                                                   html = TRUE,
                                                   geneNames = geneNames,
                                                   idtype = idtype,
                                                   organism = organism)
+##                                                  writeDir = writeDir)
                                  },
                                  papply_commondata = list(res = x,
                                  arraynames = arraynames,
                                  geneNames = geneNames,
                                  idtype = idtype,
                                  organism = organism))
+##                                 writeDir = writeDir))
             
             ##             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
             ##                 plot.olshen2(x,
@@ -683,13 +688,15 @@ WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
 #######################################################
 #######################################################
 
-mpiCBS <- function() {
+mpiCBS <- function(wdir = getwd()) {
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     mpi.remote.exec(library(cghMCR))
     mpi.remote.exec(library(cluster))
     mpi.remote.exec(library(DNAcopy))
     mpi.remote.exec(library(ADaCGH))
     mpi.remote.exec(library(aCGH))
+    mpi.bcast.Robj2slave(wdir)
+    mpi.remote.exec(setwd(wdir))
 }
 
 plot.olshen2 <- function(res, arraynum, main = NULL,
@@ -699,8 +706,8 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
                          nsupimp = 0,
                          geneNames = positions.merge1$name,
                          idtype = idtype,
-                         organism = organism,
-                         writeDir = getwd()) {
+                         organism = organism) {
+##                         writeDir = getwd()) {
                                         #res is the results
                                         # color code for region status
 ## Like plot.olshen2, but with identifiers and imagemap
@@ -712,13 +719,14 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
 
 
     nameIm <- main
-
+##    nameFile <- paste(writeDir, nameIm, sep = "/")
+    nameFile <- nameIm
 ## FIXME: need to differentiate between name for main and filename
 
     if(html) {
         imheight <- 500
         imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
+        im1 <- imagemap3(nameFile, height = imheight,
                          width = imwidth, ps = 12)
     }
 
@@ -767,7 +775,7 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
         rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
         for(ll in 1:length(rectslist))
             addRegion(im1) <- rectslist[[ll]]
-        createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+        createIM2(im1, file = paste(nameFile, ".html", sep = ""))
         imClose(im1)
     }
 
@@ -819,13 +827,17 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
             
             ccircle <- mapply(usr2pngCircle, res$data$maploc[indexchr],
                               logr[indexchr])
-            write(ccircle, file = "pngCoordChr",
+            nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+            write(ccircle, file = paste("pngCoordChr", nameChrIm, sep = "_"),
                   sep ="\t", ncolumns = 3)
-            write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+            write(as.character(geneNames[indexchr]),
+                  file = paste("geneNamesChr", nameChrIm, sep = "_"))
             imClose(im2)
+##            cat("\n\n", paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""))
             system(paste(.python.toMap.py,
                          paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         idtype, organism, sep = " "))
+                         idtype, organism, "2>&1", sep = " "), intern = TRUE)
+##            cat("\n", pycall, "\n")
         }        ## looping over chromosomes
     } ## if html
 }
@@ -1700,11 +1712,13 @@ segmentW <- function(obs.dat, rec.dat, minDiff=0.25, n.levels=10) {
 
 
 
-mpiWave <- function() {
+mpiWave <- function(wdir = getwd()) {
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     mpi.remote.exec(library(cluster))
     mpi.remote.exec(library(waveslim))
     mpi.remote.exec(library(ADaCGH))
+    mpi.bcast.Robj2slave(wdir)
+    mpi.remote.exec(setwd(wdir))    
 }
 
 
@@ -2158,7 +2172,7 @@ plateau.wavelets <- function(res, xcenter,
 library(cgh)
 
 
-mpiPSW <- function() {
+mpiPSW <- function(wdir = getwd()) {
 ##    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     mpi.remote.exec(library(cluster))
     mpi.remote.exec(library(waveslim))
@@ -2166,7 +2180,10 @@ mpiPSW <- function() {
     mpi.remote.exec(library(DNAcopy))
     mpi.remote.exec(library(cgh))
     mpi.remote.exec(library(ADaCGH))
-    }
+    mpi.bcast.Robj2slave(wdir)
+    mpi.remote.exec(setwd(wdir))    
+
+}
 
 
 ## I modify a few things from original sw.plot
@@ -2713,9 +2730,11 @@ sw.plot4 <- function (logratio, location = seq(length(logratio)),
 
 
 
-mpiACE <- function() {
+mpiACE <- function(wdir = getwd()) {
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     mpi.remote.exec(library(ADaCGH))
+    mpi.bcast.Robj2slave(wdir)
+    mpi.remote.exec(setwd(wdir))    
 }
 
 

@@ -3952,17 +3952,292 @@ hmmWrapper <- function(logratio, Clone, Chrom, Pos){
 
 
 
-
 #### Merging stuff
 
-
-
-
-seginfo.obj <- function(obs, smoothed, chr) {
+seginfo.obj <- function(obs, smoothed, state, chr) {
+    ## Jumping through the hops of snapCGH to use MergeLevels.new
     out <- list()
     out$genes$Chr <- chr
     out$M.observed <- matrix(obs, ncol = 1)
     out$M.predicted <- matrix(smoothed, ncol = 1)
-    out$state <- matrix(rep(NA, length(smoothed)), ncol = 1)
+    out$state <- matrix(state, ncol = 1)
     return(out)
 }
+
+
+ourSegment <- function(observed, predicted,
+                       merge.pv.thresh = 1e-04,
+                       merge.ansari.sign = 0.05,
+                       merge.thresMin = 0.05,
+                       merge.thresMax = 0.5) {
+    segmentus2 <-
+        mergeLevels(vecObs  = observed,
+                    vecPred = predicted,
+                    pv.thres = merge.pv.thresh,
+                    ansari.sign = merge.ansari.sign,
+                    thresMin = merge.thresMin,
+                    thresMax = merge.thresMax)$vecMerged
+
+    classes.ref <- which.min(abs(unique(segmentus2)))
+    classes.ref <- unique(segmentus2)[classes.ref]
+    ref <- rep(0, length(segmentus2))
+    ref[segmentus2 > classes.ref] <- 1
+    ref[segmentus2 < classes.ref] <- -1
+    return(cbind(Observed = observed,
+                 MergedMean = segmentus2,
+                 Alteration = ref))
+}
+
+
+## x: here is it is from smoothed
+pSegmentDNAcopy1 <- function(x,
+                            alpha=0.01,
+                            nperm=10000,
+                            kmax=25,
+                            nmin=200,
+                            eta = 0.05,
+                            overlap=0.25, 
+                            trim = 0.025,
+                            undo.prune=0.05,
+                            undo.SD=3,
+                            merge = TRUE,
+                            merge.pv.thresh = 1e-04,
+                            merge.ansari.sign = 0.05,
+                            merge.thresMin = 0.05,
+                            merge.thresMax = 0.5) {
+    
+    if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
+        sbdry <- default.DNAcopy.bdry
+    } else {
+        max.ones <- floor(nperm * alpha) + 1
+        sbdry <- getbdry(eta, nperm, max.ones)
+    }
+    sbn <- length(sbdry)
+
+    datalist <- list()
+    klist <- 1
+    nsample <- ncol(x) - 2
+    for(i in 1:nsample) {
+        datalist[[klist]] <- x[, i + 2]
+        klist <- klist + 1
+    }
+    chrom.numeric <- x$chrom
+    papply_common <- list(slave_cnum         = chrom.numeric,
+                          slave_alpha        = alpha,
+                          slave_nperm        = nperm,
+                          slave_kmax         = kmax,
+                          slave_nmin         = nmin,
+                          slave_overlap      = overlap,
+                          slave_trim         = trim,
+                          slave_undo.prune   = undo.prune,
+                          slave_undo.SD      = undo.SD,
+                          slave_sbdry        = sbdry,
+                          slave_sbn          = sbn,
+                          slave_merge        = merge,
+                          slave_pv_th_merge  = merge.pv.thresh,
+                          slave_ansari_sign  = merge.ansari.sign,
+                          slave_merge_tmin   = merge.thresMin,
+                          slave_merge_tmax   = merge.thresMax)
+    
+    papfunc <- function(data) {
+        outseg <-
+            internalDNAcopy(data,
+                            chrom.numeric = slave_cnum,      
+                            alpha =         slave_alpha,     
+                            nperm =         slave_nperm,    
+                            kmax =          slave_kmax,      
+                            nmin =          slave_nmin,      
+                            overlap =       slave_overlap,   
+                            trim =          slave_trim,      
+                            undo.prune =    slave_undo.prune,
+                            undo.SD =       slave_undo.SD,   
+                            sbdry =         slave_sbdry,     
+                            sbn =           slave_sbn)
+        if(!slave_merge) {
+            return(outseg)
+        }else {
+            outmerge <- ourSegment(outseg[, 1], outseg[, 2],
+                                   merge.pv.thresh = slave_pv_th_merge,
+                                   merge.ansari.sign = slave_ansari_sign,
+                                   merge.thresMin = slave_merge_tmin,
+                                   merge.thresMax = slave_merge_tmax)
+            return(outmerge)
+        }
+    }
+    papout <- papply(datalist,
+                     papfunc,
+                     papply_common)
+    return(papout)
+}
+
+
+## Pos <- ? x$maploc???
+
+internalDNAcopy <- function(acghdata,
+                            chrom.numeric,
+                            sbdry,
+                            sbn,
+                            alpha,
+                            nperm,
+                            kmax,
+                            nmin,
+                            overlap, 
+                            trim,
+                            undo.prune,
+                            undo.SD) {
+    uchrom <- unique(chrom.numeric)
+    data.type <- "logratio"
+    p.method <- "hybrid"
+    window.size <- NULL
+    undo.splits <- "prune"
+    genomdati <- acghdata
+    ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
+
+    ## The code allows for dealing with NA and Inf, but would need to
+    ## adjust other functions (as different arrays would have different
+    ## length of pos, genenames, etc. So for now stop:
+    if (length(ina) != length(genomdati))
+        stop("Either an NA or an infinite in the data")
+
+    genomdati <- genomdati[ina]
+    trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
+    chromi <- chrom.numeric[ina]
+    sample.lsegs <- NULL
+    sample.segmeans <- NULL
+    for (ic in uchrom) {
+        segci <- changepoints(genomdati[chromi==ic], data.type = "logratio", alpha, 
+                              sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
+                              nmin, trimmed.SD, undo.splits, undo.prune,
+                              undo.SD, verbose = 2)
+        sample.lsegs <- c(sample.lsegs, segci$lseg)
+        sample.segmeans <- c(sample.segmeans, segci$segmeans)
+    }
+    if(length(sample.lsegs) != length(sample.segmeans))
+        stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
+    stretched.segmeans <- rep(sample.segmeans, sample.lsegs)
+    stretched.state    <- rep(1:length(sample.lsegs), sample.lsegs)
+        browser()
+    browser()
+    browser()
+    browser()
+    browser()
+    
+    return(cbind(Observed = genomdati, Predicted = stretched.segmeans,
+                 State = stretched.state))
+}
+
+
+internalDNAcopy.withcomments <- function(acghdata, chrom.numeric,
+                            sbdry, sbn,                                         
+                            alpha=0.01, nperm=10000,
+                            kmax=25, nmin=200,
+                            overlap=0.25, 
+                            trim = 0.025,
+                            undo.prune=0.05, undo.SD=3) {
+                            ## p.method = "hybrid",
+                            ## eta = 0.05,
+                            ## window.size=NULL,
+                            ## undo.splits="prune",
+
+    ## As little as possible changed from the original function
+    ## Of course, changes for paralleliz. and changes in output format and input
+    ## A lot of left commented, to see changes
+    
+##    if (!inherits(x, 'CNA')) stop("First arg must be a copy number array object")
+##    call <- match.call()
+##    nsample <- ncol(x)-2
+##    sampleid <- colnames(x)[-(1:2)]
+##  uchrom <- unique(x$chrom)
+    uchrom <- unique(chrom.numeric)
+##    data.type <- attr(x, "data.type")
+##     p.method <- match.arg(p.method)
+##     if (p.method=="hybrid") window.size <- NULL
+##     undo.splits <- match.arg(undo.splits)
+
+    p.method <- "hybrid"
+    window.size <- NULL
+    undo.splits <- "prune"
+
+##     segres <- list()
+##     segres$data <- x
+##     allsegs <- list()
+##     allsegs$ID <- NULL
+##     allsegs$chrom <- NULL
+##     allsegs$loc.start <- NULL
+##     allsegs$loc.end <- NULL
+##     allsegs$num.mark <- NULL
+##     allsegs$seg.mean <- NULL
+
+
+    genomdati <- acghdata
+    ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
+
+    ## The code allows for dealing with NA and Inf, but would need to
+    ## adjust other functions (as different arrays would have different
+    ## length of pos, genenames, etc. So for now stop:
+
+    if (lenght(ina) != length(genomdati))
+        stop("Either an NA or an infinite in the data")
+
+    genomdati <- genomdati[ina]
+    trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
+    chromi <- chrom[ina]
+##    maploci <- x$maploc[ina]
+    sample.lsegs <- NULL
+    sample.segmeans <- NULL
+##     if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
+##         sbdry <- default.DNAcopy.bdry
+##     } else {
+##         max.ones <- floor(nperm * alpha) + 1
+##         sbdry <- getbdry(eta, nperm, max.ones)
+##     }
+##     sbn <- length(sbdry)
+    for (ic in uchrom) {
+        segci <- changepoints(genomdati[chromi==ic], data.type, alpha, 
+                              sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
+                              nmin, trimmed.SD, undo.splits, undo.prune,
+                              undo.SD, verbose = 2)
+        sample.lsegs <- c(sample.lsegs, segci$lseg)
+        sample.segmeans <- c(sample.segmeans, segci$segmeans)
+    }
+    if(length(sample.lsegs) != length(sample.segmeans))
+        stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
+    stretched.segmeans <- rep(sample.segmeans, sample.lsegs)
+    stretched.state    <- rep(1:length(sample.lsegs), sample.lsegs)
+    return(cbind(Observed = genomdati, Predicted = stretched.segmeans,
+                 State = stretched.state))
+##     sample.nseg <- length(sample.lsegs)
+##     sample.segs.start <- ina[cumsum(c(1,sample.lsegs[-sample.nseg]))]
+##     sample.segs.end <- ina[cumsum(sample.lsegs)]
+##     chrom.o <- chrom[sample.segs.end]
+##     loc.start <- maploc[sample.segs.start]
+##     loc.end <- maploc[sample.segs.end]
+##     num.mark <- sample.lsegs
+##     seg.mean <- sample.segmeans
+##     return(list(chrom.o = chrom.o,
+##                 loc.start = loc.start,
+##                 loc.end = loc.end,
+##                 num.mark = num.mark,
+##                 seg.mean = seg.mean,
+##                 nseg = sample.nseg))
+##     allsegs$ID <- rep(1:nsample, unlist(lapply(papout, function(x) x$nseg)))
+##     allsegs$ID <- sampleid[allsegs$ID]
+##     allsegs$ID <- as.character(allsegs$ID)
+##     allsegs$chrom <- unlist(lapply(papout, function(x) x$chrom.o))
+##     allsegs$loc.start <- unlist(lapply(papout, function(x) x$loc.start))
+##     allsegs$loc.end <- unlist(lapply(papout, function(x) x$loc.end))
+##     allsegs$num.mark <- unlist(lapply(papout, function(x) x$num.mark))
+##     allsegs$seg.mean <- unlist(lapply(papout, function(x) x$seg.mean))
+##     allsegs$seg.mean <- round(allsegs$seg.mean, 4)
+##     allsegs <- as.data.frame(allsegs)
+##     segres$output <- allsegs
+##     segres$call <- call    
+##     class(segres) <- "DNAcopy"
+##     segres
+
+}
+
+
+
+
+

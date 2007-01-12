@@ -37,8 +37,6 @@ segmentPlot(segment.smoothed.CNA.object, arraynames = colnames(cghMCRe[, 5:7]),
 
 
 
-
-
 mpiInit()
 data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
@@ -92,6 +90,15 @@ colnames(common)[1] <- "ID"
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+reorder <- order(chrom.numeric,
+                 common$MidPoint,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
+
 
 ## We use nIter = 100 for the example for speed reasons;
 ## you probably want 1000 or more.
@@ -104,16 +111,21 @@ common2 <- cghMCRe[, -c(5:7)]
 psw2.out <- pSegmentPSW(common2, as.matrix(cghMCRe[, 5:7]), chrom.numeric,
                        sign = - 1, nIter = 100, prec = 100, p.crit = 0.10)
 
-
-            
+      
 CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
                   chrom = chrom.numeric,
                   maploc = 1:nrow(cghMCRe),
                   data.type = "logratio",
                   sampleid = colnames(cghMCRe[, 5:7]))
 smoothed.CNA.object <- smooth.CNA(CNA.object)
-segment.smoothed.CNA.object <- segment(smoothed.CNA.object)
+segment.smoothed.CNA.object <- segment(smoothed.CNA.object, nperm = 10000,
+                                       undo.splits = "prune")
 mergedOut <- mergeDNAcopy(segment.smoothed.CNA.object)
+
+
+
+o1 <- pSegmentDNAcopy1(smoothed.CNA.object)
+o2 <- pSegmentDNAcopy1(smoothed.CNA.object, merge = FALSE, nperm = 10000)
 
 
 

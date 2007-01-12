@@ -22,7 +22,13 @@ map_F = open('pngCoordChr_', + nameMap, mode = 'r')
 map_coord = [L.rstrip('\n') for L in map_F]
 map_F.close()
 
-
+if organism == 'Hs':
+    chrom = nameMap[3:nameMap.find('@')]
+    ## FIXME: what about X and Y??
+    if chrom == '23': chrom = 'X'
+    if chrom == '24': chrom = 'Y'
+    toronto_db_link = '<a href="http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr' + \
+                      chrom + '&cols=">Toronto zz db link</a>\n'
 
 
 outList = []
@@ -31,8 +37,10 @@ outList.append(create_div(gene_Names))
 outList.append(out_squeleton2)
 
 outList.append(''.join(['<h1>Chromosome view: ', nameMap, '</h1>\n',
-    '<img src="', nameSrc, '"usemap="#', nameMap, '" ISMAP>\n',
-    '<map name="', nameMap, '">\n']))
+                        toronto_db_link,
+                        '<img src="', nameSrc, '"usemap="#', nameMap, '" ISMAP>\n',
+                        '<map name="', nameMap, '">\n']))
+    
 
 if idtype == 'None' or organism == 'None':
     outList.append(create_map_none(gene_Names, map_coord, idtype, organism))

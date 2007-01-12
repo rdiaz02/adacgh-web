@@ -1,6 +1,14 @@
 ## Linking to Toronto DB for a chromosome
 ##http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr13&cols=
 
+
+
+## Analysis: must return observed, smoothed, state.
+## Plot: must take the above plus geneNames and Position (where that can
+##       be a vector of consecutive integers)
+
+
+
 ## .__ADaCGH_WEB_APPL <- TRUE in web appl!
 
 if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
@@ -54,6 +62,11 @@ pSegmentHMM <- function(x, geneNames, chrom.numeric, Pos) {
                   slave_clone = geneNames,
                   slave_chrom = chrom.numeric,
                   slave_kb    = Pos))
+    outl <- list()
+    outl$segm <- out
+    outl$chrom.numeric <- chrom.numeric
+    outl$pos <- Pos
+    class(outl) <- "mergedHMM"
     return(out)
 }
 
@@ -100,6 +113,7 @@ pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
     
     funcbs <- function(genomdati) {
         ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
+        ## FIXME: check this trimmed.SD, etc, are genomewide
         genomdati <- genomdati[ina]
         trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
         chromi <- chrom[ina]
@@ -195,6 +209,7 @@ mergeDNAcopy <- function(object) {
     merged_segments$chrom.numeric <- object$data$chrom ## verify its numeric zz!!
     merged_segments$segm <- list()
     for(arraynum in 1:numarrays) {
+        ## FIXME  parallelize?
         obs <- object$data[, 2 + arraynum]
         segmented <-
             object$output[object$output$ID ==
@@ -241,6 +256,8 @@ pSegmentPSW <- function(common.data,
         palsL <- list()
     }
     for(i in 1:numarrays) {
+        ## FIXME: parallelize over genomes, not chromosomes!!
+        ## it is more scalable
         tmp <- my.sw3(logratio = acghdata[, i],
                       chrom = chrom.numeric,
                       sign = sign,
@@ -335,14 +352,6 @@ segmentPlot <- function(x, geneNames,
                                  geneNames = geneNames,
                                  idtype = idtype,
                                  organism = organism))
-            ##                                 writeDir = writeDir))
-            
-            ##             for(i in 1:numarrays) { cat("\n Doing sample ", i, "\n")
-            ##                 plot.olshen2(x,
-            ##                              i, main = arraynames[i],
-            ##                              html = TRUE,
-            ##                              geneNames = geneNames,
-            ##                              idtype = idtype, organism = organism)
         } else {
             plot.olshen3(x, geneNames = geneNames,
                          main = "All_arrays", ylim = yminmax,
@@ -356,7 +365,8 @@ segmentPlot <- function(x, geneNames,
                          arraynums = 1:numarrays,
                          idtype = idtype, organism = organism) ## by chromosome
         }
-    } else if(inherits(x, "mergedDNAcopy")) {
+    } else if(inherits(x, c("mergedDNAcopy", "mergedHMM", "mergedBioHMM"))) {
+        pos_local <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
         if(!superimposed) {
             tmp_papout <- papply(as.list(1:numarrays),
                                  function(z) {
@@ -370,14 +380,17 @@ segmentPlot <- function(x, geneNames,
                                                         idtype = idtype,
                                                         organism = organism,
                                                         segment.pos = c(1,3),
-                                                        segment.height = 1)
+                                                        segment.height = 1,
+                                                        pos = pos_slave)
                                  },
-                                 papply_commondata = list(res = x$segm,
-                                 cnum_slave= x$chrom.numeric,
-                                 arraynames = arraynames,
-                                 geneNames = geneNames,
-                                 idtype = idtype,
-                                 organism = organism))
+                                 papply_commondata =
+                                 list(res = x$segm,
+                                      cnum_slave= x$chrom.numeric,
+                                      arraynames = arraynames,
+                                      geneNames = geneNames,
+                                      idtype = idtype,
+                                      organism = organism,
+                                      pos_slave = pos_local))
         } else {
             plot.ace3(x$segm, x$chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
@@ -385,13 +398,13 @@ segmentPlot <- function(x, geneNames,
                       pch = "",
                       idtype = idtype, organism = organism,
                       arraynums = 1:numarrays,
-                      segment.pos = c(1, 3), segment.height = 1)
+                      segment.pos = c(1, 3), segment.height = 1, pos_local)
             plot.ace4(x$segm, x$chrom.numeric,  geneNames = geneNames,
                       main = "All_arrays",
                       ylim = yminmax,
                       arraynums = 1:numarrays,
                       idtype = idtype, organism = organism,
-                      segment.pos = c(1, 3), segment.height = 1)
+                      segment.pos = c(1, 3), segment.height = 1, pos_local)
         }
     } else if(inherits(x, "CGH.ACE.summary")) {
         if(numarrays == 1) { ## reformat the object
@@ -849,7 +862,7 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
         imClose(im1)
     }
 
-
+## FIXME: parallelize by chromosome!!
     if(html) { ## here is chromosome specific code
         pixels.point <- 3
         chrheight <- 500
@@ -1000,6 +1013,7 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
     chrheight <- 500
     chrom <- res$data$chrom
     chrom.nums <- unique(chrom)
+    ## FIXME: PARALLELIZE HERE
     for(cnum in 1:length(chrom.nums)) {
         cat(" .... doing chromosome ", cnum, "\n")
         indexchr <- which(chrom == chrom.nums[cnum])
@@ -1163,6 +1177,8 @@ plot.DNAcopy2 <- function (x, plot.type = "plateau", xmaploc = FALSE,
                            segcol = NULL, zlcol = NULL, ylim = NULL,
                            lwd = NULL, ...) 
 {
+    ## not worth parallelization: rarely used anymore
+    
     if (!inherits(x, "DNAcopy")) 
         stop("First arg must be the result of segment")
     xdat <- x$data
@@ -3376,7 +3392,8 @@ plot.ace2 <- function(res, chrom,
                       geneNames = positions.merge1$name,
                       html = TRUE,
                       idtype = idtype, organism = organism,
-                      segment.pos = 3, segment.height = 0.5) {
+                      segment.pos = 3, segment.height = 0.5,
+                      pos = NULL) {
                                         #res is the results
                                         # color code for region status
 
@@ -3390,7 +3407,7 @@ plot.ace2 <- function(res, chrom,
         col <- rep("orange",length(res.dat))
         col[which(res.dat == -1)] <- "green"
         col[which(res.dat == 1)] <- "red"
-        simplepos <- 1:length(res.dat)
+        simplepos <- ifelse(is.null(pos), 1:length(res.dat), pos)
     } else {
         ## first the smoothed mean, then the class
         res.dat <- res[[arraynum]][, segment.pos[1]]
@@ -3398,7 +3415,7 @@ plot.ace2 <- function(res, chrom,
         color.code <- res[[arraynum]][, segment.pos[2]]
         col[which(color.code == -1)] <- "green"
         col[which(color.code == 1)] <- "red"
-        simplepos <- 1:length(res.dat)
+        simplepos <- ifelse(is.null(pos), 1:length(res.dat), pos)
     }
         
     
@@ -3507,7 +3524,8 @@ plot.ace3 <- function(res, chrom, arraynums = 1:numarrays, main = NULL,
                       pch = "", ylim =c(ymin, ymax), html = TRUE,
                       geneNames = positions.merge1$name,
                       idtype = idtype, organism = organism,
-                      segment.pos = 3, segment.height = 0.5) {
+                      segment.pos = 3, segment.height = 0.5,
+                      pos = NULL) {
     ## For superimposed: only all genome plot with map to chromosomes
 
     nameIm <- main
@@ -3525,7 +3543,7 @@ plot.ace3 <- function(res, chrom, arraynums = 1:numarrays, main = NULL,
             col <- rep("orange",length(res.dat))
             col[which(res.dat == -1)] <- "green"
             col[which(res.dat == 1)] <- "red"
-            simplepos <- 1:length(res.dat)
+            simplepos <- ifelse(is.null(pos), 1:length(res.dat), pos)
         } else {
             ## first the smoothed mean, then the class
             res.dat <- res[[arraynum]][, segment.pos[1]]
@@ -3533,10 +3551,10 @@ plot.ace3 <- function(res, chrom, arraynums = 1:numarrays, main = NULL,
             color.code <- res[[arraynum]][, segment.pos[2]]
             col[which(color.code == -1)] <- "green"
             col[which(color.code == 1)] <- "red"
-            simplepos <- 1:length(res.dat)
+            simplepos <- ifelse(is.null(pos), 1:length(res.dat), pos)
         }        
         segmented <- res.dat * segment.height
-        simplepos <- 1:length(logr)
+        simplepos <- ifelse(is.null(pos), 1:length(res.dat), pos)
         
         if(nfig == 1) {
             plot(logr ~ simplepos, col=col, ylab = "log ratio", 
@@ -3593,7 +3611,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
                       pch = 20, ylim =NULL, html = TRUE,
                       geneNames = positions.merge1$name,
                       idtype = idtype, organism = organism,
-                      segment.pos = 3, segment.height = 0.5) {
+                      segment.pos = 3, segment.height = 0.5, pos = NULL) {
     ## For superimposed: one plot per chr
     
     nameIm <- main
@@ -3621,7 +3639,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
                 col <- rep("orange",length(res.dat))
                 col[which(res.dat == -1)] <- "green"
                 col[which(res.dat == 1)] <- "red"
-                simplepos <- 1:length(res.dat)
+ #               simplepos <- 1:length(res.dat)
             } else {
                 ## first the smoothed mean, then the class
                 res.dat <- res[[arraynum]][, segment.pos[1]]
@@ -3629,10 +3647,10 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
                 color.code <- res[[arraynum]][, segment.pos[2]]
                 col[which(color.code == -1)] <- "green"
                 col[which(color.code == 1)] <- "red"
-                simplepos <- 1:length(res.dat)
+#                simplepos <- 1:length(res.dat)
             }        
 #            segmented <- res.dat * segment.height
-            simplepos <- 1:length(logr)
+            simplepos <- ifelse(is.null(pos), 1:length(res.dat), pos)
             if(nfig == 1) {
                 par(xaxs = "i")
                 par(mar = c(5, 5, 5, 5))
@@ -3908,14 +3926,6 @@ createIM2 <- function(im, file = "", imgTags = list(),
 
 #### HMM + mergeLevels
 
-
-hmmWrapper(xcenter[, 1],
-           Clone = positions.merge1$name,
-           Chrom = positions.merge1$chrom.numeric,
-           Pos   = positions.merge1$MidPoint)
-
-
-
 hmmWrapper <- function(logratio, Clone, Chrom, Pos){
     ## Fit HMM, and do mergeLevels
     obj.aCGH <- create.aCGH(data.frame(logratio),
@@ -3936,4 +3946,23 @@ hmmWrapper <- function(logratio, Clone, Chrom, Pos){
     return(cbind(merged.mean = segmentus2,
                  obs = obj.aCGH$hmm$states.hmm[[1]][, 8],
                  alteration = ref))
+}
+
+
+
+
+
+
+#### Merging stuff
+
+
+
+
+seginfo.obj <- function(obs, smoothed, chr) {
+    out <- list()
+    out$genes$Chr <- chr
+    out$M.observed <- matrix(obs, ncol = 1)
+    out$M.predicted <- matrix(smoothed, ncol = 1)
+    out$state <- matrix(rep(NA, length(smoothed)), ncol = 1)
+    return(out)
 }

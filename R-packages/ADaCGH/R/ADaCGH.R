@@ -4116,12 +4116,6 @@ internalDNAcopy <- function(acghdata,
         stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
     stretched.segmeans <- rep(sample.segmeans, sample.lsegs)
     stretched.state    <- rep(1:length(sample.lsegs), sample.lsegs)
-        browser()
-    browser()
-    browser()
-    browser()
-    browser()
-    
     return(cbind(Observed = genomdati, Predicted = stretched.segmeans,
                  State = stretched.state))
 }
@@ -4241,3 +4235,29 @@ internalDNAcopy.withcomments <- function(acghdata, chrom.numeric,
 
 
 
+stretchCNAoutput <- function(object) {
+    if(!(inherits(object, "DNAcopy")))
+        stop("This function can only be applied to DNAcopy objects")
+    numarrays <- ncol(object$data) - 2
+    stretched <- list()
+    for(arraynum in 1:numarrays) {
+        obs <- object$data[, 2 + arraynum]
+        segmented <-
+            object$output[object$output$ID ==
+                          colnames(object$data)[2 + arraynum], ]
+        smoothed <- object$data$maploc 
+        for(i in 1:nrow(segmented)) {
+            smoothed[(segmented[i,'loc.end'] >= smoothed) &
+                     (segmented[i,'loc.start'] <= smoothed)] <-
+                         segmented[i,'seg.mean']
+        }
+        
+        stretched[[arraynum]] <- cbind(Observed = obs,
+                                       Predicted = smoothed)
+        
+    }
+    return(stretched)
+}
+
+cucu <- stretchCNAoutput(segment.smoothed.CNA.object)
+mapply(function(x, y) all.equal(x[, 2], y[, 2]), cucu, o2)

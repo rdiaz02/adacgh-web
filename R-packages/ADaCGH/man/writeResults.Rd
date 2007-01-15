@@ -4,13 +4,22 @@
 \alias{writeResults.CGH.ACE.summary}
 \alias{writeResults.CGH.wave}
 \alias{writeResults.DNAcopy}
+\alias{writeResults.CGHseg}
+\alias{writeResults.mergedHMM}
+\alias{writeResults.adacghGLAD}
+\alias{writeResults.mergedBioHMM}
+
+
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Write results to an external file}
 \description{
   Write segmentation results to an external file, including original
   information (name, chromosome, position, log-ratio) and assigned state
-  or smoothed mean.
+  and/or smoothed mean (depending on what is available from the
+  method). (In addition, a set of files with links to PaLS
+  \url{http://pals.bioinfo.cnio.es} will be generated when there is
+  state information.)
 }
 \usage{
 writeResults(obj, ...)
@@ -20,6 +29,14 @@ writeResults.CGH.wave(obj, acghdata, commondata,
                      file = "wavelet.output.txt", ...)
 writeResults.DNAcopy(obj, acghdata, commondata, merged = NULL,
                      file = "CBS.output.txt", ...)
+writeResults.CGHseg(obj, acghdata, commondata, merged = NULL,
+                     file = "CGHseg.output.txt", ...)
+writeResults.mergedHMM(obj, acghdata, commondata, merged = NULL,
+                     file = "HMM.output.txt", ...)
+writeResults.adacghGLAD(obj, acghdata, commondata, merged = NULL,
+                     file = "GLAD.output.txt", ...)
+writeResults.mergedBioHMM(obj, acghdata, commondata, merged = NULL,
+                     file = "BioHMM.output.txt", ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

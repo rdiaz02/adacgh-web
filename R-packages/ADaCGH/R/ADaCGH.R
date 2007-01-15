@@ -145,14 +145,6 @@ pSegmentCGHseg <- function(x, geneNames, chrom.numeric, Pos) {
 }
 
 
-
-
-
-
-
-
-
-
 pSegmentPSW <- function(common.data,
                         acghdata,
                         chrom.numeric,

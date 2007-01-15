@@ -30,9 +30,6 @@ pSegmentDNAcopy(x, alpha = 0.01, nperm = 10000,
   \item{undo.prune}{See \code{\link[DNAcopy]{segment}} }
   \item{undo.SD}{See \code{\link[DNAcopy]{segment}} }
 }
-\details{
-  You should only use this function if you are using two or more CPUs.
-}
 \value{
   See \code{\link[DNAcopy]{segment}}
 }
@@ -72,19 +69,22 @@ Diaz-Uriarte \email{rdiaz02@gmail.com}
 
 \examples{
 \dontrun{mpiInit()}
+
 data(cghMCRe)
+common <- cghMCRe[, -c(5:7)]
+common$MidPoint <- common$Start + 0.5 * (common$End - common$Start)
+colnames(common)[1] <- "ID"
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
 chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
-
-## Recall: we must reorder the data by chromosome and
-## by position within chromosome
 reorder <- order(chrom.numeric,
+                 common$MidPoint,
                  cghMCRe$Start,
                  cghMCRe$End,
                  cghMCRe$Name)
 cghMCRe <- cghMCRe[reorder, ]
 chrom.numeric <- chrom.numeric[reorder]
+
 CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
                   chrom = chrom.numeric,
                   maploc = 1:nrow(cghMCRe),
@@ -92,7 +92,49 @@ CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
                   sampleid = colnames(cghMCRe[, 5:7]))
 smoothed.CNA.object <- smooth.CNA(CNA.object)
 
-segment.smoothed.CNA.object <- pSegmentDNAcopy(smoothed.CNA.object)
+out1 <- pSegmentDNAcopy(smoothed.CNA.object, merge = FALSE, nperm = 10000)
+
+## Yes, tilingArray has an identically named function, but DNAcopy does
+## not have a namespace. Problems would be caught by different params.
+
+out.original <- segment(smoothed.CNA.object, nperm = 10000,
+                        undo.splits = "prune")
+
+## Verify we are doing it OK. Test against original version. We need
+## to stretch the output of the original function
+
+stretchCNAoutput <- function(object) {
+    if(!(inherits(object, "DNAcopy")))
+        stop("This function can only be applied to DNAcopy objects")
+    numarrays <- ncol(object$data) - 2
+    stretched <- list()
+    for(arraynum in 1:numarrays) {
+        obs <- object$data[, 2 + arraynum]
+        segmented <-
+            object$output[object$output$ID ==
+                          colnames(object$data)[2 + arraynum], ]
+        smoothed <- object$data$maploc 
+        for(i in 1:nrow(segmented)) {
+            smoothed[(segmented[i,'loc.end'] >= smoothed) &
+                     (segmented[i,'loc.start'] <= smoothed)] <-
+                         segmented[i,'seg.mean']
+        }
+        
+        stretched[[arraynum]] <- cbind(Observed = obs,
+                                       Predicted = smoothed)
+        
+    }
+    return(stretched)
+}
+
+
+## recall the originall segment rounds output
+verifCNA <- mapply(function(x, y) all.equal(x[, 2], round(y[, 2], 4)),
+                    stretchCNAoutput(out.original), out1) 
+
+if(! all(verifCNA)) stop("Differences in original and parallelized DNAcopy.\n Rerun test")
+
+
 }
 \keyword{ nonparametric }
 

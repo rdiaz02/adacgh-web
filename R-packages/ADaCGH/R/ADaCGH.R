@@ -66,173 +66,90 @@ pSegmentHMM <- function(x, geneNames, chrom.numeric, Pos) {
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
     outl$pos <- Pos
-    class(outl) <- "mergedHMM"
-    return(out)
+    outl$geneNames <- geneNames
+    class(outl) <- c("adacgh.generic.out","mergedHMM")
+    return(outl)
+}
+
+
+
+pSegmentGLAD <- function(x, geneNames, chrom.numeric, Pos) {
+    out <- papply(data.frame(x),
+                  function(z) gladWrapper(z,
+                                          Chrom = slave_chrom),
+                  papply_commondata = list(
+                  slave_chrom = chrom.numeric))
+    outl <- list()
+    outl$segm <- out
+    outl$chrom.numeric <- chrom.numeric
+    outl$pos <- Pos
+    outl$geneNames <- geneNames
+    class(outl) <- c("adacgh.generic.out", "mergedHMM")
+    return(outl)
+}    
+
+pSegmentBioHMM <- function(x, geneNames, chrom.numeric, Pos) {
+    out <- papply(data.frame(x),
+                  function(z) BioHmmWrapper(z,
+                                         ## Clone = slave_clone,
+                                         Chrom = slave_chrom,
+                                         kb    = slave_kb),
+                  papply_commondata = list(
+##                  slave_clone = geneNames,
+                  slave_chrom = chrom.numeric,
+                  slave_kb    = Pos))
+    outl <- list()
+    outl$segm <- out
+    outl$chrom.numeric <- chrom.numeric
+    outl$pos <- Pos
+    outl$geneNames <- geneNames
+    class(outl) <- c("adacgh.generic.out","mergedBioHMM")
+    return(outl)
 }
 
 
 
 
+pSegmentCGHseg <- function(x, geneNames, chrom.numeric, Pos) {
+    ## Beware: we parallelize over chromosoes AND subjects
 
-pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
-                            p.method = c("hybrid","perm"),
-                            kmax=25, nmin=200, eta = 0.05,
-                            window.size=NULL, overlap=0.25, 
-                            trim = 0.025,
-                            undo.splits=c("none","prune","sdundo"),
-                            undo.prune=0.05, undo.SD=3)
-{
-    if (!inherits(x, 'CNA')) stop("First arg must be a copy number array object")
-    call <- match.call()
-    nsample <- ncol(x)-2
-    sampleid <- colnames(x)[-(1:2)]
-    uchrom <- unique(x$chrom)
-    data.type <- attr(x, "data.type")
-    p.method <- match.arg(p.method)
-    if (p.method=="hybrid") window.size <- NULL
-    undo.splits <- match.arg(undo.splits)
-    segres <- list()
-    segres$data <- x
-    allsegs <- list()
-    allsegs$ID <- NULL
-    allsegs$chrom <- NULL
-    allsegs$loc.start <- NULL
-    allsegs$loc.end <- NULL
-    allsegs$num.mark <- NULL
-    allsegs$seg.mean <- NULL
-    ## we parallelize over subjects
-
-
+    nsample <- ncol(x)
+    nchrom <- unique(chrom.numeric)
     datalist <- list()
     klist <- 1
     for(i in 1:nsample) {
-        datalist[[klist]] <- x[, i + 2]
+        for (j in nchrom) {
+            datalist[[klist]] <- x[chrom.numeric == j, i]
             klist <- klist + 1
+        }
     }
-
     
-    funcbs <- function(genomdati) {
-        ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
-        ## FIXME: check this trimmed.SD, etc, are genomewide
-        genomdati <- genomdati[ina]
-        trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
-        chromi <- chrom[ina]
-                                        #      maploci <- x$maploc[ina]
-        sample.lsegs <- NULL
-        sample.segmeans <- NULL
-        if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
-            sbdry <- default.DNAcopy.bdry
-        } else {
-            max.ones <- floor(nperm * alpha) + 1
-            sbdry <- getbdry(eta, nperm, max.ones)
-        }
-        sbn <- length(sbdry)
-        for (ic in uchrom) {
-            segci <- changepoints(genomdati[chromi==ic], data.type, alpha, 
-                                  sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
-                                  nmin, trimmed.SD, undo.splits, undo.prune,
-                                  undo.SD, verbose = 2)
-            sample.lsegs <- c(sample.lsegs, segci$lseg)
-            sample.segmeans <- c(sample.segmeans, segci$segmeans)
-        }
-        sample.nseg <- length(sample.lsegs)
-        sample.segs.start <- ina[cumsum(c(1,sample.lsegs[-sample.nseg]))]
-        sample.segs.end <- ina[cumsum(sample.lsegs)]
-        
-        chrom.o <- chrom[sample.segs.end]
-        loc.start <- maploc[sample.segs.start]
-        loc.end <- maploc[sample.segs.end]
-        num.mark <- sample.lsegs
-        seg.mean <- sample.segmeans
+    out0 <- papply(datalist, function(z) CGHsegWrapper(z))
 
-        return(list(chrom.o = chrom.o,
-                    loc.start = loc.start,
-                    loc.end = loc.end,
-                    num.mark = num.mark,
-                    seg.mean = seg.mean,
-                    nseg = sample.nseg))
+    out <- list()
+    klist <- 1
+    for(i in 1:nsample) {
+        out[[i]] <- out0[[klist]]
+        for(j in nchrom[-1]) {
+            klist <- klist + 1
+            out[[i]] <- rbind(out[[i]], out0[[klist]])
+        }
     }
-
-    papout <- papply(datalist, funcbs,
-                     papply_commondata =list(chrom = x$chrom,
-                     uchrom=uchrom,
-                     data.type = data.type,
-                     alpha = alpha, 
-                     nperm = nperm,
-                     p.method = p.method,
-                     window.size = window.size,
-                     overlap = overlap,
-                     kmax = kmax,
-                     nmin = nmin,
-                     trim = trim,
-                     eta = eta,
-                     undo.splits = undo.splits,
-                     undo.prune = undo.prune,
-                     undo.SD = undo.SD,
-                     verbose = 2,
-                     maploc = x$maploc),
-                     do_trace = TRUE)                     
-    ## I could have just one statement for ID, but lets try to follow original
-    ## code closely
-
-    allsegs$ID <- rep(1:nsample, unlist(lapply(papout, function(x) x$nseg)))
-    allsegs$ID <- sampleid[allsegs$ID]
-    allsegs$ID <- as.character(allsegs$ID)
-    allsegs$chrom <- unlist(lapply(papout, function(x) x$chrom.o))
-    allsegs$loc.start <- unlist(lapply(papout, function(x) x$loc.start))
-    allsegs$loc.end <- unlist(lapply(papout, function(x) x$loc.end))
-    allsegs$num.mark <- unlist(lapply(papout, function(x) x$num.mark))
-    allsegs$seg.mean <- unlist(lapply(papout, function(x) x$seg.mean))
-    allsegs$seg.mean <- round(allsegs$seg.mean, 4)
-    allsegs <- as.data.frame(allsegs)
-    segres$output <- allsegs
-    segres$call <- call    
-    class(segres) <- "DNAcopy"
-    segres
+    outl <- list()
+    outl$segm <- out
+    outl$chrom.numeric <- chrom.numeric
+    outl$pos <- Pos
+    outl$geneNames <- geneNames
+    class(outl) <- c("adacgh.generic.out", "CGHseg")
+    return(outl)
 }
 
 
-###### We will use:
-## a) segment plots which are same name for all, but call diff. functs.
-## b) plateau plots (only for xx)
 
 
-## a function that will merge the CBS?
 
-mergeDNAcopy <- function(object) {
-    numarrays <- ncol(object$data) - 2
-    ## zz: we must get numarray from object
-    
-    if(!(inherits(object, "DNAcopy")))
-        stop("This function can only be applied to DNAcopy objects")
-    merged_segments <- list()
-    merged_segments$chrom.numeric <- object$data$chrom ## verify its numeric zz!!
-    merged_segments$segm <- list()
-    for(arraynum in 1:numarrays) {
-        ## FIXME  parallelize?
-        obs <- object$data[, 2 + arraynum]
-        segmented <-
-            object$output[object$output$ID ==
-                          colnames(object$data)[2 + arraynum], ]
-        segmentus <- object$data$maploc  ##fill it up
-        for(i in 1:nrow(segmented)) {
-            segmentus[(segmented[i,'loc.end'] >= segmentus) &
-                      (segmented[i,'loc.start'] <= segmentus)] <-
-                          segmented[i,'seg.mean']
-        }
-        segmentus2 <- mergeLevels(obs, segmentus)$vecMerged
-        classes.ref <- which.min(abs(unique(segmentus2)))
-        classes.ref <- unique(segmentus2)[classes.ref]
-        ref <- rep(0, length(segmentus))
-        ref[segmentus2 > classes.ref] <- 1
-        ref[segmentus2 < classes.ref] <- -1
-        merged_segments$segm[[arraynum]] <- cbind(merged.mean = segmentus2,
-                                                  obs, alteration = ref)
-    }
-    class(merged_segments) <- c(class(merged_segments),
-                                "mergedDNAcopy")
-    return(merged_segments)
-}    
+
+
 
 
 
@@ -255,26 +172,38 @@ pSegmentPSW <- function(common.data,
         palsVect <- vector()
         palsL <- list()
     }
-    for(i in 1:numarrays) {
-        ## FIXME: parallelize over genomes, not chromosomes!!
-        ## it is more scalable
-        tmp <- my.sw3(logratio = acghdata[, i],
-                      chrom = chrom.numeric,
-                      sign = sign,
-                      p.crit = p.crit,
-                      main = colnames(acghdata)[i],
-                      nIter = nIter,
-                      prec = prec,
-                      name = paste(name, colnames(acghdata)[i], sep = ""),
-                      highest = FALSE)
-        out$Data <- cbind(out$Data, tmp$out)
-        p.crit.bonferroni <- tmp$plotdat$p.crit / ncrom
-        out$plotData[[i]] <- c(tmp$plotdat,
+
+    datalist <- list()
+    for (i in 1:ncol(acghdata)) {
+        datalist[[i]]$data <- acghdata[, i]
+        datalist[[i]]$num  <- i
+    }
+    papout <- papply(data.frame(acghdata),
+                  function(z) my.sw3b(z$data,
+                                      chrom = sl.chrom.numeric,
+                                      sign = sl.sign,
+                                      p.crit = sl.p.crit,
+                                      nIter = sl.nIter,
+                                      prec = sl.prec,
+                                      name = paste(sl.name, colnamesdata[z$num], sep = ""),
+                                      highest = FALSE),
+                  papply_commondata = list(
+                  sl.chrom.numeric = chrom,
+                  sl.sign = sign,
+                  sl.nIter = nIter,
+                  sl.prec = prec,
+                  sl.name = name,
+                  colnamesdata = colnames(acghdata)))
+    
+    for(i in 1:ncol(acghdata)) {
+        out$Data <- cbind(out$Data, papout[[i]]$out)
+        p.crit.bonferroni <- papout[[i]]$plotdat$p.crit / ncrom
+        out$plotData[[i]] <- c(papout[[i]]$plotdat,
                               p.crit.bonferroni = p.crit.bonferroni)
-        
+       
         if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) { ## send to PaLS
             selectedGenes <-
-              as.character(common.data$ID[which(tmp$out[, 3] <= p.crit.bonferroni)])
+              as.character(common.data$ID[which(papout[[i]]$out[, 3] <= p.crit.bonferroni)])
             palsVect <- c(palsVect, paste("#", colnames(acghdata)[i], sep = ""),
                           selectedGenes)
             palsL[[i]] <- selectedGenes 
@@ -282,14 +211,14 @@ pSegmentPSW <- function(common.data,
     }
     class(out) <- c(class(out), "CGH.PSW")
     if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) { ## send to PaLS
-      print("Entered inside the send to PaLS in PSW")
+##      print("Entered inside the send to PaLS in PSW")
 ##      browser()
       namef <- ifelse(sign == -1,
                       "Lost_for_PaLS.txt",
                       "Gained_for_PaLS.txt")
       
-      print("and this is namef")
-      print(namef)
+##       print("and this is namef")
+##       print(namef)
       write(palsVect, file = namef)
       names(palsL) <- colnames(acghdata)
       assign(paste(".__PSW_PALS.", namef, sep = ""),
@@ -298,13 +227,6 @@ pSegmentPSW <- function(common.data,
     return(out)
 }
         
-
-
-       
-       
-                                
-                                                        
-
 
 segmentPlot <- function(x, geneNames,
                         chrom.numeric = NULL,
@@ -333,8 +255,62 @@ segmentPlot <- function(x, geneNames,
     }
     if(is.null(arraynames)) arraynames <- colnames(cghdata)
     if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
-    
-    if (inherits(x, "DNAcopy")) {
+
+    if(inherits(x, c("adacgh.generic.out"))) {
+        geneLoc <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
+        if(inherits(x, "CGH.ACE.summary")) {
+            original.pos <- 2
+            segment.pos  <- NULL
+        } else {
+            original.pos <- 1
+            segment.pos <- 2
+        }
+        if(!superimposed) {
+            tmp_papout <- papply(as.list(1:numarrays),
+                                 function(z) {
+                                     cat("\n Doing sample ", z, "\n")
+                                     plot.adacgh.generic1(res = res,
+                                                          chrom = cnum_slave,
+                                                          arraynum = z,
+                                                          main = arraynames[z],
+                                                          html = TRUE,
+                                                          geneNames = geneNames,
+                                                          idtype = idtype,
+                                                          organism = organism,
+                                                          original.pos =lop,
+                                                          segment.pos = sep,
+                                                          geneLoc = pos_slave)
+                                 },
+                                 papply_commondata =
+                                 list(res = x$segm,
+                                      cnum_slave= x$chrom.numeric,
+                                      arraynames = arraynames,
+                                      geneNames = geneNames,
+                                      idtype = idtype,
+                                      organism = organism,
+                                      lop = original.pos,
+                                      sep = segment.pos,
+                                      pos_slave = geneLoc))
+        } else {
+            plot.adacgh.generic2(x$segm, x$chrom.numeric,  geneNames = geneNames,
+                                 main = "All_arrays",
+                                 ylim = yminmax,
+                                 pch = "",
+                                 idtype = idtype, organism = organism,
+                                 arraynums = 1:numarrays,
+                                 segment.pos = segment.pos,
+                                 original.pos = original.pos,
+                                 geneLoc = geneLoc)
+            plot.adacgh.generic3(x$segm, x$chrom.numeric,  geneNames = geneNames,
+                                 main = "All_arrays",
+                                 ylim = yminmax,
+                                 arraynums = 1:numarrays,
+                                 idtype = idtype, organism = organism,
+                                 segment.pos = segment.pos,
+                                 original.pos = original.pos,
+                                 geneLoc = geneLoc)
+        }
+    }  else if (inherits(x, "DNAcopy")) {
         if(!superimposed) {
             tmp_papout <- papply(as.list(1:numarrays),
                                  function(z) {
@@ -365,87 +341,6 @@ segmentPlot <- function(x, geneNames,
                          arraynums = 1:numarrays,
                          idtype = idtype, organism = organism) ## by chromosome
         }
-    } else if(inherits(x, c("mergedDNAcopy", "mergedHMM", "mergedBioHMM"))) {
-        pos_local <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
-        if(!superimposed) {
-            tmp_papout <- papply(as.list(1:numarrays),
-                                 function(z) {
-                                     cat("\n Doing sample ", z, "\n")
-                                     ADaCGH:::plot.ace2(res = res,
-                                                        chrom = cnum_slave,
-                                                        arraynum = z,
-                                                        main = arraynames[z],
-                                                        html = TRUE,
-                                                        geneNames = geneNames,
-                                                        idtype = idtype,
-                                                        organism = organism,
-                                                        segment.pos = c(1,3),
-                                                        segment.height = 1,
-                                                        pos = pos_slave)
-                                 },
-                                 papply_commondata =
-                                 list(res = x$segm,
-                                      cnum_slave= x$chrom.numeric,
-                                      arraynames = arraynames,
-                                      geneNames = geneNames,
-                                      idtype = idtype,
-                                      organism = organism,
-                                      pos_slave = pos_local))
-        } else {
-            plot.ace3(x$segm, x$chrom.numeric,  geneNames = geneNames,
-                      main = "All_arrays",
-                      ylim = yminmax,
-                      pch = "",
-                      idtype = idtype, organism = organism,
-                      arraynums = 1:numarrays,
-                      segment.pos = c(1, 3), segment.height = 1, pos_local)
-            plot.ace4(x$segm, x$chrom.numeric,  geneNames = geneNames,
-                      main = "All_arrays",
-                      ylim = yminmax,
-                      arraynums = 1:numarrays,
-                      idtype = idtype, organism = organism,
-                      segment.pos = c(1, 3), segment.height = 1, pos_local)
-        }
-    } else if(inherits(x, "CGH.ACE.summary")) {
-        if(numarrays == 1) { ## reformat the object
-            tmpx <- list()
-            tmpx[[1]] <- cbind(x[[1]], x[[2]], x[[3]])
-            x <- tmpx
-            rm(tmpx)
-        }
-        if(!superimposed) {
-            tmp_papout <- papply(as.list(1:numarrays),
-                                 function(z) {
-                                     cat("\n Doing sample ", z, "\n")
-                                     ADaCGH:::plot.ace2(res = res,
-                                                        chrom = cnum_slave,
-                                                        arraynum = z,
-                                                        main = arraynames[z],
-                                                        html = TRUE,
-                                                        geneNames = geneNames,
-                                                        idtype = idtype,
-                                                        organism = organism)
-                                 },
-                                 papply_commondata = list(res = x,
-                                 cnum_slave= chrom.numeric,
-                                 arraynames = arraynames,
-                                 geneNames = geneNames,
-                                 idtype = idtype,
-                                 organism = organism))
-            
-      } else {
-          plot.ace3(x, chrom.numeric,  geneNames = geneNames,
-                    main = "All_arrays",
-                    ylim = yminmax,
-                    pch = "",
-                    idtype = idtype, organism = organism,
-                    arraynums = 1:numarrays)
-          plot.ace4(x, chrom.numeric,  geneNames = geneNames,
-                    main = "All_arrays",
-                    ylim = yminmax,
-                    idtype = idtype, organism = organism,
-                    arraynums = 1:numarrays)
-      }
     } else if(inherits(x, "CGH.wave")) {
         if(!superimposed) {
             tmp_papout <- papply(as.list(1:numarrays),
@@ -589,7 +484,7 @@ pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25,
     uniq.chrom <- unique(chrom.numeric)
 
 ## construct the list:
-## the code below gives some partial support for missings.
+## The code below gives some partial support for missings.
     ##  but I need to carry that along, and since we are not dealing
     ##  with missings now, I just re-writte ignoring any NA,
     ##  since, by decree, we have no NAs.
@@ -651,6 +546,7 @@ pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25,
 }
 
 pSegmentACE <- function(acghdata, chrom.numeric,  echo=FALSE) {
+    ## ACE is already parallelized
     ACE(acghdata, chrom.numeric, echo, coefs = file.aux, Sdev = 0.2)
 }
 
@@ -804,7 +700,7 @@ plot.olshen2 <- function(res, arraynum, main = NULL,
     nameIm <- main
 ##    nameFile <- paste(writeDir, nameIm, sep = "/")
     nameFile <- nameIm
-## FIXME: need to differentiate between name for main and filename
+
 
     if(html) {
         imheight <- 500
@@ -2586,6 +2482,88 @@ my.sw3 <- function(logratio, chrom, sign = -1, p.crit = PSW.p.crit,
 }     
 
 
+
+
+my.sw3b <- function(logratio, chrom, sign = -1, p.crit = PSW.p.crit,
+                    nIter = 1000,
+                    prec = 100,
+                    name,
+                    highest = FALSE, ## identifying highest scoring island can
+                    ## cross chromosome boundaries
+                    ...) {
+
+    ## like my.sw3, but do not parallelize over chroms. (Will parall. over arrays)
+
+    if(!is.numeric(chrom)) stop("Chrom not numeric; this will cause trouble")
+    swt <- sw.threshold(logratio, sign = sign)
+    
+    swt.run.l <- swt.perm.l <- swt.rob.l <- list()
+    chrom.nums <- unique(chrom)
+
+    
+    swtlist <- list()
+    klist <- 1
+    for(i in 1:length(chrom.nums)) {
+        swtlist[[klist]] <- swt[chrom == i]
+        klist <- klist + 1
+    }
+    
+    funsw <- function(x) {
+        swt.run <- sw(x, trace = FALSE)
+        swt.perm <- sw.perm.test(x, max.nIslands = NULL,
+                                        nIter = nIter)
+        swt.rob <- sw.rob(x, prec = prec)
+        list(swt.run = swt.run, swt.perm = swt.perm, swt.rob = swt.rob)
+    }
+
+    papout <- lapply(swtlist, funsw)
+
+    swt.rob <- unlist(lapply(papout, function(x) x$swt.rob))
+    swt.perm <- unlist(lapply(papout, function(x) x$swt.perm))
+    swt.run.l <- lapply(papout, function(x) x$swt.run)
+    
+    swt.run <- list()
+    swt.run$length <- unlist(lapply(swt.run.l, function(x) x$length))
+    swt.run$start <- unlist(lapply(swt.run.l, function(x) x$start))
+
+    
+    ## recall that now all genes are numbered stgarting at 1 for each chromos
+    nsp <- lapply(swt.run.l, function(x) length(x$length))
+    npc <- table(chrom)
+    npca <- cumsum(npc[-length(npc)])
+    to.add <- rep(c(0, npca), nsp)
+
+    perm.p.values <- rep(NA, length(logratio))
+
+    x0 <- swt.run$start + to.add
+    x1 <- x0 + swt.run$length - 1
+
+    for(jj in 1:length(swt.perm)) {
+        perm.p.values[x0[jj]:x1[jj]] <- swt.perm[jj]
+    }
+    
+    plotdat <- list(logratio = logratio,
+                    sign = sign,
+                    rob = swt.rob,
+                    swt.run = swt.run,
+                    swt.perm = swt.perm,
+                    p.crit = p.crit,
+                    chrom = chrom)
+                    
+    out.values <- cbind(rep(sign, length(logratio)),
+                        swt.rob, perm.p.values)
+    colnames(out.values) <-
+        paste(name, c(".Sign", ".Robust", ".p.value"),
+              sep = "")
+  
+    out <- list(out=out.values,
+                plotdat = plotdat)
+    class(out) <- c(class(out), "CGH.PSW")
+    return(out)
+}     
+
+
+
     
 sw.plot3 <- function (logratio, location = seq(length(logratio)),
                       threshold.func = function(x) median(x) + 
@@ -3219,7 +3197,7 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
 	rownames(res) <- 1:nrow(res)
         ncr <- ncol(res) - 1
         attr(res, "aceFDR.for.output") <- aceFDR.for.output
-        class(res) <- c("summary.ACE", "CGH.ACE.summary")
+        class(res) <- c("summary.ACE", "CGH.ACE.summary", "adacgh.generic.out")
 	res
 }
 
@@ -3327,7 +3305,7 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
 		}
         class(res) <- c("summary.ACE.array", "CGH.ACE.summary")
         attr(res, "aceFDR.for.output") <- aceFDR.for.output
-        class(res) <- c("summary.ACE.array", "CGH.ACE.summary")
+        class(res) <- c("summary.ACE.array", "CGH.ACE.summary", "adacgh.generic.out")
         res
 }
 
@@ -3926,28 +3904,84 @@ createIM2 <- function(im, file = "", imgTags = list(),
 
 #### HMM + mergeLevels
 
-hmmWrapper <- function(logratio, Clone, Chrom, Pos){
+
+piccardsK <- function(loglik, n, s = -0.5) {
+    ## return the optimal number of segments, as in
+    ## piccard et al., p. 13. k is number of segments, not breakponts.
+    dks <- c(NA, diff(loglik, lag = 1, differences = 2))
+    dkthresh <- s * n
+    okdk <- which(dks < dkthresh)
+    if(length(okdk) > 0) {
+        return(max(okdk))
+    } else {
+        return(1)
+    }
+}
+
+piccardsStretch <- function(obj, k, n, logratio) {
+    if(k > 1) {
+        poss <- obj@breakpoints[[k]]
+        start <- c(1, poss)
+        end <- c(poss - 1, n)
+        smoothed <- mapply(function(start, end) mean(logratio[start: end]), start, end)
+        reps <- diff(c(start, n + 1))
+        smoothed <- rep(smoothed, reps)
+        state <- rep(1:k, reps)
+    } else {
+        smoothed <- rep(mean(logratio), n)
+        state <- rep(1, n)
+    }
+    return(cbind(smoothed = smoothed, state = state))
+}
+    
+CGHsegWrapper <- function(logratio, maxseg = NULL, maxk = NULL) {
+    ## beware, this is by chrom!!
+    ## Just in case:
+    n <- length(logratio)
+    if(is.null(maxseg)) maxseg <- n/2
+    if(is.null(maxk)) maxk   <- n
+    obj1 <- tilingArray:::segment(logratio, maxseg = maxseg,
+                                  maxk = maxk)
+    optk <- piccardsK(obj1@loglik, n)
+    finalsegm <- piccardsStretch(obj1, optk, n, logratio)
+    return(cbind(Observed = logratio, SmoothedMean = finalsegm[, 2],
+                 Alteration = finalsegm[, 3]))
+}
+                 
+    
+hmmWrapper <- function(logratio, Chrom, Pos){
     ## Fit HMM, and do mergeLevels
+    Clone <- 1:length(logratio)
     obj.aCGH <- create.aCGH(data.frame(logratio),
                             data.frame(Clone = Clone,
                                        Chrom = Chrom,
                                        kb = Pos))
     res <- find.hmm.states(obj.aCGH)
     hmm(obj.aCGH) <- res
-    segmentus2 <-
-        mergeLevels(vecObs  = obj.aCGH$hmm$states.hmm[[1]][, 8],
-                    vecPred = obj.aCGH$hmm$states.hmm[[1]][, 6])$vecMerged
-    
-    classes.ref <- which.min(abs(unique(segmentus2)))
-    classes.ref <- unique(segmentus2)[classes.ref]
-    ref <- rep(0, length(segmentus2))
-    ref[segmentus2 > classes.ref] <- 1
-    ref[segmentus2 < classes.ref] <- -1
-    return(cbind(merged.mean = segmentus2,
-                 obs = obj.aCGH$hmm$states.hmm[[1]][, 8],
-                 alteration = ref))
+
+    out <- ourMerge(obj.aCGH$hmm$states.hmm[[1]][, 8],
+                      obj.aCGH$hmm$states.hmm[[1]][, 6])
+    return(out)
 }
 
+
+BioHMMWrapper <- function(logratio, Chrom, Pos) {
+  logratio <- matrix(logratio, ncol=1)
+  uchrom <- unique(Chrom)
+  obs <- NULL
+  smoothed <- NULL
+  for (ic in uchrom) {
+      ydat <- logratio[Chrom == ic]
+      n <- length(ydat)
+      res <- fit.model(sample = 1, chrom = ic, dat = matrix(ydat, ncol = 1),
+                       datainfo = data.frame(Name = 1:n, Chrom = rep(ic, n),
+                       Position = Pos[Chrom == ic]))
+      obs <- c(obs, res$out.list$obs)
+      smoothed <- c(smoothed, res$out.list$mean)
+  }
+  out <- ourMerge(obs, smoothed)
+  return(out)
+}
 
 
 
@@ -3965,7 +3999,7 @@ seginfo.obj <- function(obs, smoothed, state, chr) {
 }
 
 
-ourSegment <- function(observed, predicted,
+ourMerge <- function(observed, predicted,
                        merge.pv.thresh = 1e-04,
                        merge.ansari.sign = 0.05,
                        merge.thresMin = 0.05,
@@ -3990,7 +4024,10 @@ ourSegment <- function(observed, predicted,
 
 
 ## x: here is it is from smoothed
-pSegmentDNAcopy1 <- function(x,
+pSegmentDNAcopy <- function(x,
+                            geneNames,
+                            chrom.numeric,
+                            Pos,
                             alpha=0.01,
                             nperm=10000,
                             kmax=25,
@@ -4055,8 +4092,8 @@ pSegmentDNAcopy1 <- function(x,
                             sbn =           slave_sbn)
         if(!slave_merge) {
             return(outseg)
-        }else {
-            outmerge <- ourSegment(outseg[, 1], outseg[, 2],
+        } else {
+            outmerge <- ourMerge(outseg[, 1], outseg[, 2],
                                    merge.pv.thresh = slave_pv_th_merge,
                                    merge.ansari.sign = slave_ansari_sign,
                                    merge.thresMin = slave_merge_tmin,
@@ -4067,11 +4104,17 @@ pSegmentDNAcopy1 <- function(x,
     papout <- papply(datalist,
                      papfunc,
                      papply_common)
-    return(papout)
+
+    outl <- list()
+    outl$segm <- papout
+    outl$chrom.numeric <- chrom.numeric
+    outl$pos <- Pos
+    outl$geneNames <- geneNames
+    class(outl) <- "CGHseg"
+    if(merge) class(outl) <- c(class(outl), "adacgh.generic.out")
+    return(outl)
+
 }
-
-
-## Pos <- ? x$maploc???
 
 internalDNAcopy <- function(acghdata,
                             chrom.numeric,
@@ -4085,6 +4128,8 @@ internalDNAcopy <- function(acghdata,
                             trim,
                             undo.prune,
                             undo.SD) {
+    ## tries to follow the original "segment"
+    
     uchrom <- unique(chrom.numeric)
     data.type <- "logratio"
     p.method <- "hybrid"
@@ -4121,143 +4166,506 @@ internalDNAcopy <- function(acghdata,
 }
 
 
-internalDNAcopy.withcomments <- function(acghdata, chrom.numeric,
-                            sbdry, sbn,                                         
-                            alpha=0.01, nperm=10000,
-                            kmax=25, nmin=200,
-                            overlap=0.25, 
-                            trim = 0.025,
-                            undo.prune=0.05, undo.SD=3) {
-                            ## p.method = "hybrid",
-                            ## eta = 0.05,
-                            ## window.size=NULL,
-                            ## undo.splits="prune",
-
-    ## As little as possible changed from the original function
-    ## Of course, changes for paralleliz. and changes in output format and input
-    ## A lot of left commented, to see changes
-    
-##    if (!inherits(x, 'CNA')) stop("First arg must be a copy number array object")
-##    call <- match.call()
-##    nsample <- ncol(x)-2
-##    sampleid <- colnames(x)[-(1:2)]
-##  uchrom <- unique(x$chrom)
-    uchrom <- unique(chrom.numeric)
-##    data.type <- attr(x, "data.type")
-##     p.method <- match.arg(p.method)
-##     if (p.method=="hybrid") window.size <- NULL
-##     undo.splits <- match.arg(undo.splits)
-
-    p.method <- "hybrid"
-    window.size <- NULL
-    undo.splits <- "prune"
-
-##     segres <- list()
-##     segres$data <- x
-##     allsegs <- list()
-##     allsegs$ID <- NULL
-##     allsegs$chrom <- NULL
-##     allsegs$loc.start <- NULL
-##     allsegs$loc.end <- NULL
-##     allsegs$num.mark <- NULL
-##     allsegs$seg.mean <- NULL
 
 
-    genomdati <- acghdata
-    ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
 
-    ## The code allows for dealing with NA and Inf, but would need to
-    ## adjust other functions (as different arrays would have different
-    ## length of pos, genenames, etc. So for now stop:
-
-    if (lenght(ina) != length(genomdati))
-        stop("Either an NA or an infinite in the data")
-
-    genomdati <- genomdati[ina]
-    trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
-    chromi <- chrom[ina]
-##    maploci <- x$maploc[ina]
-    sample.lsegs <- NULL
-    sample.segmeans <- NULL
-##     if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
-##         sbdry <- default.DNAcopy.bdry
-##     } else {
-##         max.ones <- floor(nperm * alpha) + 1
-##         sbdry <- getbdry(eta, nperm, max.ones)
-##     }
-##     sbn <- length(sbdry)
-    for (ic in uchrom) {
-        segci <- changepoints(genomdati[chromi==ic], data.type, alpha, 
-                              sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
-                              nmin, trimmed.SD, undo.splits, undo.prune,
-                              undo.SD, verbose = 2)
-        sample.lsegs <- c(sample.lsegs, segci$lseg)
-        sample.segmeans <- c(sample.segmeans, segci$segmeans)
-    }
-    if(length(sample.lsegs) != length(sample.segmeans))
-        stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
-    stretched.segmeans <- rep(sample.segmeans, sample.lsegs)
-    stretched.state    <- rep(1:length(sample.lsegs), sample.lsegs)
-    return(cbind(Observed = genomdati, Predicted = stretched.segmeans,
-                 State = stretched.state))
-##     sample.nseg <- length(sample.lsegs)
-##     sample.segs.start <- ina[cumsum(c(1,sample.lsegs[-sample.nseg]))]
-##     sample.segs.end <- ina[cumsum(sample.lsegs)]
-##     chrom.o <- chrom[sample.segs.end]
-##     loc.start <- maploc[sample.segs.start]
-##     loc.end <- maploc[sample.segs.end]
-##     num.mark <- sample.lsegs
-##     seg.mean <- sample.segmeans
-##     return(list(chrom.o = chrom.o,
-##                 loc.start = loc.start,
-##                 loc.end = loc.end,
-##                 num.mark = num.mark,
-##                 seg.mean = seg.mean,
-##                 nseg = sample.nseg))
-##     allsegs$ID <- rep(1:nsample, unlist(lapply(papout, function(x) x$nseg)))
-##     allsegs$ID <- sampleid[allsegs$ID]
-##     allsegs$ID <- as.character(allsegs$ID)
-##     allsegs$chrom <- unlist(lapply(papout, function(x) x$chrom.o))
-##     allsegs$loc.start <- unlist(lapply(papout, function(x) x$loc.start))
-##     allsegs$loc.end <- unlist(lapply(papout, function(x) x$loc.end))
-##     allsegs$num.mark <- unlist(lapply(papout, function(x) x$num.mark))
-##     allsegs$seg.mean <- unlist(lapply(papout, function(x) x$seg.mean))
-##     allsegs$seg.mean <- round(allsegs$seg.mean, 4)
-##     allsegs <- as.data.frame(allsegs)
-##     segres$output <- allsegs
-##     segres$call <- call    
-##     class(segres) <- "DNAcopy"
-##     segres
-
+gladWrapper <- function(x, Chrom, Pos = NULL) {
+    Pos <- if (is.null(Pos)) (1:length(x)) else Pos
+    tmpf <- data.frame(LogRatio = x,
+                       PosOrder = Pos,
+                       Chromosome = Chrom)
+    tmpf <- list(profileValues = tmpf)
+    class(tmpf) <- "profileCGH"
+    outglad <- glad.profileCGH(tmpf)
+    return(cbind(Observed = x, Smoothed = outglad$profileValues$Smoothing,
+                 State = outglad$profileValues$ZoneGNL))
 }
 
 
 
 
 
-stretchCNAoutput <- function(object) {
+
+
+
+
+
+plot.adacgh.generic1 <- function(res, chrom,
+                                 arraynum, main = NULL,
+                                 colors = c("orange", "red", "green", "blue"),
+                                 pch = 20, ylim = NULL,
+                                 geneNames = positions.merge1$name,
+                                 html = TRUE,
+                                 idtype = idtype, organism = organism,
+                                 smooth.pos = 2,
+                                 original.pos = 1,
+                                 state.pos = 3,
+                                 segment.pos = 3,
+                                 geneLoc = NULL) {
+                                        #res is the results
+                                        # color code for region status
+
+    ## segment.pos = the column where the data live. 3 for ACE, 1 for merged
+    ## segment.height: in ace is 0.5, since there is no sucgh thing as smoothing.
+    ## but with merged, there is a value that means something, so we use that.
+    logr <- res[[arraynum]][, original.pos]
+    if(is.null(segment.pos)) segment.height <- 0.5 else segment.height <- 1
+             
+    if(!null(state.pos)) {
+        res.dat <- res[[arraynum]][, state.pos]
+        col <- rep("orange",length(res.dat))
+        col[which(res.dat == -1)] <- "green"
+        col[which(res.dat == 1)] <- "red"
+    } else {
+        col <- rep("orange",length(logr))
+        res.dat <- NULL
+    }
+    simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+    
+    nameIm <- main
+    if(html) {
+        imheight <- 500
+        imwidth <- 1600
+        im1 <- imagemap3(nameIm, height = imheight,
+                         width = imwidth, ps = 12)
+    }
+    plot(logr ~ simplepos, col= col, ylab = "log ratio",
+         xlab ="Chromosome location", axes = FALSE, cex = 0.7, main = main,
+         pch = pch, ylim = ylim)
+    box()
+    rug(simplepos, ticksize = 0.01)
+    axis(2)
+    abline(h = 0, lty = 2, col = "blue")
+    
+    ## Limit between chromosomes
+    LimitChr <- tapply(simplepos,
+                       chrom, max)
+    abline(v=LimitChr, col="grey", lty=2)
+    chrom.nums <- unique(chrom)
+    d1 <- diff(LimitChr)
+    pos.labels <- c(round(LimitChr[1]/2),
+                    LimitChr[-length(LimitChr)] + round(d1/2))
+    axis(1, at = pos.labels, labels = chrom.nums)
+    if(! is.null(res.dat))
+        lines(I(segment.height * res.dat) ~ simplepos, col="black",
+              lwd = 2)
+
+    if(html) {
+        lxs <- c(1, LimitChr)
+        maxlr <- max(logr)
+        minlr <- min(logr)
+        nd <- 1:length(LimitChr)
+        xleft <- lxs[nd]
+        names(xleft) <- 1:length(xleft)
+        xright <- lxs[nd + 1]
+
+        f1 <- function(xleft, xright, nd)
+            imRect(xleft, maxlr, xright, minlr - 10,
+                   title = paste("Chromosome", nd),
+                   alt = paste("Chromosome", nd),
+                   href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
+        rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+        for(ll in 1:length(rectslist))
+            addRegion(im1) <- rectslist[[ll]]
+        createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+        imClose(im1)
+    }
+
+    if(html) { ## here is chromosome specific code
+        pixels.point <- 3
+        chrheight <- 500
+        for(cnum in 1:length(chrom.nums)) {
+            cat(" .... doing chromosome ", cnum, "\n")
+            indexchr <- which(chrom == chrom.nums[cnum])
+            chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+            chrwidth <- max(chrwidth, 800)
+            im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                             height = chrheight, width = chrwidth,
+                             ps = 12)
+            ## The following seems needed (also inside sw.plot2) for the coords.
+            ## of points to work OK
+            par(xaxs = "i")
+            par(mar = c(5, 5, 5, 5))
+            par(oma = c(0, 0, 0, 0))
+            plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
+                 xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+                 main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                 pch = pch, ylim = ylim)
+            box()
+            axis(2)
+            abline(h = 0, lty = 2, col = "blue")
+            rug(simplepos[indexchr], ticksize = 0.01)
+            ## segments
+            if(!is.null(res.dat))
+                lines(I(segment.height * res.dat[indexchr]) ~ simplepos[indexchr],
+                      col = "black", lwd = 2, type = "l")
+
+            ## The within chromosome map for gene names
+            ## in superimposed cases only in first map
+            usr2pngCircle <- function(x, y, rr = 2) {
+                xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+                r <- abs(xyrc[2, 1] - xyrc[3, 1])
+                return(c(xyrc[1, 1], xyrc[1, 2], r))
+            }
+            
+            ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
+                              logr[indexchr])
+            write(ccircle, file = "pngCoordChr",
+                  sep ="\t", ncolumns = 3)
+            write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+            imClose(im2)
+            system(paste(.python.toMap.py,
+                         paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                         idtype, organism, sep = " "))
+        }        ## looping over chromosomes
+    } ## if html
+}
+
+
+
+
+
+
+
+
+plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays, main = NULL,
+                                 colors = c("orange", "red", "green", "blue"),
+                                 pch = "", ylim =c(ymin, ymax), html = TRUE,
+                                 geneNames = positions.merge1$name,
+                                 idtype = idtype, organism = organism,
+                                 smooth.pos = 2,
+                                 originial.pos = 1,
+                                 state.pos = 3,
+                                 segment.pos = 3,
+                                 geneLoc = NULL) {
+    ## For superimposed: only all genome plot with map to chromosomes
+
+    if(is.null(segment.pos)) segment.height <- 0.5 else segment.height <- 1
+    
+    nameIm <- main
+    if(html) {
+        imheight <- 500
+        imwidth <- 1600
+        im1 <- imagemap3(nameIm, height = imheight,
+                         width = imwidth, ps = 12)
+    }
+    nfig <- 1
+    for (arraynum in arraynums) {
+        logr <- res[[arraynum]][, original.pos]
+        
+        if(!null(state.pos)) {
+            res.dat <- res[[arraynum]][, state.pos]
+            col <- rep("orange",length(res.dat))
+            col[which(res.dat == -1)] <- "green"
+            col[which(res.dat == 1)] <- "red"
+        } else {
+            col <- rep("orange",length(logr))
+            res.dat <- NULL
+        }
+        simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+        if(!is.null(res.dat))
+            segmented <- res.dat * segment.height
+
+        if(nfig == 1) {
+            plot(logr ~ simplepos, col=col, ylab = "log ratio", 
+                 xlab ="Chromosome location", axes = FALSE, main = main,
+                 pch = "", ylim = ylim)
+            box()
+            axis(2)
+            abline(h = 0, lty = 2, col = "blue")
+            rug(simplepos, ticksize = 0.01)
+        }
+        if(!is.null(res.dat))
+            lines(segmented ~ simplepos,
+                  col = "black", lwd = 2, type = "l")
+
+
+        if(nfig == 1) {
+            ## Limit between chromosomes
+            LimitChr <- tapply(simplepos,
+                               chrom, max)
+            abline(v=LimitChr, col="grey", lty=2)
+
+            chrom.nums <- unique(chrom)
+            d1 <- diff(LimitChr)
+            pos.labels <- c(round(LimitChr[1]/2),
+                            LimitChr[-length(LimitChr)] + round(d1/2))
+            axis(1, at = pos.labels, labels = chrom.nums)
+
+            lxs <- c(1, LimitChr)
+            maxlr <- max(logr)
+            minlr <- min(logr)
+            nd <- 1:length(LimitChr)
+            xleft <- lxs[nd]
+            names(xleft) <- 1:length(xleft)
+            xright <- lxs[nd + 1]
+            f1 <- function(xleft, xright, nd)
+                imRect(xleft, maxlr, xright, minlr - 10,
+                       title = paste("Chromosome", nd),
+                       alt = paste("Chromosome", nd),
+                       href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
+            rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+            for(ll in 1:length(rectslist))
+                addRegion(im1) <- rectslist[[ll]]
+        }
+        nfig <- nfig + 1
+        par(new = TRUE)
+    }
+    createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+    imClose(im1)
+}
+
+
+plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays,
+                      main = "All_arrays",
+                      colors = c("orange", "red", "green", "blue"),
+                      pch = 20, ylim =NULL, html = TRUE,
+                      geneNames = positions.merge1$name,
+                      idtype = idtype, organism = organism,
+                      smooth.pos = 2,
+                      originial.pos = 1,
+                      state.pos = 3,
+                      segment.pos = 3,
+                      geneLoc = NULL) {
+    ## For superimposed: one plot per chr
+    
+    nameIm <- main
+    
+    pixels.point <- 3
+    chrheight <- 500
+    chrom.nums <- unique(chrom)
+    for(cnum in 1:length(chrom.nums)) {
+        cat(" .... doing chromosome ", cnum, "\n")
+        indexchr <- which(chrom == chrom.nums[cnum])
+        chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+        chrwidth <- max(chrwidth, 800)
+        im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                         height = chrheight, width = chrwidth,
+                         ps = 12)
+        ## The following seems needed (also inside sw.plot2) for the coords.
+        ## of points to work OK
+        nfig <- 1
+        for(arraynum in arraynums) { ## first, plot the points
+            cat(" ........ for points doing arraynum ", arraynum, "\n")
+##            browser()
+            logr <- res[[arraynum]][, original.pos]
+            if(is.null(segment.pos)) segment.height <- 0.5 else segment.height <- 1
+            
+            if(!null(state.pos)) {
+                res.dat <- res[[arraynum]][, state.pos]
+                col <- rep("orange",length(res.dat))
+                col[which(res.dat == -1)] <- "green"
+                col[which(res.dat == 1)] <- "red"
+            } else {
+                col <- rep("orange",length(logr))
+                res.dat <- NULL
+            }
+            simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+
+            if(nfig == 1) {
+                par(xaxs = "i")
+                par(mar = c(5, 5, 5, 5))
+                par(oma = c(0, 0, 0, 0))
+                plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], 
+                     xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
+                     main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     pch = "", ylim = ylim)
+                box()
+                axis(2)
+                abline(h = 0, lty = 2, col = "blue")
+                rug(simplepos[indexchr], ticksize = 0.01)
+            }
+            points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
+                   cex = 1, pch = 20)
+            nfig <- nfig + 1
+        }
+        for(arraynum in arraynums) { ## now, do the segments
+            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+            res.dat <- res[[arraynum]][indexchr, 3]
+            segmented <- res.dat * segment.height
+            lines(segmented ~ simplepos[indexchr], col = "black", lwd = 2, type = "l")
+        }
+
+        usr2pngCircle <- function(x, y, rr = 2) {
+            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+            r <- abs(xyrc[2, 1] - xyrc[3, 1])
+            return(c(xyrc[1, 1], xyrc[1, 2], r))
+        }
+        ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
+                          0)
+        write(ccircle, file = "pngCoordChr",
+              sep ="\t", ncolumns = 3)
+        write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+        imClose(im2)
+        system(paste(.python.toMap.py,
+                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     idtype, organism, sep = " "))
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+old.mergeDNAcopy <- function(object) {
+    numarrays <- ncol(object$data) - 2
+    ## zz: we must get numarray from object
+    
     if(!(inherits(object, "DNAcopy")))
         stop("This function can only be applied to DNAcopy objects")
-    numarrays <- ncol(object$data) - 2
-    stretched <- list()
+    merged_segments <- list()
+    merged_segments$chrom.numeric <- object$data$chrom ## verify its numeric zz!!
+    merged_segments$segm <- list()
     for(arraynum in 1:numarrays) {
+        ##  parallelize? No longer needed: this is called in each node, so parallelized
         obs <- object$data[, 2 + arraynum]
         segmented <-
             object$output[object$output$ID ==
                           colnames(object$data)[2 + arraynum], ]
-        smoothed <- object$data$maploc 
+        segmentus <- object$data$maploc  ##fill it up
         for(i in 1:nrow(segmented)) {
-            smoothed[(segmented[i,'loc.end'] >= smoothed) &
-                     (segmented[i,'loc.start'] <= smoothed)] <-
-                         segmented[i,'seg.mean']
+            segmentus[(segmented[i,'loc.end'] >= segmentus) &
+                      (segmented[i,'loc.start'] <= segmentus)] <-
+                          segmented[i,'seg.mean']
         }
-        
-        stretched[[arraynum]] <- cbind(Observed = obs,
-                                       Predicted = smoothed)
-        
+        segmentus2 <- mergeLevels(obs, segmentus)$vecMerged
+        classes.ref <- which.min(abs(unique(segmentus2)))
+        classes.ref <- unique(segmentus2)[classes.ref]
+        ref <- rep(0, length(segmentus))
+        ref[segmentus2 > classes.ref] <- 1
+        ref[segmentus2 < classes.ref] <- -1
+        merged_segments$segm[[arraynum]] <- cbind(merged.mean = segmentus2,
+                                                  obs, alteration = ref)
     }
-    return(stretched)
-}
+    class(merged_segments) <- c(class(merged_segments),
+                                "mergedDNAcopy")
+    return(merged_segments)
+}    
 
-cucu <- stretchCNAoutput(segment.smoothed.CNA.object)
-mapply(function(x, y) all.equal(x[, 2], y[, 2]), cucu, o2)
+
+
+
+
+old.pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
+                            p.method = c("hybrid","perm"),
+                            kmax=25, nmin=200, eta = 0.05,
+                            window.size=NULL, overlap=0.25, 
+                            trim = 0.025,
+                            undo.splits=c("none","prune","sdundo"),
+                            undo.prune=0.05, undo.SD=3)
+{
+    if (!inherits(x, 'CNA')) stop("First arg must be a copy number array object")
+    call <- match.call()
+    nsample <- ncol(x)-2
+    sampleid <- colnames(x)[-(1:2)]
+    uchrom <- unique(x$chrom)
+    data.type <- attr(x, "data.type")
+    p.method <- match.arg(p.method)
+    if (p.method=="hybrid") window.size <- NULL
+    undo.splits <- match.arg(undo.splits)
+    segres <- list()
+    segres$data <- x
+    allsegs <- list()
+    allsegs$ID <- NULL
+    allsegs$chrom <- NULL
+    allsegs$loc.start <- NULL
+    allsegs$loc.end <- NULL
+    allsegs$num.mark <- NULL
+    allsegs$seg.mean <- NULL
+    ## we parallelize over subjects
+
+
+    datalist <- list()
+    klist <- 1
+    for(i in 1:nsample) {
+        datalist[[klist]] <- x[, i + 2]
+            klist <- klist + 1
+    }
+
+    
+    funcbs <- function(genomdati) {
+        ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
+        genomdati <- genomdati[ina]
+        trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
+        chromi <- chrom[ina]
+                                        #      maploci <- x$maploc[ina]
+        sample.lsegs <- NULL
+        sample.segmeans <- NULL
+        if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
+            sbdry <- default.DNAcopy.bdry
+        } else {
+            max.ones <- floor(nperm * alpha) + 1
+            sbdry <- getbdry(eta, nperm, max.ones)
+        }
+        sbn <- length(sbdry)
+        for (ic in uchrom) {
+            segci <- changepoints(genomdati[chromi==ic], data.type, alpha, 
+                                  sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
+                                  nmin, trimmed.SD, undo.splits, undo.prune,
+                                  undo.SD, verbose = 2)
+            sample.lsegs <- c(sample.lsegs, segci$lseg)
+            sample.segmeans <- c(sample.segmeans, segci$segmeans)
+        }
+        sample.nseg <- length(sample.lsegs)
+        sample.segs.start <- ina[cumsum(c(1,sample.lsegs[-sample.nseg]))]
+        sample.segs.end <- ina[cumsum(sample.lsegs)]
+        
+        chrom.o <- chrom[sample.segs.end]
+        loc.start <- maploc[sample.segs.start]
+        loc.end <- maploc[sample.segs.end]
+        num.mark <- sample.lsegs
+        seg.mean <- sample.segmeans
+
+        return(list(chrom.o = chrom.o,
+                    loc.start = loc.start,
+                    loc.end = loc.end,
+                    num.mark = num.mark,
+                    seg.mean = seg.mean,
+                    nseg = sample.nseg))
+    }
+
+    papout <- papply(datalist, funcbs,
+                     papply_commondata =list(chrom = x$chrom,
+                     uchrom=uchrom,
+                     data.type = data.type,
+                     alpha = alpha, 
+                     nperm = nperm,
+                     p.method = p.method,
+                     window.size = window.size,
+                     overlap = overlap,
+                     kmax = kmax,
+                     nmin = nmin,
+                     trim = trim,
+                     eta = eta,
+                     undo.splits = undo.splits,
+                     undo.prune = undo.prune,
+                     undo.SD = undo.SD,
+                     verbose = 2,
+                     maploc = x$maploc),
+                     do_trace = TRUE)                     
+    ## I could have just one statement for ID, but lets try to follow original
+    ## code closely
+
+    allsegs$ID <- rep(1:nsample, unlist(lapply(papout, function(x) x$nseg)))
+    allsegs$ID <- sampleid[allsegs$ID]
+    allsegs$ID <- as.character(allsegs$ID)
+    allsegs$chrom <- unlist(lapply(papout, function(x) x$chrom.o))
+    allsegs$loc.start <- unlist(lapply(papout, function(x) x$loc.start))
+    allsegs$loc.end <- unlist(lapply(papout, function(x) x$loc.end))
+    allsegs$num.mark <- unlist(lapply(papout, function(x) x$num.mark))
+    allsegs$seg.mean <- unlist(lapply(papout, function(x) x$seg.mean))
+    allsegs$seg.mean <- round(allsegs$seg.mean, 4)
+    allsegs <- as.data.frame(allsegs)
+    segres$output <- allsegs
+    segres$call <- call    
+    class(segres) <- "DNAcopy"
+    
+    segres
+}

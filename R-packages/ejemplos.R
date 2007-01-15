@@ -128,6 +128,16 @@ o1 <- pSegmentDNAcopy1(smoothed.CNA.object)
 o2 <- pSegmentDNAcopy1(smoothed.CNA.object, merge = FALSE, nperm = 10000)
 
 
+oo1 <- fit.model(sample = 1, chrom = 1, dat = matrix(cghMCRe[1:400, 7], ncol = 1),
+                 datainfo = data.frame(Name = 1:400, Chrom = rep(1, 400),
+                 Position = 1:400))
+
+
+
+obj1 <- tilingArray:::segment(cghMCRe[1:400, 5], 
+
+
+
 
 ###***************
 data(cghMCRe)

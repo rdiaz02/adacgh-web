@@ -84,7 +84,7 @@ pSegmentGLAD <- function(x, geneNames, chrom.numeric, Pos) {
     outl$chrom.numeric <- chrom.numeric
     outl$pos <- Pos
     outl$geneNames <- geneNames
-    class(outl) <- c("adacgh.generic.out", "mergedHMM")
+    class(outl) <- c("adacgh.generic.out", "adacghGLAD")
     return(outl)
 }    
 
@@ -456,11 +456,41 @@ writeResults.CGH.wave <- function(obj, acghdata, commondata,
     print.wavelets.results(obj, acghdata, commondata, output = file)
 }
 
-writeResults.DNAcopy <- function(obj, acghdata, commondata, merged = NULL,
+writeResults.DNAcopy <- function(obj, acghdata, commondata, 
                                  file = "CBS.output.txt", ...) {
-    print.olshen.results(obj, acghdata, commondata,
-                         merged = merged, output = file) 
+    if(inherits(obj, "adacgh.generic.out")) {
+        print.adacgh.generic.results(obj, adacghdata,
+                                     commondata, output = file)
+    } else {
+        print.olshen.results(obj, acghdata, commondata,
+                             merged = merged, output = file)
+    }
 }
+
+writeResults.CGHseg <- function(obj, acghdata, commondata, 
+                                 file = "CGHseg.output.txt", ...) {
+    print.adacgh.cghseg.results(obj, adacghdata,
+                                commondata, output = file)
+}
+
+writeResults.mergedHMM <- function(obj, acghdata, commondata, 
+                                 file = "HMM.output.txt", ...) {
+    print.adacgh.generic.results(obj, adacghdata,
+                                commondata, output = file)
+}
+
+writeResults.adacghGLAD <- function(obj, acghdata, commondata, 
+                                 file = "GLAD.output.txt", ...) {
+    print.adacgh.generic.results(obj, adacghdata,
+                                commondata, output = file)
+}
+
+writeResults.mergedBioHMM <- function(obj, acghdata, commondata, 
+                                 file = "BioHMM.output.txt", ...) {
+    print.adacgh.generic.results(obj, adacghdata,
+                                commondata, output = file)
+}
+
 
 
 pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25,
@@ -983,7 +1013,6 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
 
 print.olshen.results <- function(res, xcenter,
                                  commondata,
-                                 merged = NULL,
                                  output = "CBS.results.txt",
                                  send_to_pals = TRUE){
     ## This function "stretches out" the output and creates a table
@@ -1004,17 +1033,9 @@ print.olshen.results <- function(res, xcenter,
             out <- cbind(out, merged$segm[[i]][ , c(1, 3)])
         }
     }
-    if(is.null(merged)) {
-        colnames(out)[6:(ncol(out))] <-
-            paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
-                  c(".Original", ".Smoothed"), sep = "")
-    } else {
-        colnames(out)[6:(ncol(out))] <-
-            paste(rep(colnames(xcenter),rep(4, ncol(xcenter))),
-                  c(".Original", ".Smoothed", ".Smoothed.Merged",
-                    ".Status.Merged"),
-                  sep = "")
-    }
+    colnames(out)[6:(ncol(out))] <-
+        paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
+              c(".Original", ".Smoothed"), sep = "")
     write.table(out, file = output,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
@@ -1037,6 +1058,83 @@ print.olshen.results <- function(res, xcenter,
     }
 
 }
+
+
+print.adacgh.generic.results <- function(res, xcenter,
+                                 commondata,
+                                 output = "ADaCGH.results.txt",
+                                 send_to_pals = TRUE){
+    ## This function "stretches out" the output and creates a table
+    ## that matches the original names, etc.
+    
+    out <- data.frame(ID = commondata$name,
+                      Chromosome = commondata$chromosome,
+                      Start = commondata$start,
+                      End = commondata$end,
+                      MidPoint = commondata$MidPoint)
+
+    for(i in 1:ncol(xcenter)) {
+            out <- cbind(out, merged$segm[[i]])
+    }
+    colnames(out)[6:(ncol(out))] <-
+        paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
+              c(".Original", ".Smoothed", ".Status.Merged"),
+              sep = "")
+
+    write.table(out, file = output,
+                sep = "\t", col.names = NA,
+                row.names = TRUE, quote = FALSE)
+
+    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals & !is.null(merged)) {
+      print("Entered the PaLS part in DNA copy")
+        cols.look <- seq(from = 8, to = ncol(out), by = 3)
+
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
+                     function(z) commondata$name[which( z == -1)])
+        writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
+        
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
+                     function(z) commondata$name[which( z == 1)])
+        writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
+
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
+                     function(z) commondata$name[which( z != 0)])
+        writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
+    }
+
+}
+
+
+
+print.adacgh.cghseg.results <- function(res, xcenter,
+                                 commondata,
+                                 output = "CGHseg.results.txt"){
+    ## This function "stretches out" the output and creates a table
+    ## that matches the original names, etc.
+    
+    out <- data.frame(ID = commondata$name,
+                      Chromosome = commondata$chromosome,
+                      Start = commondata$start,
+                      End = commondata$end,
+                      MidPoint = commondata$MidPoint)
+
+    for(i in 1:ncol(xcenter)) {
+            out <- cbind(out, merged$segm[[i]][, c(1, 2)])
+    }
+    colnames(out)[6:(ncol(out))] <-
+        paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
+              c(".Original", ".Smoothed"),
+              sep = "")
+
+    write.table(out, file = output,
+                sep = "\t", col.names = NA,
+                row.names = TRUE, quote = FALSE)
+}
+
+
+
+
+
 
 writeForPaLS <- function(alist, names, outfile) {
     ## alist: a list with as many lists as subjects; each sublist are the

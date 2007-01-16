@@ -1,10 +1,23 @@
-\name{pSegmentDNAcopy}
+\name{pSegmentDNA}
 \alias{pSegmentDNAcopy}
+\alias{pSegmentACE}
+\alias{pSegmentHMM}
+\alias{pSegmentGLAD}
+\alias{pSegmentBioHMM}
+\alias{pSegmentCGHseg}
+\alias{pSegmentPSW}
+\alias{pSegmentWavelets}
+
+
+
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{ Parallelized version of DNAcopy's segment }
+\title{ Parallelized versions of several aCGH segementation algorithms/methods}
+
 \description{
-  This function is a parallelized version (using papply and Rmpi) of \code{\link[DNAopy]{segment}}.
-}
+  These functions parallelize several segmentation algorithms. is a parallelized version (using papply and Rmpi) of
+\code{\link[DNAopy]{segment}}.  }
+
+
 \usage{
 
 pSegmentDNAcopy(x, alpha = 0.01, nperm = 10000,

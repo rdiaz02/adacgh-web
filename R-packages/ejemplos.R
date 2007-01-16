@@ -3,7 +3,7 @@
 
 
 ################
-setwd("/tmp/o1")
+setwd("/tmp")
 mpiInit()
 data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
@@ -300,8 +300,7 @@ plateauPlot(wave.out, cghE1[, 5:7])
 
 
 
-############ HMM
-
+library(ADaCGH)
 data(cghMCRe)
 MidPoint <- cghMCRe$Start + 0.5 * (cghMCRe$End - cghMCRe$Start)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
@@ -319,5 +318,205 @@ MidPoint <- MidPoint[reorder]
 hmm.out <- pSegmentHMM(cghMCRe[, 5:7], chrom.numeric)
 glad.out <- pSegmentGLAD(cghMCRe[, 5:7], chrom.numeric)
 cghseg.out <- pSegmentCGHseg(cghMCRe[, 5:7], chrom.numeric)
+ace.out <- pSegmentACE(cghMCRe[, 5:7], chrom.numeric)
+wave.out <- pSegmentWavelets(cghMCRe[, 5:7], chrom.numeric)
+cbs.out <- pSegmentDNAcopy(cghMCRe[, 5:7], chrom.numeric)
+cbs.nm.out <- pSegmentDNAcopy(cghMCRe[, 5:7], chrom.numeric, merge = FALSE)
+
+psw.pos.out <- pSegmentPSW(cghMCRe[, 5:7], chrom.numeric, sign = 1)
+psw.neg.out <- pSegmentPSW(cghMCRe[, 5:7], chrom.numeric, sign = -1)
+
+## BioHMM is the only one that uses distances
 biohmm.out <- pSegmentBioHMM(cghMCRe[, 5:7], chrom.numeric, MidPoint)
 
+
+############# Plots
+
+setwd("/tmp") ## all slaves need a common dir to read and write.
+mpiInit()
+
+data(cghE1)
+tmpchr <- sub("chr", "", cghE1$Chromosome)
+chrom.numeric <- as.numeric(as.character(tmpchr))
+chrom.numeric[tmpchr == "X"] <- 23
+chrom.numeric[tmpchr == "Y"] <- 24
+rm(tmpchr)
+reorder <- order(chrom.numeric,
+                 cghE1$UG.Start,
+                 cghE1$UG.End,
+                 cghE1$Name)
+cghE1 <- cghE1[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
+
+## run all methods
+
+hmm.out <- pSegmentHMM(cghE1[, 5:7], chrom.numeric)
+glad.out <- pSegmentGLAD(cghE1[, 5:7], chrom.numeric)
+cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric)
+ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
+wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
+cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
+cbs.nm.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE)
+
+psw.pos.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = 1)
+psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1)
+
+## BioHMM is the only one that uses distances
+## it is the slowest, so do only two
+biohmm.out <- pSegmentBioHMM(cghE1[, 5:6], chrom.numeric, cghE1$UG.Start)
+
+
+
+
+
+segmentPlot(hmm.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(hmm.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+segmentPlot(glad.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(glad.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+segmentPlot(cghseg.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(cghseg.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(wave.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(wave.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+segmentPlot(cbs.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(cbs.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+segmentPlot(cbs.nm.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(cbs.nm.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(psw.pos.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(pws.pos.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+
+segmentPlot(psw.neg.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(pws.neg.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+
+segmentPlot(biohmm.out, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(biohmm.out, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+
+## need to choose fdr
+ace.out.sum <- summary(ace.out)
+segmentPlot(ace.out.sum, superimposed = FALSE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(ace.out.sum, superimposed = TRUE,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")

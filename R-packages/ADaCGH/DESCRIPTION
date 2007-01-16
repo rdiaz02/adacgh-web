@@ -4,7 +4,7 @@ Date: 2007-01-15
 Title: Analysis of data from aCGH experiments
 Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <omrueda@cnio.es>
 Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>
-Depends: R (>= 2.2.1), cgh, aCGH, cghMCR, DNAcopy, papply, GDD, imagemap, waveslim, cluster
+Depends: R (>= 2.2.1), cgh, tilingArray, aCGH, cghMCR, GLAD, papply, GDD, imagemap, waveslim, cluster, snapCGH, DNAcopy
 Suggests: Rmpi
 Description: Analysis and plotting of array CGH data. Allows usage of
 	     Circular Binary Segementation, wavelet-based smoothing, ACE

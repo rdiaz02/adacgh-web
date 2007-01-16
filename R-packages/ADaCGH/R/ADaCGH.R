@@ -50,30 +50,21 @@ mpiInit <- function(wdir = getwd()) {
 }
 
 
-
-
-pSegmentHMM <- function(x, geneNames, chrom.numeric, Pos) {
+pSegmentHMM <- function(x, chrom.numeric) {
     out <- papply(data.frame(x),
-                  function(z) hmmWrapper(z,
-                                         Clone = slave_clone,
-                                         Chrom = slave_chrom,
-                                         kb    = slave_kb),
+                  function(z) hmmWrapper(z, Chrom = slave_chrom),
                   papply_commondata = list(
-                  slave_clone = geneNames,
-                  slave_chrom = chrom.numeric,
-                  slave_kb    = Pos))
+                  slave_chrom = chrom.numeric))
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
-    outl$pos <- Pos
-    outl$geneNames <- geneNames
     class(outl) <- c("adacgh.generic.out","mergedHMM")
     return(outl)
 }
 
 
 
-pSegmentGLAD <- function(x, geneNames, chrom.numeric, Pos) {
+pSegmentGLAD <- function(x, chrom.numeric) {
     out <- papply(data.frame(x),
                   function(z) gladWrapper(z,
                                           Chrom = slave_chrom),
@@ -82,37 +73,30 @@ pSegmentGLAD <- function(x, geneNames, chrom.numeric, Pos) {
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
-    outl$pos <- Pos
-    outl$geneNames <- geneNames
     class(outl) <- c("adacgh.generic.out", "adacghGLAD")
     return(outl)
 }    
 
-pSegmentBioHMM <- function(x, geneNames, chrom.numeric, Pos) {
+pSegmentBioHMM <- function(x, chrom.numeric, Pos) {
     out <- papply(data.frame(x),
-                  function(z) BioHmmWrapper(z,
-                                         ## Clone = slave_clone,
+                  function(z) BioHMMWrapper(z,
                                          Chrom = slave_chrom,
-                                         kb    = slave_kb),
+                                         Pos    = slave_kb),
                   papply_commondata = list(
-##                  slave_clone = geneNames,
                   slave_chrom = chrom.numeric,
                   slave_kb    = Pos))
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
     outl$pos <- Pos
-    outl$geneNames <- geneNames
     class(outl) <- c("adacgh.generic.out","mergedBioHMM")
     return(outl)
 }
 
 
-
-
-pSegmentCGHseg <- function(x, geneNames, chrom.numeric, Pos) {
+pSegmentCGHseg <- function(x, chrom.numeric) {
     ## Beware: we parallelize over chromosoes AND subjects
-
+ 
     nsample <- ncol(x)
     nchrom <- unique(chrom.numeric)
     datalist <- list()
@@ -123,9 +107,9 @@ pSegmentCGHseg <- function(x, geneNames, chrom.numeric, Pos) {
             klist <- klist + 1
         }
     }
-    
+      
     out0 <- papply(datalist, function(z) CGHsegWrapper(z))
-
+  
     out <- list()
     klist <- 1
     for(i in 1:nsample) {
@@ -138,22 +122,19 @@ pSegmentCGHseg <- function(x, geneNames, chrom.numeric, Pos) {
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
-    outl$pos <- Pos
-    outl$geneNames <- geneNames
     class(outl) <- c("adacgh.generic.out", "CGHseg")
     return(outl)
 }
 
 
-pSegmentPSW <- function(common.data,
-                        acghdata,
-                        chrom.numeric,
+pSegmentPSW <- function(x, chrom.numeric,
+                        common.data,
                         sign = -1,
                         nIter = 1000,
                         prec = 100,
                         p.crit = 0.10,
                         name = NULL) {
-    numarrays <- ncol(acghdata)
+    numarrays <- ncol(x)
     ncrom <- length(unique(chrom.numeric))
     out <- list()
     out$Data <- common.data
@@ -166,11 +147,11 @@ pSegmentPSW <- function(common.data,
     }
 
     datalist <- list()
-    for (i in 1:ncol(acghdata)) {
-        datalist[[i]]$data <- acghdata[, i]
+    for (i in 1:ncol(x)) {
+        datalist[[i]]$data <- x[, i]
         datalist[[i]]$num  <- i
     }
-    papout <- papply(data.frame(acghdata),
+    papout <- papply(datalist,,
                   function(z) my.sw3b(z$data,
                                       chrom = sl.chrom.numeric,
                                       sign = sl.sign,
@@ -185,9 +166,9 @@ pSegmentPSW <- function(common.data,
                   sl.nIter = nIter,
                   sl.prec = prec,
                   sl.name = name,
-                  colnamesdata = colnames(acghdata)))
+                  colnamesdata = colnames(x)))
     
-    for(i in 1:ncol(acghdata)) {
+    for(i in 1:ncol(x)) {
         out$Data <- cbind(out$Data, papout[[i]]$out)
         p.crit.bonferroni <- papout[[i]]$plotdat$p.crit / ncrom
         out$plotData[[i]] <- c(papout[[i]]$plotdat,
@@ -196,7 +177,7 @@ pSegmentPSW <- function(common.data,
         if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) { ## send to PaLS
             selectedGenes <-
               as.character(common.data$ID[which(papout[[i]]$out[, 3] <= p.crit.bonferroni)])
-            palsVect <- c(palsVect, paste("#", colnames(acghdata)[i], sep = ""),
+            palsVect <- c(palsVect, paste("#", colnames(x)[i], sep = ""),
                           selectedGenes)
             palsL[[i]] <- selectedGenes 
         }
@@ -212,14 +193,13 @@ pSegmentPSW <- function(common.data,
 ##       print("and this is namef")
 ##       print(namef)
       write(palsVect, file = namef)
-      names(palsL) <- colnames(acghdata)
+      names(palsL) <- colnames(x)
       assign(paste(".__PSW_PALS.", namef, sep = ""),
              palsL, env = .GlobalEnv)
     }
     return(out)
 }
         
-
 segmentPlot <- function(x, geneNames,
                         chrom.numeric = NULL,
                         cghdata = NULL,
@@ -487,7 +467,7 @@ writeResults.mergedBioHMM <- function(obj, acghdata, commondata,
 
 pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25,
                              thrLvl = 3,
-                             initClusterLevels = 10) {
+                             initClusterLevels = 10) { 
 ## level to use for wavelet decomposition and thresholding
 ## The 'recommended' level is floor(log2(log(N)+1)), which
 ## equals 3 for:  21 <= N <= 1096
@@ -504,7 +484,7 @@ pSegmentWavelets <- function(acghdata, chrom.numeric, minDiff = 0.25,
     
     Nsamps  <- ncol(acghdata)
     uniq.chrom <- unique(chrom.numeric)
-
+      
 ## construct the list:
 ## The code below gives some partial support for missings.
     ##  but I need to carry that along, and since we are not dealing
@@ -4032,16 +4012,17 @@ CGHsegWrapper <- function(logratio, maxseg = NULL, maxk = NULL) {
     if(is.null(maxk)) maxk   <- n
     obj1 <- tilingArray:::segment(logratio, maxseg = maxseg,
                                   maxk = maxk)
-    optk <- piccardsK(obj1@loglik, n)
+    optk <- piccardsK(obj1@logLik, n)
     finalsegm <- piccardsStretch(obj1, optk, n, logratio)
-    return(cbind(Observed = logratio, SmoothedMean = finalsegm[, 2],
-                 Alteration = finalsegm[, 3]))
+    return(cbind(Observed = logratio, SmoothedMean = finalsegm[, 1],
+                 Alteration = finalsegm[, 2]))
 }
                  
     
-hmmWrapper <- function(logratio, Chrom, Pos){
+hmmWrapper <- function(logratio, Chrom, Pos = NULL){
     ## Fit HMM, and do mergeLevels
     Clone <- 1:length(logratio)
+    if(is.null(Pos)) Pos <- Clone
     obj.aCGH <- create.aCGH(data.frame(logratio),
                             data.frame(Clone = Clone,
                                        Chrom = Chrom,
@@ -4198,8 +4179,8 @@ pSegmentDNAcopy <- function(x,
     outl <- list()
     outl$segm <- papout
     outl$chrom.numeric <- chrom.numeric
-    outl$pos <- Pos
-    outl$geneNames <- geneNames
+##    outl$pos <- Pos
+##    outl$geneNames <- geneNames
     class(outl) <- "CGHseg"
     if(merge) class(outl) <- c(class(outl), "adacgh.generic.out")
     return(outl)

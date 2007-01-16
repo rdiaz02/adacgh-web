@@ -92,7 +92,10 @@ CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
                   sampleid = colnames(cghMCRe[, 5:7]))
 smoothed.CNA.object <- smooth.CNA(CNA.object)
 
-out1 <- pSegmentDNAcopy(smoothed.CNA.object, merge = FALSE, nperm = 10000)
+out.merge <- pSegmentDNAcopy(smoothed.CNA.object)
+
+out1 <- pSegmentDNAcopy(smoothed.CNA.object, merge = FALSE,
+                        nperm = 10000)
 
 ## Yes, tilingArray has an identically named function, but DNAcopy does
 ## not have a namespace. Problems would be caught by different params.
@@ -130,7 +133,7 @@ stretchCNAoutput <- function(object) {
 
 ## recall the originall segment rounds output
 verifCNA <- mapply(function(x, y) all.equal(x[, 2], round(y[, 2], 4)),
-                    stretchCNAoutput(out.original), out1) 
+                    stretchCNAoutput(out.original), out1$segm) 
 
 if(! all(verifCNA)) stop("Differences in original and parallelized DNAcopy.\n Rerun test")
 

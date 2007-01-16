@@ -7,6 +7,7 @@ export("mpiInit",
        "pSegmentWavelets",
        "pSegmentHMM",
        "pSegmentBioHMM",
+       "pSegmentGLAD",
        "pSegmentCGHseg",
        "segmentPlot",
        "plateauPlot",
@@ -30,3 +31,5 @@ S3method(writeResults, mergedBioHMM)
 
 S3method(plateauPlot, DNAcopy)
 S3method(plateauPlot, CGH.wave)
+
+

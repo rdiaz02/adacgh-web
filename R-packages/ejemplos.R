@@ -118,23 +118,17 @@ CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
                   data.type = "logratio",
                   sampleid = colnames(cghMCRe[, 5:7]))
 smoothed.CNA.object <- smooth.CNA(CNA.object)
-segment.smoothed.CNA.object <- segment(smoothed.CNA.object, nperm = 10000,
-                                       undo.splits = "prune")
-mergedOut <- mergeDNAcopy(segment.smoothed.CNA.object)
+
+o1 <- pSegmentDNAcopy(smoothed.CNA.object)
+o2 <- pSegmentDNAcopy(smoothed.CNA.object,
+                      merge = FALSE, nperm = 10000)
+
+h1 <- hmmWrapper(cghMCRe[, 5],
+                 Clone = 1:nrow(cghMCRe),
+                 Chrom = chrom.numeric,
+                 Pos = 1:nrow(cghMCRe))
 
 
-
-o1 <- pSegmentDNAcopy1(smoothed.CNA.object)
-o2 <- pSegmentDNAcopy1(smoothed.CNA.object, merge = FALSE, nperm = 10000)
-
-
-oo1 <- fit.model(sample = 1, chrom = 1, dat = matrix(cghMCRe[1:400, 7], ncol = 1),
-                 datainfo = data.frame(Name = 1:400, Chrom = rep(1, 400),
-                 Position = 1:400))
-
-
-
-obj1 <- tilingArray:::segment(cghMCRe[1:400, 5], 
 
 
 
@@ -306,10 +300,24 @@ plateauPlot(wave.out, cghE1[, 5:7])
 
 
 
-
 ############ HMM
 
-h1 <- hmmWrapper(cghMCRe[, 5],
-                 Clone = 1:nrow(cghMCRe),
-                 Chrom = chrom.numeric,
-                 Pos = 1:nrow(cghMCRe))
+data(cghMCRe)
+MidPoint <- cghMCRe$Start + 0.5 * (cghMCRe$End - cghMCRe$Start)
+chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
+chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
+chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+reorder <- order(chrom.numeric,
+                 MidPoint,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+MidPoint <- MidPoint[reorder]
+
+hmm.out <- pSegmentHMM(cghMCRe[, 5:7], chrom.numeric)
+glad.out <- pSegmentGLAD(cghMCRe[, 5:7], chrom.numeric)
+cghseg.out <- pSegmentCGHseg(cghMCRe[, 5:7], chrom.numeric)
+biohmm.out <- pSegmentBioHMM(cghMCRe[, 5:7], chrom.numeric, MidPoint)
+

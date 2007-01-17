@@ -203,14 +203,14 @@ pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
                              minDiff = 0.25,
                              minMergeDiff = 0.05,
                              thrLvl = 3, initClusterLevels = 10) {
-    ncloneschrom <- tapply(x[, 1], chrom.numeric, function(x) length(x))
-    if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
-        warningsForUsers <-
-            c(warningsForUsers,
-              paste("The number of clones/genes is either",
-                    "larger than 1096 or smaller than 21",
-                    "in at least one chromosome. The wavelet",
-                    "thresholding of 3 might not be appropriate."))
+##     ncloneschrom <- tapply(x[, 1], chrom.numeric, function(x) length(x))
+##     if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
+##         warningsForUsers <-
+##             c(warningsForUsers,
+##               paste("The number of clones/genes is either",
+##                     "larger than 1096 or smaller than 21",
+##                     "in at least one chromosome. The wavelet",
+##                     "thresholding of 3 might not be appropriate."))
     Nsamps  <- ncol(x)
     uniq.chrom <- unique(chrom.numeric)
 
@@ -256,7 +256,7 @@ pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
         outl <- list()
         outl$segm <- out
         outl$chrom.numeric <- chrom.numeric
-        class(outl) <- c(class(out), "waveCGH", "CGH.wave", "adacgh.generic.out")
+        class(outl) <- c(class(out), "CGH.wave", "adacgh.generic.out")
         return(outl)
     } else {
         datalist <- list()
@@ -270,7 +270,7 @@ pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
         outl <- list()
         outl$segm <- papout
         outl$chrom.numeric <- chrom.numeric
-        class(outl) <- c(class(out), "waveCGH", "CGH.wave", "CGH.wave.merged",
+        class(outl) <- c(class(out), "CGH.wave", "CGH.wave.merged",
                          "adacgh.generic.out")
         return(outl)
     }
@@ -378,20 +378,17 @@ segmentPlot <- function(x, geneNames,
                         yminmax = NULL,
                         numarrays = NULL,
                         ...) {
-    if(inherits(x, "CGH.PSW")) {
-        numarrays <- length(x[[2]])
-    } else {
-        if(is.null(numarrays)) {
-            if(!is.null(arraynames)) numarrays <- length(arraynames)
-            if(!is.null(cghdata)) numarrays <- ncol(cghdata)
-        }
-        if(is.null(yminmax)) {
-            if(is.null(cghdata))
-                stop("At least one of yminmax or cghdata has to be specified")
-            yminmax <- c(min(as.matrix(cghdata)),
-                         max(as.matrix(cghdata)))
-        }
+    if(is.null(numarrays)) {
+        if(!is.null(arraynames)) numarrays <- length(arraynames)
+        if(!is.null(cghdata)) numarrays <- ncol(cghdata)
     }
+    if(is.null(yminmax)) {
+        if(is.null(cghdata))
+            stop("At least one of yminmax or cghdata has to be specified")
+        yminmax <- c(min(as.matrix(cghdata)),
+                     max(as.matrix(cghdata)))
+    }
+    
     if(is.null(arraynames)) arraynames <- colnames(cghdata)
     if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
 
@@ -403,6 +400,11 @@ segmentPlot <- function(x, geneNames,
         } else {
             original.pos <- 1
             segment.pos <- 2
+        }
+        if (inherits(x, "CGH.wave") & !inherits("CGH.wave.merged")){
+            colors <- c(rep("orange", 3), "blue")
+        } else {
+            colors <- c("orange", "red", "green", "blue")
         }
         if(!superimposed) {
             tmp_papout <- papply(as.list(1:numarrays),
@@ -450,6 +452,8 @@ segmentPlot <- function(x, geneNames,
                                  geneLoc = geneLoc)
         }
     }  else if (inherits(x, "DNAcopy")) {
+        ## FIXME: this is really obsolete stuff
+        ## should not be used in the web-based app
         if(!superimposed) {
             tmp_papout <- papply(as.list(1:numarrays),
                                  function(z) {
@@ -480,42 +484,7 @@ segmentPlot <- function(x, geneNames,
                          arraynums = 1:numarrays,
                          idtype = idtype, organism = organism) ## by chromosome
         }
-    } else if(inherits(x, "CGH.wave")) {
-        if(!superimposed) {
-            tmp_papout <- papply(as.list(1:numarrays),
-                                 function(z) {
-                                     cat("\n Doing sample ", z, "\n")
-                                     plot.wavelets2(res = res,
-                                                             xdata = data_slave,
-                                                             chrom = cnum_slave,
-                                                             arraynum = z,
-                                                             main = arraynames[z],
-                                                             geneNames = geneNames,
-                                                             idtype = idtype,
-                                                             organism = organism)
-                                 },
-                                 papply_commondata = list(res = x,
-                                 data_slave = cghdata,
-                                 cnum_slave= chrom.numeric,
-                                 arraynames = arraynames,
-                                 geneNames = geneNames,
-                                 idtype = idtype,
-                                 organism = organism))
-            
-        } else {
-        plot.wavelets3(x, cghdata, chrom.numeric,  geneNames = geneNames,
-                       main = "All_arrays",
-                       ylim = yminmax,
-                       pch = "",
-                       arraynums = 1:numarrays,
-                       idtype = idtype, organism = organism)
-        plot.wavelets4(x, cghdata, chrom.numeric,  geneNames = geneNames,
-                       main = "All_arrays",
-                       ylim = yminmax,
-                       arraynums = 1:numarrays,
-                       idtype = idtype, organism = organism)
-      }
-    } else if(inherits(x, "CGH.PSW")) {
+    }  else if(inherits(x, "CGH.PSW")) {
         if(x$plotData[[1]]$sign < 0) {
             main <- "Losses."
         } else {
@@ -592,7 +561,7 @@ writeResults.CGH.ACE.summary <- function(obj, acghdata, commondata, file = NULL,
 
 writeResults.CGH.wave <- function(obj, acghdata, commondata,
                                   file = "wavelet.output.txt", ...) {
-    print.wavelets.results(obj, acghdata, commondata, output = file)
+    print.adacgh.generic.results(obj, acghdata, commondata, output = file)
 }
 
 writeResults.DNAcopy <- function(obj, acghdata, commondata, 
@@ -760,299 +729,6 @@ mpiCBS <- function(wdir = getwd()) {
     mpi.bcast.Robj2slave(wdir)
     mpi.remote.exec(setwd(wdir))
 }
-
-plot.olshen2 <- function(res, arraynum, main = NULL,
-                         colors = c("orange", "red", "green", "blue"),
-                         pch = 20, ylim =NULL, html = TRUE,
-                         superimpose = FALSE,
-                         nsupimp = 0,
-                         geneNames = positions.merge1$name,
-                         idtype = idtype,
-                         organism = organism) {
-
-    logr <- res$data[, 2 + arraynum]
-    segmented <-
-        res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
-    col <- rep(colors[1],length(logr))
-
-
-    
-    nameIm <- main
-    if(html) {
-        imheight <- 500
-        imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
-                         width = imwidth, ps = 12)
-    }
-
-    plot(logr ~ res$data$maploc, col="orange", 
-          xlab ="Chromosomal location", axes = FALSE, cex = 0.7, main = main,
-          pch = pch, ylim = ylim)
-     box()
-     axis(2)
-    abline(h = 0, lty = 2, col = "blue")
-    rug(res$data$maploc, ticksize = 0.01)
-    
-    ## Limit between chromosomes
-    LimitChr <- tapply(res$data$maploc,
-                       res$data$chrom, max)
-    abline(v=LimitChr, col="grey", lty=2)
-
-    chrom.nums <- unique(res$data$chrom)
-    d1 <- diff(LimitChr)
-    pos.labels <- c(round(LimitChr[1]/2),
-                    LimitChr[-length(LimitChr)] + round(d1/2))
-    axis(1, at = pos.labels, labels = chrom.nums)
-
-    ## segments
-    for(j in 1:nrow(segmented)) {
-        segments(x0 = segmented$loc.start[j],
-                 y0 = segmented$seg.mean[j],
-                 x1 = segmented$loc.end[j],
-                 y1 = segmented$seg.mean[j],
-                 col = "black", lwd = 2)
-    }
-
-    if(html) {
-        lxs <- c(1, LimitChr)
-        maxlr <- max(logr)
-        minlr <- min(logr)
-        nd <- 1:length(LimitChr)
-        xleft <- lxs[nd]
-        names(xleft) <- 1:length(xleft)
-        xright <- lxs[nd + 1]
-
-        f1 <- function(xleft, xright, nd)
-            imRect(xleft, maxlr, xright, minlr - 10,
-                   title = paste("Chromosome", nd),
-                   alt = paste("Chromosome", nd),
-                   href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
-        rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
-        for(ll in 1:length(rectslist))
-            addRegion(im1) <- rectslist[[ll]]
-        createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-        imClose(im1)
-    }
-
-## FIXME: parallelize by chromosome!!
-    if(html) { ## here is chromosome specific code
-        pixels.point <- 3
-        chrheight <- 500
-        chrom <- res$data$chrom
-        for(cnum in 1:length(chrom.nums)) {
-            cat(" .... doing chromosome ", cnum, "\n")
-            indexchr <- which(chrom == chrom.nums[cnum])
-            chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-            chrwidth <- max(chrwidth, 800)
-            im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                             height = chrheight, width = chrwidth,
-                             ps = 12)
-            ## The following seems needed (also inside sw.plot2) for the coords.
-            ## of points to work OK
-            par(xaxs = "i")
-            par(mar = c(5, 5, 5, 5))
-            par(oma = c(0, 0, 0, 0))
-            plot(logr[indexchr] ~ res$data$maploc[indexchr], col="orange", 
-                 xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
-                 main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                 pch = pch, ylim = ylim)
-            box()
-            axis(2)
-            abline(h = 0, lty = 2, col = "blue")
-            rug(res$data$maploc[indexchr], ticksize = 0.01)            
-            ## segments
-            for(j in 1:nrow(segmented)) {
-                if( (segmented$loc.start[j] >= res$data$maploc[indexchr[1]])
-                   & ( segmented$loc.start[j] <= res$data$maploc[indexchr[length(indexchr)]])) {
-                    segments(x0 = segmented$loc.start[j],
-                             y0 = segmented$seg.mean[j],
-                             x1 = segmented$loc.end[j],
-                             y1 = segmented$seg.mean[j],
-                             col = "black", lwd = 2)
-                }
-            }
-
-            ## The within chromosome map for gene names
-            ## in superimposed cases only in first map
-            usr2pngCircle <- function(x, y, rr = 2) {
-                xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-                r <- abs(xyrc[2, 1] - xyrc[3, 1])
-                return(c(xyrc[1, 1], xyrc[1, 2], r))
-            }
-            
-            ccircle <- mapply(usr2pngCircle, res$data$maploc[indexchr],
-                              logr[indexchr])
-            nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
-            write(ccircle, file = paste("pngCoordChr", nameChrIm, sep = "_"),
-                  sep ="\t", ncolumns = 3)
-            write(as.character(geneNames[indexchr]),
-                  file = paste("geneNamesChr", nameChrIm, sep = "_"))
-            imClose(im2)
-##            cat("\n\n", paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""))
-            system(paste(.python.toMap.py,
-                         paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         idtype, organism, "2>&1", sep = " "), intern = TRUE)
-##            cat("\n", pycall, "\n")
-        }        ## looping over chromosomes
-    } ## if html
-}
-
-   
-plot.olshen3 <- function(res, arraynums = 1:numarrays, main = NULL,
-                         colors = c("orange", "red", "green", "blue"),
-                         pch = 20, ylim =NULL, html = TRUE,
-                         geneNames = positions.merge1$name,
-                         idtype = idtype, organism = organism) {
-    ## For superimposed: only all genome plot with map to chromosomes
-
-    nameIm <- main
-    if(html) {
-        imheight <- 500
-        imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
-                         width = imwidth, ps = 12)
-    }
-    nfig <- 1
-    for (arraynum in arraynums) {
-        logr <- res$data[, 2 + arraynum]
-        segmented <-
-            res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
-        col <- rep(colors[1],length(logr))
-        if(nfig == 1) {
-            plot(logr ~ res$data$maploc, col="orange", 
-                 xlab ="Chromosomal location", axes = FALSE, cex = 0.7, main = main,
-                 pch = "", ylim = ylim)
-            box()
-            axis(2)
-            abline(h = 0, lty = 2, col = "blue")
-            rug(res$data$maploc, ticksize = 0.01)
-        }
-
-        for(j in 1:nrow(segmented)) {
-            segments(x0 = segmented$loc.start[j],
-                     y0 = segmented$seg.mean[j],
-                     x1 = segmented$loc.end[j],
-                     y1 = segmented$seg.mean[j],
-                     col = "black", lwd = 2)
-        }
-
-        if(nfig == 1) {
-            ## Limit between chromosomes
-            LimitChr <- tapply(res$data$maploc,
-                               res$data$chrom, max)
-            abline(v=LimitChr, col="grey", lty=2)
-            
-            chrom.nums <- unique(res$data$chrom)
-            d1 <- diff(LimitChr)
-            pos.labels <- c(round(LimitChr[1]/2),
-                            LimitChr[-length(LimitChr)] + round(d1/2))
-            axis(1, at = pos.labels, labels = chrom.nums)
-
-            lxs <- c(1, LimitChr)
-            maxlr <- max(logr)
-            minlr <- min(logr)
-            nd <- 1:length(LimitChr)
-            xleft <- lxs[nd]
-            names(xleft) <- 1:length(xleft)
-            xright <- lxs[nd + 1]
-            f1 <- function(xleft, xright, nd)
-                imRect(xleft, maxlr, xright, minlr - 10,
-                       title = paste("Chromosome", nd),
-                       alt = paste("Chromosome", nd),
-                       href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
-            rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
-            for(ll in 1:length(rectslist))
-                addRegion(im1) <- rectslist[[ll]]
-        }
-        nfig <- nfig + 1
-        par(new = TRUE)
-    }
-    createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-    imClose(im1)
-}
-
-plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
-                         colors = c("orange", "red", "green", "blue"),
-                         pch = 20, ylim =NULL, html = TRUE,
-                         geneNames = positions.merge1$name,
-                         idtype = idtype,
-                         organism = organism) {
-    ## For superimposed: one plot per chr
-
-    nameIm <- main
-    
-    pixels.point <- 3
-    chrheight <- 500
-    chrom <- res$data$chrom
-    chrom.nums <- unique(chrom)
-    ## FIXME: PARALLELIZE HERE
-    for(cnum in 1:length(chrom.nums)) {
-        cat(" .... doing chromosome ", cnum, "\n")
-        indexchr <- which(chrom == chrom.nums[cnum])
-        chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-        chrwidth <- max(chrwidth, 800)
-        im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         height = chrheight, width = chrwidth,
-                         ps = 12)
-        ## The following seems needed (also inside sw.plot2) for the coords.
-        ## of points to work OK
-        nfig <- 1
-        for(arraynum in arraynums) { ## first, plot the points
-            cat(" ........ for points doing arraynum ", arraynum, "\n")
-            logr <- res$data[, 2 + arraynum]
-            if(nfig == 1) {
-                par(xaxs = "i")
-                par(mar = c(5, 5, 5, 5))
-                par(oma = c(0, 0, 0, 0))
-                plot(logr[indexchr] ~ res$data$maploc[indexchr], col="orange", 
-                     xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
-                     main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     pch = "", ylim = ylim)
-                box()
-                axis(2)
-                abline(h = 0, lty = 2, col = "blue")
-                rug(res$data$maploc[indexchr], ticksize = 0.01)
-            }
-            points(logr[indexchr] ~ res$data$maploc[indexchr], col="orange",
-                   cex = 1, pch = 20)
-            nfig <- nfig + 1
-        }
-        for(arraynum in arraynums) { ## now, do the segments
-            cat(" ........ for segments doing arraynum ", arraynum, "\n")
-            segmented <-
-                res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
-            
-            
-            ## segments
-            for(j in 1:nrow(segmented)) {
-                if( (segmented$loc.start[j] >= res$data$maploc[indexchr[1]])
-                   & ( segmented$loc.start[j] <= res$data$maploc[indexchr[length(indexchr)]])) {
-                    segments(x0 = segmented$loc.start[j],
-                             y0 = segmented$seg.mean[j],
-                             x1 = segmented$loc.end[j],
-                             y1 = segmented$seg.mean[j],
-                             col = "black", lwd = 2)
-                }
-            }
-        }
-
-        usr2pngCircle <- function(x, y, rr = 2) {
-            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-            r <- abs(xyrc[2, 1] - xyrc[3, 1])
-            return(c(xyrc[1, 1], xyrc[1, 2], r))
-        }
-        ccircle <- mapply(usr2pngCircle, res$data$maploc[indexchr],
-                          0)
-        write(ccircle, file = "pngCoordChr",
-              sep ="\t", ncolumns = 3)
-        write(as.character(geneNames[indexchr]), file = "geneNamesChr")
-        imClose(im2)
-        system(paste(.python.toMap.py,
-                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     idtype, organism, sep = " "))
-    }
-}
-
 
 
 ### Plateau plots by Olshen 
@@ -1925,326 +1601,10 @@ wave.aCGH <- function(dat, chrom, minDiff) {
                    ncol = Nsamps)
                    
     out <- list(Predicted =pred, State = state)
-    class(out) <- c(class(out), "waveCGH")
     return(out)
 }
 
 
-
-plot.wavelets2 <- function(res, xdata, chrom,
-                           arraynum, main = NULL,
-                           colors = c("orange", "red", "green", "blue"),
-                           pch = 20, ylim = NULL, html = TRUE,
-                           geneNames = positions.merge1$name,
-                           idtype = idtype, organism = organism) {
-                                        #res is the results
-                                        # color code for region status
-
-    logr <- xdata[, arraynum]
-    segmented <- res$Predicted[, arraynum]
-    col <- rep(colors[1],length(logr))
-    simplepos <- 1:length(logr)
-
-    nameIm <- main
-    if(html) {
-        imheight <- 500
-        imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
-                         width = imwidth, ps = 12)
-    }
-    plot(logr ~ simplepos, col="orange", ylab = "log ratio",
-         xlab ="Chromosome location", axes = FALSE, cex = 0.7, main = main,
-         pch = pch, ylim = ylim,)
-    box()
-    rug(simplepos, ticksize = 0.01)
-    axis(2)
-    abline(h = 0, lty = 2, col = "blue")
-    
-    ## Limit between chromosomes
-    LimitChr <- tapply(simplepos,
-                       chrom, max)
-    abline(v=LimitChr, col="grey", lty=2)
-
-    chrom.nums <- unique(chrom)
-    d1 <- diff(LimitChr)
-    pos.labels <- c(round(LimitChr[1]/2),
-                    LimitChr[-length(LimitChr)] + round(d1/2))
-    axis(1, at = pos.labels, labels = chrom.nums)
-
-
-    ## segments
-    lines(segmented ~ simplepos,
-         col = "black", lwd = 2, type = "l")
-
-    if(html) {
-        lxs <- c(1, LimitChr)
-        maxlr <- max(logr)
-        minlr <- min(logr)
-        nd <- 1:length(LimitChr)
-        xleft <- lxs[nd]
-        names(xleft) <- 1:length(xleft)
-        xright <- lxs[nd + 1]
-
-        f1 <- function(xleft, xright, nd)
-            imRect(xleft, maxlr, xright, minlr - 10,
-                   title = paste("Chromosome", nd),
-                   alt = paste("Chromosome", nd),
-                   href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
-        rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
-        for(ll in 1:length(rectslist))
-            addRegion(im1) <- rectslist[[ll]]
-        createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-        imClose(im1)
-    }
-
-    if(html) { ## here is chromosome specific code
-        pixels.point <- 3
-        chrheight <- 500
-        for(cnum in 1:length(chrom.nums)) {
-            cat(" .... doing chromosome ", cnum, "\n")
-            indexchr <- which(chrom == chrom.nums[cnum])
-            chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-            chrwidth <- max(chrwidth, 800)
-            im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                             height = chrheight, width = chrwidth,
-                             ps = 12)
-            ## The following seems needed (also inside sw.plot2) for the coords.
-            ## of points to work OK
-            par(xaxs = "i")
-            par(mar = c(5, 5, 5, 5))
-            par(oma = c(0, 0, 0, 0))
-            plot(logr[indexchr] ~ simplepos[indexchr], col="orange", cex = 1,
-                 xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
-                 main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                 pch = pch, ylim = ylim)
-            box()
-            axis(2)
-            abline(h = 0, lty = 2, col = "blue")
-            rug(simplepos[indexchr], ticksize = 0.01)
-            ## segments
-            lines(segmented[indexchr] ~ simplepos[indexchr],
-                  col = "black", lwd = 2, type = "l")
-
-            ## The within chromosome map for gene names
-            ## in superimposed cases only in first map
-            usr2pngCircle <- function(x, y, rr = 2) {
-                xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-                r <- abs(xyrc[2, 1] - xyrc[3, 1])
-                return(c(xyrc[1, 1], xyrc[1, 2], r))
-            }
-            
-            ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
-                              logr[indexchr])
-            write(ccircle, file = "pngCoordChr",
-                  sep ="\t", ncolumns = 3)
-            write(as.character(geneNames[indexchr]), file = "geneNamesChr")
-            imClose(im2)
-            system(paste(.python.toMap.py,
-                         paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         idtype, organism, sep = " "))
-        }        ## looping over chromosomes
-    } ## if html
-}
-
-
-plot.wavelets3 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NULL,
-                         colors = c("orange", "red", "green", "blue"),
-                         pch = 20, ylim =NULL, html = TRUE,
-                         geneNames = positions.merge1$name,
-                           idtype = idtype, organism = organism) {
-    ## For superimposed: only all genome plot with map to chromosomes
-
-    nameIm <- main
-    if(html) {
-        imheight <- 500
-        imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
-                         width = imwidth, ps = 12)
-    }
-    nfig <- 1
-    for (arraynum in arraynums) {
-        logr <- xdata[, arraynum]
-        segmented <- res$Predicted[, arraynum]
-        col <- rep(colors[1],length(logr))
-        simplepos <- 1:length(logr)
-        
-        if(nfig == 1) {
-            plot(logr ~ simplepos, col="orange", ylab = "log ratio", 
-                 xlab ="Chromosome location", axes = FALSE, main = main,
-                 pch = "", ylim = ylim)
-            box()
-            axis(2)
-            abline(h = 0, lty = 2, col = "blue")
-            rug(simplepos, ticksize = 0.01)
-        }
-        lines(segmented ~ simplepos,
-              col = "black", lwd = 2, type = "l")
-    
-
-        if(nfig == 1) {
-            ## Limit between chromosomes
-            LimitChr <- tapply(simplepos,
-                               chrom, max)
-            abline(v=LimitChr, col="grey", lty=2)
-            
-            chrom.nums <- unique(chrom)
-            d1 <- diff(LimitChr)
-            pos.labels <- c(round(LimitChr[1]/2),
-                            LimitChr[-length(LimitChr)] + round(d1/2))
-            axis(1, at = pos.labels, labels = chrom.nums)
-            
-            lxs <- c(1, LimitChr)
-            maxlr <- max(logr)
-            minlr <- min(logr)
-            nd <- 1:length(LimitChr)
-            xleft <- lxs[nd]
-            names(xleft) <- 1:length(xleft)
-            xright <- lxs[nd + 1]
-            f1 <- function(xleft, xright, nd)
-                imRect(xleft, maxlr, xright, minlr - 10,
-                       title = paste("Chromosome", nd),
-                       alt = paste("Chromosome", nd),
-                       href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
-            rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
-            for(ll in 1:length(rectslist))
-                addRegion(im1) <- rectslist[[ll]]
-        }
-        nfig <- nfig + 1
-        par(new = TRUE)
-    }
-    createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-    imClose(im1)
-}
-
-plot.wavelets4 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NULL,
-                           colors = c("orange", "red", "green", "blue"),
-                           pch = 20, ylim =NULL, html = TRUE,
-                           geneNames = positions.merge1$name,
-                           idtype = idtype, organism = organism) {
-    ## For superimposed: one plot per chr
-    
-    nameIm <- main
-    
-    pixels.point <- 3
-    chrheight <- 500
-    chrom.nums <- unique(chrom)
-    for(cnum in 1:length(chrom.nums)) {
-        cat(" .... doing chromosome ", cnum, "\n")
-        indexchr <- which(chrom == chrom.nums[cnum])
-        chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-        chrwidth <- max(chrwidth, 800)
-        im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         height = chrheight, width = chrwidth,
-                         ps = 12)
-        ## The following seems needed (also inside sw.plot2) for the coords.
-        ## of points to work OK
-        nfig <- 1
-        for(arraynum in arraynums) { ## first, plot the points
-            cat(" ........ for points doing arraynum ", arraynum, "\n")
-            logr <- xdata[, arraynum]
-            simplepos <- 1:length(logr)
-            if(nfig == 1) {
-                par(xaxs = "i")
-                par(mar = c(5, 5, 5, 5))
-                par(oma = c(0, 0, 0, 0))
-                plot(logr[indexchr] ~ simplepos[indexchr], col="orange", 
-                     xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
-                     main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     pch = "", ylim = ylim)
-                box()
-                axis(2)
-                abline(h = 0, lty = 2, col = "blue")
-                rug(simplepos[indexchr], ticksize = 0.01)
-            }
-            points(logr[indexchr] ~ simplepos[indexchr], col="orange",
-                   cex = 1, pch = 20)
-            nfig <- nfig + 1
-        }
-        for(arraynum in arraynums) { ## now, do the segments
-            cat(" ........ for segments doing arraynum ", arraynum, "\n")
-            segmented <- res$Predicted[indexchr, arraynum]
-            lines(segmented ~ simplepos[indexchr], col = "black", lwd = 2, type = "l")
-        }
-
-        usr2pngCircle <- function(x, y, rr = 2) {
-            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-            r <- abs(xyrc[2, 1] - xyrc[3, 1])
-            return(c(xyrc[1, 1], xyrc[1, 2], r))
-        }
-        ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
-                          0)
-        write(ccircle, file = "pngCoordChr",
-              sep ="\t", ncolumns = 3)
-        write(as.character(geneNames[indexchr]), file = "geneNamesChr")
-        imClose(im2)
-        system(paste(.python.toMap.py,
-                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     idtype, organism, sep = " "))
-    }
-}
-
-plot.wavelets <- function(res, xdata, chrom,
-                          arraynum, main = NULL,
-                          colors = c("orange", "red", "green", "blue"),
-                          pch = 20, ylim = NULL) {
-                                        #res is the results
-                                        # color code for region status
-
-    logr <- xdata[, arraynum]
-    segmented <- res$Predicted[, arraynum]
-    col <- rep(colors[1],length(logr))
-    simplepos <- 1:length(logr)
-    
-    plot(logr ~ simplepos, col="orange", ylab = "log ratio",
-         xlab ="", axes = FALSE, cex = 0.7, main = main,
-         pch = pch, ylim = ylim)
-    box()
-    axis(2)
-    abline(h = 0, lty = 2, col = "blue")
-    
-    ## Limit between chromosomes
-    LimitChr <- tapply(simplepos,
-                       chrom, max)
-    abline(v=LimitChr, col="grey", lty=2)
-
-    chrom.nums <- unique(chrom)
-    d1 <- diff(LimitChr)
-    pos.labels <- c(round(LimitChr[1]/2),
-                    LimitChr[-length(LimitChr)] + round(d1/2))
-    axis(1, at = pos.labels, labels = chrom.nums)
-
-
-    ## segments
-    lines(segmented ~ simplepos,
-         col = "black", lwd = 2, type = "l")
-}
-
-
-
-print.wavelets.results <- function(res, xcenter, commondata, output =
-                                   "Wavelets.results.txt"){
-    ## This function "stretches out" the output and creates a table
-    ## that matches the original names, etc.
-
-    out <- data.frame(ID = commondata$name,
-                      Chromosome = commondata$chromosome,
-                      Start = commondata$start,
-                      End = commondata$end,
-                      MidPoint = commondata$MidPoint)
-
-    for(i in 1:ncol(xcenter)) {
-        t2 <- xcenter[, i]
-        t1 <- res$Predicted[, i]
-        t3 <- res$State[, i]
-        out <- cbind(out, t2, t1, t3)
-    }
-    colnames(out)[6:(ncol(out))] <-
-        paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
-              c(".Original", ".Smoothed", ".State"), sep = "")
-    write.table(out, file = output,
-                sep = "\t", col.names = NA,
-                row.names = TRUE, quote = FALSE)
-}
 
     
     
@@ -4238,11 +3598,8 @@ gladWrapper <- function(x, Chrom, Pos = NULL) {
 
 
 
-
-
-
-
-
+### There is a lot of repetition in the plotting code. Could place a lot
+##  into a function
 
 plot.adacgh.generic1 <- function(res, chrom,
                                  arraynum, main = NULL,
@@ -4267,14 +3624,15 @@ plot.adacgh.generic1 <- function(res, chrom,
              
     if(!is.null(state.pos)) {
         res.dat <- res[[arraynum]][, state.pos]
-        col <- rep("orange",length(res.dat))
-        col[which(res.dat == -1)] <- "green"
-        col[which(res.dat == 1)] <- "red"
+        col <- rep(colors[1],length(res.dat))
+        col[which(res.dat == -1)] <- colors[3]
+        col[which(res.dat == 1)] <- colors[2]
     } else {
-        col <- rep("orange",length(logr))
+        col <- rep(colors[1],length(logr))
         res.dat <- NULL
     }
     simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+
     
     nameIm <- main
     if(html) {
@@ -4289,7 +3647,7 @@ plot.adacgh.generic1 <- function(res, chrom,
     box()
     rug(simplepos, ticksize = 0.01)
     axis(2)
-    abline(h = 0, lty = 2, col = "blue")
+    abline(h = 0, lty = 2, col = colors[4])
     
     ## Limit between chromosomes
     LimitChr <- tapply(simplepos,
@@ -4347,7 +3705,7 @@ plot.adacgh.generic1 <- function(res, chrom,
                  pch = pch, ylim = ylim)
             box()
             axis(2)
-            abline(h = 0, lty = 2, col = "blue")
+            abline(h = 0, lty = 2, col = colors[4])
             rug(simplepos[indexchr], ticksize = 0.01)
             ## segments
             if(!is.null(res.dat))
@@ -4364,9 +3722,11 @@ plot.adacgh.generic1 <- function(res, chrom,
             
             ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
                               logr[indexchr])
-            write(ccircle, file = "pngCoordChr",
+            nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+            write(ccircle, file = paste("pngCoordChr", nameChrIm, sep = "_"),
                   sep ="\t", ncolumns = 3)
-            write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+            write(as.character(geneNames[indexchr]),
+                  file = paste("geneNamesChr", nameChrIm, sep = "_"))
             imClose(im2)
             system(paste(.python.toMap.py,
                          paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
@@ -4409,11 +3769,11 @@ plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays, main = NUL
         
         if(!null(state.pos)) {
             res.dat <- res[[arraynum]][, state.pos]
-            col <- rep("orange",length(res.dat))
-            col[which(res.dat == -1)] <- "green"
-            col[which(res.dat == 1)] <- "red"
+            col <- rep(colors[1],length(res.dat))
+            col[which(res.dat == -1)] <- colors[3]
+            col[which(res.dat == 1)] <- colors[2]
         } else {
-            col <- rep("orange",length(logr))
+            col <- rep(colors[1],length(logr))
             res.dat <- NULL
         }
         simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
@@ -4421,12 +3781,13 @@ plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays, main = NUL
             segmented <- res.dat * segment.height
 
         if(nfig == 1) {
+            ## I do not plot points: pch = ""
             plot(logr ~ simplepos, col=col, ylab = "log ratio", 
                  xlab ="Chromosome location", axes = FALSE, main = main,
                  pch = "", ylim = ylim)
             box()
             axis(2)
-            abline(h = 0, lty = 2, col = "blue")
+            abline(h = 0, lty = 2, col = colors[4])
             rug(simplepos, ticksize = 0.01)
         }
         if(!is.null(res.dat))
@@ -4470,7 +3831,7 @@ plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays, main = NUL
 }
 
 
-plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays,
+plot.adacgh.generic3 <- function(res, chrom, arraynums = 1:numarrays,
                       main = "All_arrays",
                       colors = c("orange", "red", "green", "blue"),
                       pch = 20, ylim =NULL, html = TRUE,
@@ -4507,11 +3868,11 @@ plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays,
             
             if(!null(state.pos)) {
                 res.dat <- res[[arraynum]][, state.pos]
-                col <- rep("orange",length(res.dat))
-                col[which(res.dat == -1)] <- "green"
-                col[which(res.dat == 1)] <- "red"
+                col <- rep(colors[1],length(res.dat))
+                col[which(res.dat == -1)] <- colors[3]
+                col[which(res.dat == 1)] <- colors[2]
             } else {
-                col <- rep("orange",length(logr))
+                col <- rep(colors[1],length(logr))
                 res.dat <- NULL
             }
             simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
@@ -4526,7 +3887,7 @@ plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays,
                      pch = "", ylim = ylim)
                 box()
                 axis(2)
-                abline(h = 0, lty = 2, col = "blue")
+                abline(h = 0, lty = 2, col = colors[4])
                 rug(simplepos[indexchr], ticksize = 0.01)
             }
             points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
@@ -4556,6 +3917,309 @@ plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays,
                      idtype, organism, sep = " "))
     }
 }
+
+
+
+
+
+
+
+
+
+plot.olshen2 <- function(res, arraynum, main = NULL,
+                         colors = c("orange", "red", "green", "blue"),
+                         pch = 20, ylim =NULL, html = TRUE,
+                         superimpose = FALSE,
+                         nsupimp = 0,
+                         geneNames = positions.merge1$name,
+                         idtype = idtype,
+                         organism = organism) {
+
+    logr <- res$data[, 2 + arraynum]
+    segmented <-
+        res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
+    col <- rep(colors[1],length(logr))
+
+
+    
+    nameIm <- main
+    if(html) {
+        imheight <- 500
+        imwidth <- 1600
+        im1 <- imagemap3(nameIm, height = imheight,
+                         width = imwidth, ps = 12)
+    }
+
+    plot(logr ~ res$data$maploc, col="orange", 
+          xlab ="Chromosomal location", axes = FALSE, cex = 0.7, main = main,
+          pch = pch, ylim = ylim)
+     box()
+     axis(2)
+    abline(h = 0, lty = 2, col = "blue")
+    rug(res$data$maploc, ticksize = 0.01)
+    
+    ## Limit between chromosomes
+    LimitChr <- tapply(res$data$maploc,
+                       res$data$chrom, max)
+    abline(v=LimitChr, col="grey", lty=2)
+
+    chrom.nums <- unique(res$data$chrom)
+    d1 <- diff(LimitChr)
+    pos.labels <- c(round(LimitChr[1]/2),
+                    LimitChr[-length(LimitChr)] + round(d1/2))
+    axis(1, at = pos.labels, labels = chrom.nums)
+
+    ## segments
+    for(j in 1:nrow(segmented)) {
+        segments(x0 = segmented$loc.start[j],
+                 y0 = segmented$seg.mean[j],
+                 x1 = segmented$loc.end[j],
+                 y1 = segmented$seg.mean[j],
+                 col = "black", lwd = 2)
+    }
+
+    if(html) {
+        lxs <- c(1, LimitChr)
+        maxlr <- max(logr)
+        minlr <- min(logr)
+        nd <- 1:length(LimitChr)
+        xleft <- lxs[nd]
+        names(xleft) <- 1:length(xleft)
+        xright <- lxs[nd + 1]
+
+        f1 <- function(xleft, xright, nd)
+            imRect(xleft, maxlr, xright, minlr - 10,
+                   title = paste("Chromosome", nd),
+                   alt = paste("Chromosome", nd),
+                   href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
+        rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+        for(ll in 1:length(rectslist))
+            addRegion(im1) <- rectslist[[ll]]
+        createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+        imClose(im1)
+    }
+
+## FIXME: parallelize by chromosome!!
+    if(html) { ## here is chromosome specific code
+        pixels.point <- 3
+        chrheight <- 500
+        chrom <- res$data$chrom
+        for(cnum in 1:length(chrom.nums)) {
+            cat(" .... doing chromosome ", cnum, "\n")
+            indexchr <- which(chrom == chrom.nums[cnum])
+            chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+            chrwidth <- max(chrwidth, 800)
+            im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                             height = chrheight, width = chrwidth,
+                             ps = 12)
+            ## The following seems needed (also inside sw.plot2) for the coords.
+            ## of points to work OK
+            par(xaxs = "i")
+            par(mar = c(5, 5, 5, 5))
+            par(oma = c(0, 0, 0, 0))
+            plot(logr[indexchr] ~ res$data$maploc[indexchr], col="orange", 
+                 xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
+                 main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                 pch = pch, ylim = ylim)
+            box()
+            axis(2)
+            abline(h = 0, lty = 2, col = "blue")
+            rug(res$data$maploc[indexchr], ticksize = 0.01)            
+            ## segments
+            for(j in 1:nrow(segmented)) {
+                if( (segmented$loc.start[j] >= res$data$maploc[indexchr[1]])
+                   & ( segmented$loc.start[j] <= res$data$maploc[indexchr[length(indexchr)]])) {
+                    segments(x0 = segmented$loc.start[j],
+                             y0 = segmented$seg.mean[j],
+                             x1 = segmented$loc.end[j],
+                             y1 = segmented$seg.mean[j],
+                             col = "black", lwd = 2)
+                }
+            }
+
+            ## The within chromosome map for gene names
+            ## in superimposed cases only in first map
+            usr2pngCircle <- function(x, y, rr = 2) {
+                xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+                r <- abs(xyrc[2, 1] - xyrc[3, 1])
+                return(c(xyrc[1, 1], xyrc[1, 2], r))
+            }
+            
+            ccircle <- mapply(usr2pngCircle, res$data$maploc[indexchr],
+                              logr[indexchr])
+            nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+            write(ccircle, file = paste("pngCoordChr", nameChrIm, sep = "_"),
+                  sep ="\t", ncolumns = 3)
+            write(as.character(geneNames[indexchr]),
+                  file = paste("geneNamesChr", nameChrIm, sep = "_"))
+            imClose(im2)
+##            cat("\n\n", paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""))
+            system(paste(.python.toMap.py,
+                         paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                         idtype, organism, "2>&1", sep = " "), intern = TRUE)
+##            cat("\n", pycall, "\n")
+        }        ## looping over chromosomes
+    } ## if html
+}
+
+   
+plot.olshen3 <- function(res, arraynums = 1:numarrays, main = NULL,
+                         colors = c("orange", "red", "green", "blue"),
+                         pch = 20, ylim =NULL, html = TRUE,
+                         geneNames = positions.merge1$name,
+                         idtype = idtype, organism = organism) {
+    ## For superimposed: only all genome plot with map to chromosomes
+
+    nameIm <- main
+    if(html) {
+        imheight <- 500
+        imwidth <- 1600
+        im1 <- imagemap3(nameIm, height = imheight,
+                         width = imwidth, ps = 12)
+    }
+    nfig <- 1
+    for (arraynum in arraynums) {
+        logr <- res$data[, 2 + arraynum]
+        segmented <-
+            res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
+        col <- rep(colors[1],length(logr))
+        if(nfig == 1) {
+            plot(logr ~ res$data$maploc, col="orange", 
+                 xlab ="Chromosomal location", axes = FALSE, cex = 0.7, main = main,
+                 pch = "", ylim = ylim)
+            box()
+            axis(2)
+            abline(h = 0, lty = 2, col = "blue")
+            rug(res$data$maploc, ticksize = 0.01)
+        }
+
+        for(j in 1:nrow(segmented)) {
+            segments(x0 = segmented$loc.start[j],
+                     y0 = segmented$seg.mean[j],
+                     x1 = segmented$loc.end[j],
+                     y1 = segmented$seg.mean[j],
+                     col = "black", lwd = 2)
+        }
+
+        if(nfig == 1) {
+            ## Limit between chromosomes
+            LimitChr <- tapply(res$data$maploc,
+                               res$data$chrom, max)
+            abline(v=LimitChr, col="grey", lty=2)
+            
+            chrom.nums <- unique(res$data$chrom)
+            d1 <- diff(LimitChr)
+            pos.labels <- c(round(LimitChr[1]/2),
+                            LimitChr[-length(LimitChr)] + round(d1/2))
+            axis(1, at = pos.labels, labels = chrom.nums)
+
+            lxs <- c(1, LimitChr)
+            maxlr <- max(logr)
+            minlr <- min(logr)
+            nd <- 1:length(LimitChr)
+            xleft <- lxs[nd]
+            names(xleft) <- 1:length(xleft)
+            xright <- lxs[nd + 1]
+            f1 <- function(xleft, xright, nd)
+                imRect(xleft, maxlr, xright, minlr - 10,
+                       title = paste("Chromosome", nd),
+                       alt = paste("Chromosome", nd),
+                       href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
+            rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+            for(ll in 1:length(rectslist))
+                addRegion(im1) <- rectslist[[ll]]
+        }
+        nfig <- nfig + 1
+        par(new = TRUE)
+    }
+    createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+    imClose(im1)
+}
+
+plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
+                         colors = c("orange", "red", "green", "blue"),
+                         pch = 20, ylim =NULL, html = TRUE,
+                         geneNames = positions.merge1$name,
+                         idtype = idtype,
+                         organism = organism) {
+    ## For superimposed: one plot per chr
+
+    nameIm <- main
+    
+    pixels.point <- 3
+    chrheight <- 500
+    chrom <- res$data$chrom
+    chrom.nums <- unique(chrom)
+    ## FIXME: PARALLELIZE HERE
+    for(cnum in 1:length(chrom.nums)) {
+        cat(" .... doing chromosome ", cnum, "\n")
+        indexchr <- which(chrom == chrom.nums[cnum])
+        chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+        chrwidth <- max(chrwidth, 800)
+        im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                         height = chrheight, width = chrwidth,
+                         ps = 12)
+        ## The following seems needed (also inside sw.plot2) for the coords.
+        ## of points to work OK
+        nfig <- 1
+        for(arraynum in arraynums) { ## first, plot the points
+            cat(" ........ for points doing arraynum ", arraynum, "\n")
+            logr <- res$data[, 2 + arraynum]
+            if(nfig == 1) {
+                par(xaxs = "i")
+                par(mar = c(5, 5, 5, 5))
+                par(oma = c(0, 0, 0, 0))
+                plot(logr[indexchr] ~ res$data$maploc[indexchr], col="orange", 
+                     xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
+                     main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     pch = "", ylim = ylim)
+                box()
+                axis(2)
+                abline(h = 0, lty = 2, col = "blue")
+                rug(res$data$maploc[indexchr], ticksize = 0.01)
+            }
+            points(logr[indexchr] ~ res$data$maploc[indexchr], col="orange",
+                   cex = 1, pch = 20)
+            nfig <- nfig + 1
+        }
+        for(arraynum in arraynums) { ## now, do the segments
+            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+            segmented <-
+                res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
+            
+            
+            ## segments
+            for(j in 1:nrow(segmented)) {
+                if( (segmented$loc.start[j] >= res$data$maploc[indexchr[1]])
+                   & ( segmented$loc.start[j] <= res$data$maploc[indexchr[length(indexchr)]])) {
+                    segments(x0 = segmented$loc.start[j],
+                             y0 = segmented$seg.mean[j],
+                             x1 = segmented$loc.end[j],
+                             y1 = segmented$seg.mean[j],
+                             col = "black", lwd = 2)
+                }
+            }
+        }
+
+        usr2pngCircle <- function(x, y, rr = 2) {
+            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+            r <- abs(xyrc[2, 1] - xyrc[3, 1])
+            return(c(xyrc[1, 1], xyrc[1, 2], r))
+        }
+        ccircle <- mapply(usr2pngCircle, res$data$maploc[indexchr],
+                          0)
+        write(ccircle, file = "pngCoordChr",
+              sep ="\t", ncolumns = 3)
+        write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+        imClose(im2)
+        system(paste(.python.toMap.py,
+                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     idtype, organism, sep = " "))
+    }
+}
+
+
+
 
 
 
@@ -4728,6 +4392,321 @@ old.pSegmentDNAcopy <- function(x, alpha=0.01, nperm=10000,
 
 
 
+old.plot.wavelets2 <- function(res, xdata, chrom,
+                           arraynum, main = NULL,
+                           colors = c("orange", "red", "green", "blue"),
+                           pch = 20, ylim = NULL, html = TRUE,
+                           geneNames = positions.merge1$name,
+                           idtype = idtype, organism = organism) {
+                                        #res is the results
+                                        # color code for region status
+
+    logr <- xdata[, arraynum]
+    segmented <- res$Predicted[, arraynum]
+    col <- rep(colors[1],length(logr))
+    simplepos <- 1:length(logr)
+
+    nameIm <- main
+    if(html) {
+        imheight <- 500
+        imwidth <- 1600
+        im1 <- imagemap3(nameIm, height = imheight,
+                         width = imwidth, ps = 12)
+    }
+    plot(logr ~ simplepos, col="orange", ylab = "log ratio",
+         xlab ="Chromosome location", axes = FALSE, cex = 0.7, main = main,
+         pch = pch, ylim = ylim,)
+    box()
+    rug(simplepos, ticksize = 0.01)
+    axis(2)
+    abline(h = 0, lty = 2, col = "blue")
+    
+    ## Limit between chromosomes
+    LimitChr <- tapply(simplepos,
+                       chrom, max)
+    abline(v=LimitChr, col="grey", lty=2)
+
+    chrom.nums <- unique(chrom)
+    d1 <- diff(LimitChr)
+    pos.labels <- c(round(LimitChr[1]/2),
+                    LimitChr[-length(LimitChr)] + round(d1/2))
+    axis(1, at = pos.labels, labels = chrom.nums)
+
+
+    ## segments
+    lines(segmented ~ simplepos,
+         col = "black", lwd = 2, type = "l")
+
+    if(html) {
+        lxs <- c(1, LimitChr)
+        maxlr <- max(logr)
+        minlr <- min(logr)
+        nd <- 1:length(LimitChr)
+        xleft <- lxs[nd]
+        names(xleft) <- 1:length(xleft)
+        xright <- lxs[nd + 1]
+
+        f1 <- function(xleft, xright, nd)
+            imRect(xleft, maxlr, xright, minlr - 10,
+                   title = paste("Chromosome", nd),
+                   alt = paste("Chromosome", nd),
+                   href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
+        rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+        for(ll in 1:length(rectslist))
+            addRegion(im1) <- rectslist[[ll]]
+        createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+        imClose(im1)
+    }
+
+    if(html) { ## here is chromosome specific code
+        pixels.point <- 3
+        chrheight <- 500
+        for(cnum in 1:length(chrom.nums)) {
+            cat(" .... doing chromosome ", cnum, "\n")
+            indexchr <- which(chrom == chrom.nums[cnum])
+            chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+            chrwidth <- max(chrwidth, 800)
+            im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                             height = chrheight, width = chrwidth,
+                             ps = 12)
+            ## The following seems needed (also inside sw.plot2) for the coords.
+            ## of points to work OK
+            par(xaxs = "i")
+            par(mar = c(5, 5, 5, 5))
+            par(oma = c(0, 0, 0, 0))
+            plot(logr[indexchr] ~ simplepos[indexchr], col="orange", cex = 1,
+                 xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+                 main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                 pch = pch, ylim = ylim)
+            box()
+            axis(2)
+            abline(h = 0, lty = 2, col = "blue")
+            rug(simplepos[indexchr], ticksize = 0.01)
+            ## segments
+            lines(segmented[indexchr] ~ simplepos[indexchr],
+                  col = "black", lwd = 2, type = "l")
+
+            ## The within chromosome map for gene names
+            ## in superimposed cases only in first map
+            usr2pngCircle <- function(x, y, rr = 2) {
+                xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+                r <- abs(xyrc[2, 1] - xyrc[3, 1])
+                return(c(xyrc[1, 1], xyrc[1, 2], r))
+            }
+            
+            ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
+                              logr[indexchr])
+            write(ccircle, file = "pngCoordChr",
+                  sep ="\t", ncolumns = 3)
+            write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+            imClose(im2)
+            system(paste(.python.toMap.py,
+                         paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                         idtype, organism, sep = " "))
+        }        ## looping over chromosomes
+    } ## if html
+}
+
+
+old.plot.wavelets3 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NULL,
+                         colors = c("orange", "red", "green", "blue"),
+                         pch = 20, ylim =NULL, html = TRUE,
+                         geneNames = positions.merge1$name,
+                           idtype = idtype, organism = organism) {
+    ## For superimposed: only all genome plot with map to chromosomes
+
+    nameIm <- main
+    if(html) {
+        imheight <- 500
+        imwidth <- 1600
+        im1 <- imagemap3(nameIm, height = imheight,
+                         width = imwidth, ps = 12)
+    }
+    nfig <- 1
+    for (arraynum in arraynums) {
+        logr <- xdata[, arraynum]
+        segmented <- res$Predicted[, arraynum]
+        col <- rep(colors[1],length(logr))
+        simplepos <- 1:length(logr)
+        
+        if(nfig == 1) {
+            plot(logr ~ simplepos, col="orange", ylab = "log ratio", 
+                 xlab ="Chromosome location", axes = FALSE, main = main,
+                 pch = "", ylim = ylim)
+            box()
+            axis(2)
+            abline(h = 0, lty = 2, col = "blue")
+            rug(simplepos, ticksize = 0.01)
+        }
+        lines(segmented ~ simplepos,
+              col = "black", lwd = 2, type = "l")
+    
+
+        if(nfig == 1) {
+            ## Limit between chromosomes
+            LimitChr <- tapply(simplepos,
+                               chrom, max)
+            abline(v=LimitChr, col="grey", lty=2)
+            
+            chrom.nums <- unique(chrom)
+            d1 <- diff(LimitChr)
+            pos.labels <- c(round(LimitChr[1]/2),
+                            LimitChr[-length(LimitChr)] + round(d1/2))
+            axis(1, at = pos.labels, labels = chrom.nums)
+            
+            lxs <- c(1, LimitChr)
+            maxlr <- max(logr)
+            minlr <- min(logr)
+            nd <- 1:length(LimitChr)
+            xleft <- lxs[nd]
+            names(xleft) <- 1:length(xleft)
+            xright <- lxs[nd + 1]
+            f1 <- function(xleft, xright, nd)
+                imRect(xleft, maxlr, xright, minlr - 10,
+                       title = paste("Chromosome", nd),
+                       alt = paste("Chromosome", nd),
+                       href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
+            rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+            for(ll in 1:length(rectslist))
+                addRegion(im1) <- rectslist[[ll]]
+        }
+        nfig <- nfig + 1
+        par(new = TRUE)
+    }
+    createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+    imClose(im1)
+}
+
+old.plot.wavelets4 <- function(res, xdata, chrom, arraynums = 1:numarrays, main = NULL,
+                           colors = c("orange", "red", "green", "blue"),
+                           pch = 20, ylim =NULL, html = TRUE,
+                           geneNames = positions.merge1$name,
+                           idtype = idtype, organism = organism) {
+    ## For superimposed: one plot per chr
+    
+    nameIm <- main
+    
+    pixels.point <- 3
+    chrheight <- 500
+    chrom.nums <- unique(chrom)
+    for(cnum in 1:length(chrom.nums)) {
+        cat(" .... doing chromosome ", cnum, "\n")
+        indexchr <- which(chrom == chrom.nums[cnum])
+        chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+        chrwidth <- max(chrwidth, 800)
+        im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                         height = chrheight, width = chrwidth,
+                         ps = 12)
+        ## The following seems needed (also inside sw.plot2) for the coords.
+        ## of points to work OK
+        nfig <- 1
+        for(arraynum in arraynums) { ## first, plot the points
+            cat(" ........ for points doing arraynum ", arraynum, "\n")
+            logr <- xdata[, arraynum]
+            simplepos <- 1:length(logr)
+            if(nfig == 1) {
+                par(xaxs = "i")
+                par(mar = c(5, 5, 5, 5))
+                par(oma = c(0, 0, 0, 0))
+                plot(logr[indexchr] ~ simplepos[indexchr], col="orange", 
+                     xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
+                     main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     pch = "", ylim = ylim)
+                box()
+                axis(2)
+                abline(h = 0, lty = 2, col = "blue")
+                rug(simplepos[indexchr], ticksize = 0.01)
+            }
+            points(logr[indexchr] ~ simplepos[indexchr], col="orange",
+                   cex = 1, pch = 20)
+            nfig <- nfig + 1
+        }
+        for(arraynum in arraynums) { ## now, do the segments
+            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+            segmented <- res$Predicted[indexchr, arraynum]
+            lines(segmented ~ simplepos[indexchr], col = "black", lwd = 2, type = "l")
+        }
+
+        usr2pngCircle <- function(x, y, rr = 2) {
+            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+            r <- abs(xyrc[2, 1] - xyrc[3, 1])
+            return(c(xyrc[1, 1], xyrc[1, 2], r))
+        }
+        ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
+                          0)
+        write(ccircle, file = "pngCoordChr",
+              sep ="\t", ncolumns = 3)
+        write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+        imClose(im2)
+        system(paste(.python.toMap.py,
+                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     idtype, organism, sep = " "))
+    }
+}
+
+old.plot.wavelets <- function(res, xdata, chrom,
+                          arraynum, main = NULL,
+                          colors = c("orange", "red", "green", "blue"),
+                          pch = 20, ylim = NULL) {
+                                        #res is the results
+                                        # color code for region status
+
+    logr <- xdata[, arraynum]
+    segmented <- res$Predicted[, arraynum]
+    col <- rep(colors[1],length(logr))
+    simplepos <- 1:length(logr)
+    
+    plot(logr ~ simplepos, col="orange", ylab = "log ratio",
+         xlab ="", axes = FALSE, cex = 0.7, main = main,
+         pch = pch, ylim = ylim)
+    box()
+    axis(2)
+    abline(h = 0, lty = 2, col = "blue")
+    
+    ## Limit between chromosomes
+    LimitChr <- tapply(simplepos,
+                       chrom, max)
+    abline(v=LimitChr, col="grey", lty=2)
+
+    chrom.nums <- unique(chrom)
+    d1 <- diff(LimitChr)
+    pos.labels <- c(round(LimitChr[1]/2),
+                    LimitChr[-length(LimitChr)] + round(d1/2))
+    axis(1, at = pos.labels, labels = chrom.nums)
+
+
+    ## segments
+    lines(segmented ~ simplepos,
+         col = "black", lwd = 2, type = "l")
+}
+
+
+
+old.print.wavelets.results <- function(res, xcenter, commondata, output =
+                                   "Wavelets.results.txt"){
+    ## This function "stretches out" the output and creates a table
+    ## that matches the original names, etc.
+
+    out <- data.frame(ID = commondata$name,
+                      Chromosome = commondata$chromosome,
+                      Start = commondata$start,
+                      End = commondata$end,
+                      MidPoint = commondata$MidPoint)
+
+    for(i in 1:ncol(xcenter)) {
+        t2 <- xcenter[, i]
+        t1 <- res$Predicted[, i]
+        t3 <- res$State[, i]
+        out <- cbind(out, t2, t1, t3)
+    }
+    colnames(out)[6:(ncol(out))] <-
+        paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
+              c(".Original", ".Smoothed", ".State"), sep = "")
+    write.table(out, file = output,
+                sep = "\t", col.names = NA,
+                row.names = TRUE, quote = FALSE)
+}
+
 old.pSegmentWavelets <- function(x, chrom.numeric, minDiff = 0.25,
                              thrLvl = 3, initClusterLevels = 10) {
     ## level to use for wavelet decomposition and thresholding
@@ -4803,15 +4782,9 @@ old.pSegmentWavelets <- function(x, chrom.numeric, minDiff = 0.25,
                    ncol = Nsamps)
                    
     out <- list(Predicted =pred, State = state)
-    class(out) <- c(class(out), "waveCGH", "CGH.wave")
+    class(out) <- c(class(out), "CGH.wave")
     return(out)
 }
-
-
-
-
-
-
 
 
 

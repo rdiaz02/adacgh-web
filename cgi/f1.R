@@ -1,3 +1,10 @@
+## Quitar plateau plots & diagnostic plots; these are an after thought
+## never used by users
+## Quitar params from dnacopy
+
+
+
+
 ####  Copyright (C) 2005, 2006, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 
 #### This program is free software; you can redistribute it and/or

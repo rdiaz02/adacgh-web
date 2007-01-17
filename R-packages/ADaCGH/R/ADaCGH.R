@@ -410,7 +410,7 @@ segmentPlot <- function(x, geneNames,
             tmp_papout <- papply(as.list(1:numarrays),
                                  function(z) {
                                      cat("\n Doing sample ", z, "\n")
-                                     plot.adacgh.generic1(res = res,
+                                     plot.adacgh.genomewide(res = res,
                                                           chrom = cnum_slave,
                                                           arraynum = z,
                                                           main = arraynames[z],
@@ -3601,46 +3601,175 @@ gladWrapper <- function(x, Chrom, Pos = NULL) {
 ### There is a lot of repetition in the plotting code. Could place a lot
 ##  into a function
 
-plot.adacgh.generic1 <- function(res, chrom,
-                                 arraynum, main = NULL,
-                                 colors = c("orange", "red", "green", "blue"),
-                                 pch = 20, ylim = NULL,
-                                 geneNames = positions.merge1$name,
-                                 html = TRUE,
-                                 idtype = idtype, organism = organism,
-                                 smooth.pos = 2,
-                                 original.pos = 1,
-                                 state.pos = 3,
-                                 segment.pos = 3,
-                                 geneLoc = NULL) {
-                                        #res is the results
-                                        # color code for region status
+plot.adacgh.genomewide <- function(res, chrom,
+                                   arraynum, main = NULL,
+                                   colors = c("orange", "red", "green", "blue"),
+                                   pch = 20, ylim = NULL,
+                                   geneNames = positions.merge1$name,
+                                   geneLoc = NULL,
+                                   typeCall = "outer") {
 
-    ## segment.pos = the column where the data live. 3 for ACE, 1 for merged
-    ## segment.height: in ace is 0.5, since there is no sucgh thing as smoothing.
-    ## but with merged, there is a value that means something, so we use that.
-    logr <- res[[arraynum]][, original.pos]
-    if(is.null(segment.pos)) segment.height <- 0.5 else segment.height <- 1
-             
-    if(!is.null(state.pos)) {
-        res.dat <- res[[arraynum]][, state.pos]
+    if(!(typeCall %in% c("outer", "inner")))
+        stop("I don't know how I am being called")
+
+    im1 <- mapGenomeWideOpen(main)
+    
+    logr <- res[[arraynum]][, 1]
+    smoothdat <- res[[arraynum]][, 2]
+    simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+    res.dat <- res[[arraynum]][, 3]
+    col <- rep(colors[1],length(res.dat))
+    col[which(res.dat == -1)] <- colors[3]
+    col[which(res.dat == 1)] <- colors[2]
+
+    environment(plotGenomeWide) <- environment(mapLinkChrom) <- environment()
+    plotGenomeWide()
+    im1 <- mapLinkChrom()
+    
+    lines(smoothdat ~ simplepos, col="black",
+          lwd = 2)
+
+    mapGenomeWideClose(nameIm, im1)
+}
+
+
+plot.adacgh.genomewide.superimposed <- function(res, chrom, main = NULL,
+                                                colors = c("orange", "red", "green", "blue"),
+                                                pch = "", ylim =c(ymin, ymax), html = TRUE,
+                                                geneNames = positions.merge1$name,
+                                                geneLoc = NULL) {
+    ## For superimposed: only all genome plot with map to chromosomes
+
+    arraynums <- length(res)
+    im1 <- mapGenomeWideOpen(main)
+   
+    nfig <- 1
+    
+    for (arraynum in 1:arraynums) {
+        logr <- res[[arraynum]][, 1]
+        smoothdat <- res[[arraynum]][, 2]
+        simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+        res.dat <- res[[arraynum]][, 3]
         col <- rep(colors[1],length(res.dat))
         col[which(res.dat == -1)] <- colors[3]
         col[which(res.dat == 1)] <- colors[2]
-    } else {
-        col <- rep(colors[1],length(logr))
-        res.dat <- NULL
-    }
-    simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
 
-    
-    nameIm <- main
-    if(html) {
-        imheight <- 500
-        imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
-                         width = imwidth, ps = 12)
+        if(nfig == 1) {
+            environment(plotGenomeWide) <- environment(mapLinkChrom) <- environment()
+            plotGenomeWide()
+            im1 <- mapLinkChrom()
+        }
+
+        lines(smoothdat ~ simplepos,
+              col = "black", lwd = 2, type = "l")
+        nfig <- nfig + 1
+        par(new = TRUE)
     }
+    mapGenomeWideClose(nameIm, im1)
+}
+
+
+
+
+plot.adacgh.chromoswide <- function(res, chrom,
+                                   arraynum, main = NULL,
+                                   colors = c("orange", "red", "green", "blue"),
+                                   pch = 20, ylim = NULL,
+                                   geneNames = positions.merge1$name,
+                                   idtype = idtype,
+                                   organism = organism,
+                                   geneLoc = NULL) {
+
+    if(!inherits(res, "adacgh.generic.out"))
+        stop("Object needs to be of class adacgh.generic.out")
+    
+    logr <- res[[arraynum]][, 1]
+    smoothdat <- res[[arraynum]][, 2]
+    res.dat <- res[[arraynum]][, 3]
+    simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+    
+    col <- rep(colors[1],length(res.dat))
+    col[which(res.dat == -1)] <- colors[3]
+    col[which(res.dat == 1)] <- colors[2]
+
+
+    chrom.nums <- unique(chrom)
+    for(cnum in 1:length(chrom.nums)) {
+
+        environment(mapChromOpen) <- environment()
+        im2 <- mapChromOpen()
+
+        
+        ## The following seems needed (also inside sw.plot2) for the coords.
+        ## of points to work OK
+        par(xaxs = "i")
+        par(mar = c(5, 5, 5, 5))
+        par(oma = c(0, 0, 0, 0))
+        plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
+             xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+             main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+             pch = pch, ylim = ylim)
+        box()
+        axis(2)
+        abline(h = 0, lty = 2, col = colors[4])
+        rug(simplepos[indexchr], ticksize = 0.01)
+        lines(smoothdat[indexchr] ~ simplepos[indexchr],
+              col = "black", lwd = 2, type = "l")
+        
+        ## The within chromosome map for gene names
+        ## in superimposed cases only in first map
+        usr2pngCircle <- function(x, y, rr = 2) {
+            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+            r <- abs(xyrc[2, 1] - xyrc[3, 1])
+            return(c(xyrc[1, 1], xyrc[1, 2], r))
+        }
+        
+        ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
+                          logr[indexchr])
+        nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+        write(ccircle, file = paste("pngCoordChr", nameChrIm, sep = "_"),
+              sep ="\t", ncolumns = 3)
+        write(as.character(geneNames[indexchr]),
+              file = paste("geneNamesChr", nameChrIm, sep = "_"))
+        imClose(im2)
+        system(paste(.python.toMap.py,
+                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     idtype, organism, sep = " "))
+    }        ## looping over chromosomes
+}
+
+
+
+mapChromOpen <- function() {
+    cat(" .... doing chromosome ", cnum, "\n")
+    nameIm <- main
+    pixels.point <- 3
+    chrheight <- 500
+    indexchr <- which(chrom == chrom.nums[cnum])
+    chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+    chrwidth <- max(chrwidth, 800)
+    im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     height = chrheight, width = chrwidth,
+                     ps = 12)
+    return(im2)
+}
+
+mapGenomeWideOpen <- function(main) {
+    nameIm <- main
+    imheight <- 500
+    imwidth <- 1600
+    im1 <- imagemap3(nameIm, height = imheight,
+                     width = imwidth, ps = 12)
+    return(im1)
+}
+
+mapGenomeWideClose <- function(nameIm, im1) {
+    createIM2(im1, file = paste(nameIm, ".html", sep = ""))
+    imClose(im1)
+}
+
+plotGenomeWide <- function() {
+    ## BEWARE!!!: we need to set the environment properly!!
     plot(logr ~ simplepos, col= col, ylab = "log ratio",
          xlab ="Chromosome location", axes = FALSE, cex = 0.7, main = main,
          pch = pch, ylim = ylim)
@@ -3648,186 +3777,39 @@ plot.adacgh.generic1 <- function(res, chrom,
     rug(simplepos, ticksize = 0.01)
     axis(2)
     abline(h = 0, lty = 2, col = colors[4])
-    
-    ## Limit between chromosomes
+}
+
+
+mapLinkChrom <- function() {
+    ## 1) add the vertical chromosome lines
+    ## 2) html map: add links to chromosome-wide figures
+    ## BEWARE!!!: we need to set the environment properly!!
     LimitChr <- tapply(simplepos,
                        chrom, max)
     abline(v=LimitChr, col="grey", lty=2)
+    
     chrom.nums <- unique(chrom)
     d1 <- diff(LimitChr)
     pos.labels <- c(round(LimitChr[1]/2),
                     LimitChr[-length(LimitChr)] + round(d1/2))
     axis(1, at = pos.labels, labels = chrom.nums)
-    if(! is.null(res.dat))
-        lines(I(segment.height * res.dat) ~ simplepos, col="black",
-              lwd = 2)
-
-    if(html) {
-        lxs <- c(1, LimitChr)
-        maxlr <- max(logr)
-        minlr <- min(logr)
-        nd <- 1:length(LimitChr)
-        xleft <- lxs[nd]
-        names(xleft) <- 1:length(xleft)
-        xright <- lxs[nd + 1]
-
-        f1 <- function(xleft, xright, nd)
-            imRect(xleft, maxlr, xright, minlr - 10,
-                   title = paste("Chromosome", nd),
-                   alt = paste("Chromosome", nd),
-                   href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
-        rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
-        for(ll in 1:length(rectslist))
-            addRegion(im1) <- rectslist[[ll]]
-        createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-        imClose(im1)
-    }
-
-    if(html) { ## here is chromosome specific code
-        pixels.point <- 3
-        chrheight <- 500
-        for(cnum in 1:length(chrom.nums)) {
-            cat(" .... doing chromosome ", cnum, "\n")
-            indexchr <- which(chrom == chrom.nums[cnum])
-            chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-            chrwidth <- max(chrwidth, 800)
-            im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                             height = chrheight, width = chrwidth,
-                             ps = 12)
-            ## The following seems needed (also inside sw.plot2) for the coords.
-            ## of points to work OK
-            par(xaxs = "i")
-            par(mar = c(5, 5, 5, 5))
-            par(oma = c(0, 0, 0, 0))
-            plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
-                 xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
-                 main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                 pch = pch, ylim = ylim)
-            box()
-            axis(2)
-            abline(h = 0, lty = 2, col = colors[4])
-            rug(simplepos[indexchr], ticksize = 0.01)
-            ## segments
-            if(!is.null(res.dat))
-                lines(I(segment.height * res.dat[indexchr]) ~ simplepos[indexchr],
-                      col = "black", lwd = 2, type = "l")
-
-            ## The within chromosome map for gene names
-            ## in superimposed cases only in first map
-            usr2pngCircle <- function(x, y, rr = 2) {
-                xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-                r <- abs(xyrc[2, 1] - xyrc[3, 1])
-                return(c(xyrc[1, 1], xyrc[1, 2], r))
-            }
-            
-            ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
-                              logr[indexchr])
-            nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
-            write(ccircle, file = paste("pngCoordChr", nameChrIm, sep = "_"),
-                  sep ="\t", ncolumns = 3)
-            write(as.character(geneNames[indexchr]),
-                  file = paste("geneNamesChr", nameChrIm, sep = "_"))
-            imClose(im2)
-            system(paste(.python.toMap.py,
-                         paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         idtype, organism, sep = " "))
-        }        ## looping over chromosomes
-    } ## if html
-}
-
-
-
-
-
-
-
-
-plot.adacgh.generic2 <- function(res, chrom, arraynums = 1:numarrays, main = NULL,
-                                 colors = c("orange", "red", "green", "blue"),
-                                 pch = "", ylim =c(ymin, ymax), html = TRUE,
-                                 geneNames = positions.merge1$name,
-                                 idtype = idtype, organism = organism,
-                                 smooth.pos = 2,
-                                 original.pos = 1,
-                                 state.pos = 3,
-                                 segment.pos = 3,
-                                 geneLoc = NULL) {
-    ## For superimposed: only all genome plot with map to chromosomes
-
-    if(is.null(segment.pos)) segment.height <- 0.5 else segment.height <- 1
     
-    nameIm <- main
-    if(html) {
-        imheight <- 500
-        imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
-                         width = imwidth, ps = 12)
-    }
-    nfig <- 1
-    for (arraynum in arraynums) {
-        logr <- res[[arraynum]][, original.pos]
-        
-        if(!null(state.pos)) {
-            res.dat <- res[[arraynum]][, state.pos]
-            col <- rep(colors[1],length(res.dat))
-            col[which(res.dat == -1)] <- colors[3]
-            col[which(res.dat == 1)] <- colors[2]
-        } else {
-            col <- rep(colors[1],length(logr))
-            res.dat <- NULL
-        }
-        simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
-        if(!is.null(res.dat))
-            segmented <- res.dat * segment.height
-
-        if(nfig == 1) {
-            ## I do not plot points: pch = ""
-            plot(logr ~ simplepos, col=col, ylab = "log ratio", 
-                 xlab ="Chromosome location", axes = FALSE, main = main,
-                 pch = "", ylim = ylim)
-            box()
-            axis(2)
-            abline(h = 0, lty = 2, col = colors[4])
-            rug(simplepos, ticksize = 0.01)
-        }
-        if(!is.null(res.dat))
-            lines(segmented ~ simplepos,
-                  col = "black", lwd = 2, type = "l")
-
-
-        if(nfig == 1) {
-            ## Limit between chromosomes
-            LimitChr <- tapply(simplepos,
-                               chrom, max)
-            abline(v=LimitChr, col="grey", lty=2)
-
-            chrom.nums <- unique(chrom)
-            d1 <- diff(LimitChr)
-            pos.labels <- c(round(LimitChr[1]/2),
-                            LimitChr[-length(LimitChr)] + round(d1/2))
-            axis(1, at = pos.labels, labels = chrom.nums)
-
-            lxs <- c(1, LimitChr)
-            maxlr <- max(logr)
-            minlr <- min(logr)
-            nd <- 1:length(LimitChr)
-            xleft <- lxs[nd]
-            names(xleft) <- 1:length(xleft)
-            xright <- lxs[nd + 1]
-            f1 <- function(xleft, xright, nd)
-                imRect(xleft, maxlr, xright, minlr - 10,
-                       title = paste("Chromosome", nd),
-                       alt = paste("Chromosome", nd),
-                       href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
-            rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
-            for(ll in 1:length(rectslist))
-                addRegion(im1) <- rectslist[[ll]]
-        }
-        nfig <- nfig + 1
-        par(new = TRUE)
-    }
-    createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-    imClose(im1)
+    lxs <- c(1, LimitChr)
+    maxlr <- max(logr)
+    minlr <- min(logr)
+    nd <- 1:length(LimitChr)
+    xleft <- lxs[nd]
+    names(xleft) <- 1:length(xleft)
+    xright <- lxs[nd + 1]
+    f1 <- function(xleft, xright, nd)
+        imRect(xleft, maxlr, xright, minlr - 10,
+               title = paste("Chromosome", nd),
+               alt = paste("Chromosome", nd),
+               href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
+    rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+    for(ll in 1:length(rectslist))
+        addRegion(im1) <- rectslist[[ll]]
+    return(im1)
 }
 
 
@@ -3845,38 +3827,26 @@ plot.adacgh.generic3 <- function(res, chrom, arraynums = 1:numarrays,
     ## For superimposed: one plot per chr
     
     nameIm <- main
-    
     pixels.point <- 3
     chrheight <- 500
     chrom.nums <- unique(chrom)
     for(cnum in 1:length(chrom.nums)) {
-        cat(" .... doing chromosome ", cnum, "\n")
-        indexchr <- which(chrom == chrom.nums[cnum])
-        chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-        chrwidth <- max(chrwidth, 800)
-        im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         height = chrheight, width = chrwidth,
-                         ps = 12)
-        ## The following seems needed (also inside sw.plot2) for the coords.
-        ## of points to work OK
+        
+        environment(mapChromOpen) <- environment()
+        im2 <- mapChromOpen()
+
         nfig <- 1
         for(arraynum in arraynums) { ## first, plot the points
             cat(" ........ for points doing arraynum ", arraynum, "\n")
-##            browser()
+
             logr <- res[[arraynum]][, original.pos]
-            if(is.null(segment.pos)) segment.height <- 0.5 else segment.height <- 1
-            
-            if(!null(state.pos)) {
-                res.dat <- res[[arraynum]][, state.pos]
-                col <- rep(colors[1],length(res.dat))
-                col[which(res.dat == -1)] <- colors[3]
-                col[which(res.dat == 1)] <- colors[2]
-            } else {
-                col <- rep(colors[1],length(logr))
-                res.dat <- NULL
-            }
+            res.dat <- res[[arraynum]][, state.pos]
+            col <- rep(colors[1],length(res.dat))
+            col[which(res.dat == -1)] <- colors[3]
+            col[which(res.dat == 1)] <- colors[2]
             simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
 
+            
             if(nfig == 1) {
                 par(xaxs = "i")
                 par(mar = c(5, 5, 5, 5))
@@ -3889,6 +3859,18 @@ plot.adacgh.generic3 <- function(res, chrom, arraynums = 1:numarrays,
                 axis(2)
                 abline(h = 0, lty = 2, col = colors[4])
                 rug(simplepos[indexchr], ticksize = 0.01)
+                usr2pngCircle <- function(x, y, rr = 2) {
+                    xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+                    r <- abs(xyrc[2, 1] - xyrc[3, 1])
+                    return(c(xyrc[1, 1], xyrc[1, 2], r))
+                }
+                ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
+                                  0)
+                write(ccircle, file = "pngCoordChr",
+                      sep ="\t", ncolumns = 3)
+                write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+                
+
             }
             points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
                    cex = 1, pch = 20)
@@ -3901,16 +3883,6 @@ plot.adacgh.generic3 <- function(res, chrom, arraynums = 1:numarrays,
             lines(segmented ~ simplepos[indexchr], col = "black", lwd = 2, type = "l")
         }
 
-        usr2pngCircle <- function(x, y, rr = 2) {
-            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-            r <- abs(xyrc[2, 1] - xyrc[3, 1])
-            return(c(xyrc[1, 1], xyrc[1, 2], r))
-        }
-        ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
-                          0)
-        write(ccircle, file = "pngCoordChr",
-              sep ="\t", ncolumns = 3)
-        write(as.character(geneNames[indexchr]), file = "geneNamesChr")
         imClose(im2)
         system(paste(.python.toMap.py,
                      paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),

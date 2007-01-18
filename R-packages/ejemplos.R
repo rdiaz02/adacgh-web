@@ -332,7 +332,7 @@ biohmm.out <- pSegmentBioHMM(cghMCRe[, 5:7], chrom.numeric, MidPoint)
 
 ############# Plots
 
-setwd("/tmp") ## all slaves need a common dir to read and write.
+setwd("/tmp/o3") ## all slaves need a common dir to read and write.
 mpiInit()
 
 data(cghE1)
@@ -356,6 +356,7 @@ glad.out <- pSegmentGLAD(cghE1[, 5:7], chrom.numeric)
 cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric)
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
+wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, merge = FALSE)
 cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
 cbs.nm.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE)
 
@@ -366,18 +367,7 @@ psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1)
 ## it is the slowest, so do only two
 biohmm.out <- pSegmentBioHMM(cghE1[, 5:6], chrom.numeric, cghE1$UG.Start)
 
-
-
-
-
-segmentPlot(hmm.out, superimposed = FALSE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(hmm.out, superimposed = TRUE,
+segmentPlot(hmm.out, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
@@ -385,14 +375,7 @@ segmentPlot(hmm.out, superimposed = TRUE,
             organism = "Hs")
 
 
-segmentPlot(glad.out, superimposed = FALSE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(glad.out, superimposed = TRUE,
+segmentPlot(glad.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
@@ -400,28 +383,7 @@ segmentPlot(glad.out, superimposed = TRUE,
             organism = "Hs")
 
 
-segmentPlot(cghseg.out, superimposed = FALSE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(cghseg.out, superimposed = TRUE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(wave.out, superimposed = FALSE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(wave.out, superimposed = TRUE,
+segmentPlot(cghseg.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
@@ -429,14 +391,7 @@ segmentPlot(wave.out, superimposed = TRUE,
             organism = "Hs")
 
 
-segmentPlot(cbs.out, superimposed = FALSE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(cbs.out, superimposed = TRUE,
+segmentPlot(wave.out, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
@@ -444,28 +399,36 @@ segmentPlot(cbs.out, superimposed = TRUE,
             organism = "Hs")
 
 
-segmentPlot(cbs.nm.out, superimposed = FALSE,
+segmentPlot(wave.nm.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
             idtype = "ug",
             organism = "Hs")
 
-segmentPlot(cbs.nm.out, superimposed = TRUE,
+segmentPlot(cbs.out, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
             idtype = "ug",
             organism = "Hs")
 
-segmentPlot(psw.pos.out, superimposed = FALSE,
+
+segmentPlot(cbs.nm.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
             idtype = "ug",
             organism = "Hs")
 
-segmentPlot(pws.pos.out, superimposed = TRUE,
+segmentPlot(psw.pos.out,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(pws.neg.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
@@ -474,30 +437,7 @@ segmentPlot(pws.pos.out, superimposed = TRUE,
 
 
 
-segmentPlot(psw.neg.out, superimposed = FALSE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(pws.neg.out, superimposed = TRUE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-
-
-segmentPlot(biohmm.out, superimposed = FALSE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(biohmm.out, superimposed = TRUE,
+segmentPlot(biohmm.out, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
@@ -507,16 +447,10 @@ segmentPlot(biohmm.out, superimposed = TRUE,
 
 ## need to choose fdr
 ace.out.sum <- summary(ace.out)
-segmentPlot(ace.out.sum, superimposed = FALSE,
+segmentPlot(ace.out.sum, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
             idtype = "ug",
             organism = "Hs")
 
-segmentPlot(ace.out.sum, superimposed = TRUE,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")

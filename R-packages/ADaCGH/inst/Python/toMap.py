@@ -18,7 +18,7 @@ nameHTML = nameMap + '.html'
 gene_F = open('geneNamesChr_' + nameMap, mode = 'r')
 gene_Names = [L.rstrip('\n') for L in gene_F]
 gene_F.close()
-map_F = open('pngCoordChr_', + nameMap, mode = 'r')
+map_F = open('pngCoordChr_' + nameMap, mode = 'r')
 map_coord = [L.rstrip('\n') for L in map_F]
 map_F.close()
 
@@ -28,7 +28,7 @@ if organism == 'Hs':
     if chrom == '23': chrom = 'X'
     if chrom == '24': chrom = 'Y'
     toronto_db_link = '<a href="http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr' + \
-                      chrom + '&cols=">Toronto zz db link</a>\n'
+                      chrom + '&cols=">Toronto Database of Genomic Variants link</a>\n'
 
 
 outList = []
@@ -38,8 +38,8 @@ outList.append(out_squeleton2)
 
 outList.append(''.join(['<h1>Chromosome view: ', nameMap, '</h1>\n',
                         toronto_db_link,
-                        '<img src="', nameSrc, '"usemap="#', nameMap, '" ISMAP>\n',
-                        '<map name="', nameMap, '">\n']))
+                        '<p><img src="', nameSrc, '"usemap="#', nameMap, '" ISMAP>\n',
+                        '<map name="', nameMap, '"></p>\n']))
     
 
 if idtype == 'None' or organism == 'None':

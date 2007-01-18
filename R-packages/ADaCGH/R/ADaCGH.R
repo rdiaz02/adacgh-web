@@ -407,31 +407,30 @@ segmentPlot <- function(x, geneNames,
             colors <- c("orange", "red", "green", "blue")
         }
         if(!superimposed) {
-            tmp_papout <- papply(as.list(1:numarrays),
-                                 function(z) {
-                                     cat("\n Doing sample ", z, "\n")
-                                     plot.adacgh.genomewide(res = res,
-                                                          chrom = cnum_slave,
-                                                          arraynum = z,
-                                                          main = arraynames[z],
-                                                          html = TRUE,
-                                                          geneNames = geneNames,
-                                                          idtype = idtype,
-                                                          organism = organism,
-                                                          original.pos =lop,
-                                                          segment.pos = sep,
-                                                          geneLoc = pos_slave)
-                                 },
-                                 papply_commondata =
-                                 list(res = x$segm,
-                                      cnum_slave= x$chrom.numeric,
-                                      arraynames = arraynames,
-                                      geneNames = geneNames,
-                                      idtype = idtype,
-                                      organism = organism,
-                                      lop = original.pos,
-                                      sep = segment.pos,
-                                      pos_slave = geneLoc))
+            tmp_papout <-
+                papply(as.list(1:numarrays),
+                       function(z) {
+                           cat("\n Doing sample ", z, "\n")
+                           plot.adacgh.nonsuperimpose(res = res,
+                                                  chrom = cnum_slave,
+                                                  arraynum = z,
+                                                  main = arraynames[z],
+                                                  colors = colors,
+                                                  ylm = yminmax,
+                                                  geneNames = geneNames,
+                                                  idtype = idtype,
+                                                  organism = organism,
+                                                  geneLoc = pos_slave)
+                       },
+                       papply_commondata =
+                       list(res = x$segm,
+                            cnum_slave= x$chrom.numeric,
+                            arraynames = arraynames,
+                            geneNames = geneNames,
+                            idtype = idtype,
+                            organism = organism,
+                            colors = colors,
+                            pos_slave = geneLoc))
         } else {
             plot.adacgh.generic2(x$segm, x$chrom.numeric,  geneNames = geneNames,
                                  main = "All_arrays",
@@ -3601,19 +3600,24 @@ gladWrapper <- function(x, Chrom, Pos = NULL) {
 ### There is a lot of repetition in the plotting code. Could place a lot
 ##  into a function
 
+plot.adacgh.nonsuperimpose <- function(res, chrom,  arraynum, main, colors,
+                                       ylim, geneNames, idtype, organism,
+                                       geneLoc) {
+    plot.adacgh.genomewide(res, chrom,  arraynum, main, colors,
+                           ylim, geneNames, geneLoc)
+    plot.adacgh.chromosomewide(res, chrom,  arraynum, main, colors,
+                               ylim, geneNames, idtype, organism, geneLoc)
+}
+
 plot.adacgh.genomewide <- function(res, chrom,
                                    arraynum, main = NULL,
                                    colors = c("orange", "red", "green", "blue"),
-                                   pch = 20, ylim = NULL,
+                                   ylim = NULL,
                                    geneNames = positions.merge1$name,
-                                   geneLoc = NULL,
-                                   typeCall = "outer") {
-
-    if(!(typeCall %in% c("outer", "inner")))
-        stop("I don't know how I am being called")
-
+                                   geneLoc = NULL) {
+    pch <- 20
     im1 <- mapGenomeWideOpen(main)
-    
+      
     logr <- res[[arraynum]][, 1]
     smoothdat <- res[[arraynum]][, 2]
     simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
@@ -3621,30 +3625,70 @@ plot.adacgh.genomewide <- function(res, chrom,
     col <- rep(colors[1],length(res.dat))
     col[which(res.dat == -1)] <- colors[3]
     col[which(res.dat == 1)] <- colors[2]
-
+  
     environment(plotGenomeWide) <- environment(mapLinkChrom) <- environment()
     plotGenomeWide()
     im1 <- mapLinkChrom()
     
     lines(smoothdat ~ simplepos, col="black",
           lwd = 2)
-
+  
     mapGenomeWideClose(nameIm, im1)
 }
 
 
-plot.adacgh.genomewide.superimposed <- function(res, chrom, main = NULL,
-                                                colors = c("orange", "red", "green", "blue"),
-                                                pch = "", ylim =c(ymin, ymax), html = TRUE,
-                                                geneNames = positions.merge1$name,
-                                                geneLoc = NULL) {
-    ## For superimposed: only all genome plot with map to chromosomes
 
+plot.adacgh.chromoswide <- function(res, chrom,
+                                    arraynum, main = NULL,
+                                    colors = c("orange", "red", "green", "blue"),
+                                    ylim = NULL,
+                                    geneNames = positions.merge1$name,
+                                    idtype = idtype,
+                                    organism = organism,
+                                    geneLoc = NULL) {
+
+    pch <- 20
+    logr <- res[[arraynum]][, 1]
+    smoothdat <- res[[arraynum]][, 2]
+    res.dat <- res[[arraynum]][, 3]
+    simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+    
+    col <- rep(colors[1],length(res.dat))
+    col[which(res.dat == -1)] <- colors[3]
+    col[which(res.dat == 1)] <- colors[2]
+
+    chrom.nums <- unique(chrom)
+    for(cnum in 1:length(chrom.nums)) {
+        ccircle <- NULL
+        environment(mapChromOpen) <- environment(plotChromWide) <- environment()
+        im2 <- mapChromOpen()
+        plotChromWide()
+
+        lines(smoothdat[indexchr] ~ simplepos[indexchr],
+              col = "black", lwd = 2, type = "l")
+
+        environment(pngCircleRegion) <- environment()
+        ccircle <- pngCircleRegion()
+        
+        environment(manAndPythonChrom) <- environment()
+        mapCloseAndPythonChrom()
+    }        ## looping over chromosomes
+}
+
+
+
+plot.gw.superimp <- function(res, chrom, main = NULL,
+                             colors = c("orange", "red", "green", "blue"),
+                             ylim =c(ymin, ymax), 
+                             geneNames = positions.merge1$name,
+                             geneLoc = NULL) {
+
+    pch <- ""
     arraynums <- length(res)
     im1 <- mapGenomeWideOpen(main)
    
     nfig <- 1
-    
+     
     for (arraynum in 1:arraynums) {
         logr <- res[[arraynum]][, 1]
         smoothdat <- res[[arraynum]][, 2]
@@ -3653,7 +3697,7 @@ plot.adacgh.genomewide.superimposed <- function(res, chrom, main = NULL,
         col <- rep(colors[1],length(res.dat))
         col[which(res.dat == -1)] <- colors[3]
         col[which(res.dat == 1)] <- colors[2]
-
+ 
         if(nfig == 1) {
             environment(plotGenomeWide) <- environment(mapLinkChrom) <- environment()
             plotGenomeWide()
@@ -3669,75 +3713,112 @@ plot.adacgh.genomewide.superimposed <- function(res, chrom, main = NULL,
 }
 
 
+plot.adacgh.superimp <- function(res, chrom, main,  colors, ylim, geneNames,
+                                 idtype, organism, geneLoc) {
+    plot.gw.superimp(res, chrom, main,  colors, ylim, geneNames,
+                     geneLoc)
+    plot.cw.superimp(res, chrom, main,  colors, ylim, geneNames,
+                     idtype, organism, geneLoc)
+}
 
 
-plot.adacgh.chromoswide <- function(res, chrom,
-                                   arraynum, main = NULL,
-                                   colors = c("orange", "red", "green", "blue"),
-                                   pch = 20, ylim = NULL,
-                                   geneNames = positions.merge1$name,
-                                   idtype = idtype,
-                                   organism = organism,
-                                   geneLoc = NULL) {
 
-    if(!inherits(res, "adacgh.generic.out"))
-        stop("Object needs to be of class adacgh.generic.out")
+plot.cw.superimp <-    function(res, chrom, 
+                                main = "All_arrays",
+                                colors = c("orange", "red", "green", "blue"),
+                                ylim =NULL, 
+                                geneNames = positions.merge1$name,
+                                idtype = idtype, organism = organism,
+                                geneLoc = NULL) {
     
-    logr <- res[[arraynum]][, 1]
-    smoothdat <- res[[arraynum]][, 2]
-    res.dat <- res[[arraynum]][, 3]
-    simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
-    
-    col <- rep(colors[1],length(res.dat))
-    col[which(res.dat == -1)] <- colors[3]
-    col[which(res.dat == 1)] <- colors[2]
-
-
+    ## For superimposed: one plot per chr
+    pch <- ""
+    arraynums <- length(res)
+    nameIm <- main
+    pixels.point <- 3
+    chrheight <- 500
     chrom.nums <- unique(chrom)
     for(cnum in 1:length(chrom.nums)) {
-
+        ccircle <- NULL
         environment(mapChromOpen) <- environment()
         im2 <- mapChromOpen()
 
-        
-        ## The following seems needed (also inside sw.plot2) for the coords.
-        ## of points to work OK
-        par(xaxs = "i")
-        par(mar = c(5, 5, 5, 5))
-        par(oma = c(0, 0, 0, 0))
-        plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
-             xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
-             main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-             pch = pch, ylim = ylim)
-        box()
-        axis(2)
-        abline(h = 0, lty = 2, col = colors[4])
-        rug(simplepos[indexchr], ticksize = 0.01)
-        lines(smoothdat[indexchr] ~ simplepos[indexchr],
-              col = "black", lwd = 2, type = "l")
-        
-        ## The within chromosome map for gene names
-        ## in superimposed cases only in first map
-        usr2pngCircle <- function(x, y, rr = 2) {
-            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-            r <- abs(xyrc[2, 1] - xyrc[3, 1])
-            return(c(xyrc[1, 1], xyrc[1, 2], r))
+        nfig <- 1
+        for(arraynum in arraynums) { ## first, plot the points
+            cat(" ........ for points doing arraynum ", arraynum, "\n")
+
+            logr <- res[[arraynum]][, original.pos]
+            res.dat <- res[[arraynum]][, state.pos]
+            col <- rep(colors[1],length(res.dat))
+            col[which(res.dat == -1)] <- colors[3]
+            col[which(res.dat == 1)] <- colors[2]
+            simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
+            
+            if(nfig == 1) {
+                environment(plotChromWide) <- environment()
+                plotChromWide()
+            }
+            
+            environment(pngCircleRegion) <- environment()
+            ccircle <- pngCircleRegion()
+
+            ## we want all points, but only draw axes once
+            points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
+                   cex = 1, pch = 20)
+            
+            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+            lines(smoothdat[indexchr] ~ simplepos[indexchr],
+                  col = "black", lwd = 2, type = "l")
+    
+            nfig <- nfig + 1
         }
-        
-        ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
-                          logr[indexchr])
-        nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
-        write(ccircle, file = paste("pngCoordChr", nameChrIm, sep = "_"),
-              sep ="\t", ncolumns = 3)
-        write(as.character(geneNames[indexchr]),
-              file = paste("geneNamesChr", nameChrIm, sep = "_"))
-        imClose(im2)
-        system(paste(.python.toMap.py,
-                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     idtype, organism, sep = " "))
-    }        ## looping over chromosomes
+        environment(manAndPythonChrom) <- environment()
+        mapCloseAndPythonChrom()
+    }
 }
 
+
+
+
+
+mapCloseAndPythonChrom <- function() {
+    nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+    write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
+          sep ="\t", ncolumns = 3)
+    write(as.character(geneNames[indexchr]),
+          file = paste("geneNamesChr_", nameChrIm, sep = ""))
+    imClose(im2)
+    system(paste(.python.toMap.py, nameChrIm, 
+                 idtype, organism, sep = " "))
+}
+
+    
+
+plotChromWide <- function() {
+    par(xaxs = "i")
+    par(mar = c(5, 5, 5, 5))
+    par(oma = c(0, 0, 0, 0))
+    plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
+         xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+         main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+         pch = pch, ylim = ylim)
+    box()
+    axis(2)
+    abline(h = 0, lty = 2, col = colors[4])
+    rug(simplepos[indexchr], ticksize = 0.01)
+}
+
+pngCircleRegion <- function() {
+    usr2pngCircle <- function(x, y, rr = 2) {
+        xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+        r <- abs(xyrc[2, 1] - xyrc[3, 1])
+        return(c(xyrc[1, 1], xyrc[1, 2], r))
+    }
+    ccircle <- cbind(ccircle,
+                     mapply(usr2pngCircle, simplepos[indexchr],
+                            logr[indexchr]))
+    return(ccircle)
+}
 
 
 mapChromOpen <- function() {
@@ -3812,83 +3893,6 @@ mapLinkChrom <- function() {
     return(im1)
 }
 
-
-plot.adacgh.generic3 <- function(res, chrom, arraynums = 1:numarrays,
-                      main = "All_arrays",
-                      colors = c("orange", "red", "green", "blue"),
-                      pch = 20, ylim =NULL, html = TRUE,
-                      geneNames = positions.merge1$name,
-                      idtype = idtype, organism = organism,
-                      smooth.pos = 2,
-                      original.pos = 1,
-                      state.pos = 3,
-                      segment.pos = 3,
-                      geneLoc = NULL) {
-    ## For superimposed: one plot per chr
-    
-    nameIm <- main
-    pixels.point <- 3
-    chrheight <- 500
-    chrom.nums <- unique(chrom)
-    for(cnum in 1:length(chrom.nums)) {
-        
-        environment(mapChromOpen) <- environment()
-        im2 <- mapChromOpen()
-
-        nfig <- 1
-        for(arraynum in arraynums) { ## first, plot the points
-            cat(" ........ for points doing arraynum ", arraynum, "\n")
-
-            logr <- res[[arraynum]][, original.pos]
-            res.dat <- res[[arraynum]][, state.pos]
-            col <- rep(colors[1],length(res.dat))
-            col[which(res.dat == -1)] <- colors[3]
-            col[which(res.dat == 1)] <- colors[2]
-            simplepos <- if(is.null(pos)) (1:length(logr)) else geneLoc
-
-            
-            if(nfig == 1) {
-                par(xaxs = "i")
-                par(mar = c(5, 5, 5, 5))
-                par(oma = c(0, 0, 0, 0))
-                plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], 
-                     xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE, cex = 1,
-                     main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     pch = "", ylim = ylim)
-                box()
-                axis(2)
-                abline(h = 0, lty = 2, col = colors[4])
-                rug(simplepos[indexchr], ticksize = 0.01)
-                usr2pngCircle <- function(x, y, rr = 2) {
-                    xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-                    r <- abs(xyrc[2, 1] - xyrc[3, 1])
-                    return(c(xyrc[1, 1], xyrc[1, 2], r))
-                }
-                ccircle <- mapply(usr2pngCircle, simplepos[indexchr],
-                                  0)
-                write(ccircle, file = "pngCoordChr",
-                      sep ="\t", ncolumns = 3)
-                write(as.character(geneNames[indexchr]), file = "geneNamesChr")
-                
-
-            }
-            points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
-                   cex = 1, pch = 20)
-            nfig <- nfig + 1
-        }
-        for(arraynum in arraynums) { ## now, do the segments
-            cat(" ........ for segments doing arraynum ", arraynum, "\n")
-            res.dat <- res[[arraynum]][indexchr, 3]
-            segmented <- res.dat * segment.height
-            lines(segmented ~ simplepos[indexchr], col = "black", lwd = 2, type = "l")
-        }
-
-        imClose(im2)
-        system(paste(.python.toMap.py,
-                     paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     idtype, organism, sep = " "))
-    }
-}
 
 
 

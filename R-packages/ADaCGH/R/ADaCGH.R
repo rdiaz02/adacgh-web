@@ -655,10 +655,10 @@ writeResults.CGH.PSW <- function(obj, acghdata, commondata, file = "PSW.output.t
                 row.names = TRUE, quote = FALSE)
 }
 
-writeResults.summary.ace <- function(obj, acghdata, commondata, file = NULL, ...) {
+writeResults.summaryACE <- function(obj, acghdata, commondata, file = NULL, ...) {
     if(is.null(file)) {
         file <-  paste("ACE.results.FDR=",
-                       attr(res, "aceFDR.for.output"), ".txt", sep ="")
+                       attr(obj, "aceFDR.for.output"), ".txt", sep ="")
     }
     print.adacgh.generic.results(obj, acghdata, commondata, output = file)
 }
@@ -2077,7 +2077,7 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
         out$segm <- cbind(Observed = res$x, Smoothed = medians.state,
                           State = res$Gain.Loss)
         out$chrom.numeric <- chrom.numeric
-        class(out) <- c("adacgh.generic.out", "summary.ace")
+        class(out) <- c("adacgh.generic.out", "summaryACE")
     attr(out, "aceFDR.for.output") <- aceFDR.for.output
     return(out)
         ##         class(res) <- c("summary.ACE", "CGH.ACE.summary")
@@ -2172,7 +2172,7 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
         ##         class(res) <- c("summary.ACE.array", "CGH.ACE.summary", "adacgh.generic.out")
         ##         res
        out$chrom.numeric <- chrom.numeric
-        class(out) <- c("adacgh.generic.out", "summary.ace")
+        class(out) <- c("adacgh.generic.out", "summaryACE")
     attr(out, "aceFDR.for.output") <- aceFDR.for.output
     return(out)
         

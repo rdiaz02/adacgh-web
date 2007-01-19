@@ -21,7 +21,7 @@ S3method(summary, ACE.array)
 S3method(print, summary.ACE.array)
 
 S3method(writeResults, CGH.PSW)
-S3method(writeResults, CGH.ACE.summary)
+S3method(writeResults, summaryACE)
 S3method(writeResults, CGH.wave)
 S3method(writeResults, DNAcopy)
 S3method(writeResults, adacghGLAD)

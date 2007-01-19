@@ -369,12 +369,10 @@ cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric)
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, merge = FALSE)
-
 cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
 cbs.nm.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE)
 cbs.nm.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE,
                                  smooth = FALSE)
-
 psw.pos.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = 1)
 psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1)
 
@@ -461,7 +459,7 @@ segmentPlot(biohmm.out,
 
 ## need to choose fdr
 
-ce.out.sum <- summary(ace.out)
+ace.out.sum <- summary(ace.out)
 segmentPlot(ace.out.sum, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
@@ -479,7 +477,7 @@ common <- cghE1[, -c(5:7)]
 writeResults(hmm.out, cghE1[, 5:7], common)
 writeResults(glad.out, cghE1[, 5:7], common)        
 writeResults(cghseg.out, cghE1[, 5:7], common)   
-writeResults(ace.out, cghE1[, 5:7], common)
+writeResults(ace.out.sum, cghE1[, 5:7], common)
 writeResults(wave.out, cghE1[, 5:7], common)
 writeResults(wave.nm.out, cghE1[, 5:7], common)
 writeResults(cbs.out, cghE1[, 5:7], common)

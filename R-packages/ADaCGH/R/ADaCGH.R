@@ -278,20 +278,12 @@ pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
 }
 
 
-pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE,
-                            alpha=0.01,
-                            nperm=10000,
-                            kmax=25,
-                            nmin=200,
-                            eta = 0.05,
-                            overlap=0.25, 
-                            trim = 0.025,
-                            undo.prune=0.05,
-                            undo.SD=3,
-                            merge.pv.thresh = 1e-04,
-                            merge.ansari.sign = 0.05,
-                            merge.thresMin = 0.05,
-                            merge.thresMax = 0.5) {
+pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE, smooth = TRUE,
+                            alpha=0.01, nperm=10000, kmax=25, nmin=200,
+                            eta = 0.05, overlap=0.25, trim = 0.025,
+                            undo.prune=0.05, undo.SD=3, merge.pv.thresh =
+                            1e-04, merge.ansari.sign = 0.05,
+                            merge.thresMin = 0.05, merge.thresMax = 0.5) {
     
     if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
         sbdry <- default.DNAcopy.bdry
@@ -301,13 +293,7 @@ pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE,
     }
     sbn <- length(sbdry)
    
-    datalist <- list()
-    klist <- 1
-    nsample <- ncol(x) - 2
-    for(i in 1:nsample) {
-        datalist[[klist]] <- x[, i + 2]
-        klist <- klist + 1
-    }
+    datalist <- data.frame(x)
     papply_common <- list(slave_cnum         = chrom.numeric,
                           slave_alpha        = alpha,
                           slave_nperm        = nperm,
@@ -323,9 +309,15 @@ pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE,
                           slave_pv_th_merge  = merge.pv.thresh,
                           slave_ansari_sign  = merge.ansari.sign,
                           slave_merge_tmin   = merge.thresMin,
-                          slave_merge_tmax   = merge.thresMax)
+                          slave_merge_tmax   = merge.thresMax,
+                          slave_smooth       = smooth)
        
     papfunc <- function(data) {
+        if(slave_smooth)
+            data <- internalSmoothCNA(data,
+                                      chrom.numeric = slave_cnum,
+                                      smooth.region = 2, outlier.SD.scale = 4,
+                                      smooth.SD.scale = 2, trim = 0.025)
         outseg <-
             internalDNAcopy(data,
                             chrom.numeric = slave_cnum,      
@@ -663,13 +655,19 @@ writeResults.CGH.PSW <- function(obj, acghdata, commondata, file = "PSW.output.t
                 row.names = TRUE, quote = FALSE)
 }
 
-writeResults.CGH.ACE.summary <- function(obj, acghdata, commondata, file = NULL, ...) {
+writeResults.summary.ace <- function(obj, acghdata, commondata, file = NULL, ...) {
+    if(is.null(file)) {
+        file <-  paste("ACE.results.FDR=",
+                       attr(res, "aceFDR.for.output"), ".txt", sep ="")
+    }
     print.adacgh.generic.results(obj, acghdata, commondata, output = file)
 }
 
 writeResults.CGH.wave <- function(obj, acghdata, commondata,
                                   file = "wavelet.output.txt", ...) {
-    print.adacgh.generic.results(obj, acghdata, commondata, output = file)
+    if(inherits(obj, "CGH.wave.merged")) {pals <- TRUE} else {pals <- FALSE}
+    print.adacgh.generic.results(obj, acghdata, commondata, output = file,
+                                 send_to_pals = pals)
 }
 
 writeResults.DNAcopy <- function(obj, acghdata, commondata, 
@@ -685,25 +683,26 @@ writeResults.DNAcopy <- function(obj, acghdata, commondata,
 
 writeResults.CGHseg <- function(obj, acghdata, commondata, 
                                  file = "CGHseg.output.txt", ...) {
-    print.adacgh.cghseg.results(obj, adacghdata,
-                                commondata, output = file)
+    print.adacgh.generic.results(obj, acghdata,
+                                commondata, output = file,
+                                 send_to_pals = FALSE)
 }
 
 writeResults.mergedHMM <- function(obj, acghdata, commondata, 
                                  file = "HMM.output.txt", ...) {
-    print.adacgh.generic.results(obj, adacghdata,
+    print.adacgh.generic.results(obj, acghdata,
                                 commondata, output = file)
 }
 
 writeResults.adacghGLAD <- function(obj, acghdata, commondata, 
                                  file = "GLAD.output.txt", ...) {
-    print.adacgh.generic.results(obj, adacghdata,
+    print.adacgh.generic.results(obj, acghdata,
                                 commondata, output = file)
 }
 
 writeResults.mergedBioHMM <- function(obj, acghdata, commondata, 
                                  file = "BioHMM.output.txt", ...) {
-    print.adacgh.generic.results(obj, adacghdata,
+    print.adacgh.generic.results(obj, acghdata,
                                 commondata, output = file)
 }
 
@@ -711,19 +710,18 @@ print.adacgh.generic.results <- function(res, xcenter,
                                  commondata,
                                  output = "ADaCGH.results.txt",
                                  send_to_pals = TRUE){
-    ## This function "stretches out" the output and creates a table
-    ## that matches the original names, etc.
-    
-    out <- data.frame(ID = commondata$name,
-                      Chromosome = commondata$chromosome,
-                      Start = commondata$start,
-                      End = commondata$end,
-                      MidPoint = commondata$MidPoint)
+
+    out <- data.frame(commondata)
+##     out <- data.frame(ID = commondata$name,
+##                       Chromosome = commondata$chromosome,
+##                       Start = commondata$start,
+##                       End = commondata$end,
+##                       MidPoint = commondata$MidPoint)
 
     for(i in 1:ncol(xcenter)) {
             out <- cbind(out, res$segm[[i]])
     }
-    colnames(out)[6:(ncol(out))] <-
+    colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
         paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
               c(".Original", ".Smoothed", ".Status"),
               sep = "")
@@ -732,8 +730,7 @@ print.adacgh.generic.results <- function(res, xcenter,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)
 
-    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals & !is.null(merged)) {
-      print("Entered the PaLS part in DNA copy")
+    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals) {
         cols.look <- seq(from = 8, to = ncol(out), by = 3)
 
         Ids <- apply(out[, cols.look, drop = FALSE], 2,
@@ -758,17 +755,18 @@ print.adacgh.cghseg.results <- function(res, xcenter,
                                  output = "CGHseg.results.txt"){
     ## This function "stretches out" the output and creates a table
     ## that matches the original names, etc.
-    
-    out <- data.frame(ID = commondata$name,
-                      Chromosome = commondata$chromosome,
-                      Start = commondata$start,
-                      End = commondata$end,
-                      MidPoint = commondata$MidPoint)
+    out <- data.frame(commondata)
+##     out <- data.frame(ID = commondata$name,
+##                       Chromosome = commondata$chromosome,
+##                       Start = commondata$start,
+##                       End = commondata$end,
+##                       MidPoint = commondata$MidPoint)
 
     for(i in 1:ncol(xcenter)) {
-            out <- cbind(out, merged$segm[[i]][, c(1, 2)])
+            out <- cbind(out, res$segm[[i]][, c(1, 2)])
     }
-    colnames(out)[6:(ncol(out))] <-
+    
+    colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
         paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
               c(".Original", ".Smoothed"),
               sep = "")
@@ -1019,6 +1017,45 @@ mpiCBS <- function(wdir = getwd()) {
     mpi.bcast.Robj2slave(wdir)
     mpi.remote.exec(setwd(wdir))
 }
+
+
+internalSmoothCNA <- function(acghdata, chrom.numeric,
+                              smooth.region = 2, outlier.SD.scale = 4,
+                              smooth.SD.scale = 2, trim = 0.025) {
+    ## this is just the original smoothCNA funct. adapted to use
+    ## a single array and to be parallelized and fed to internalDNAcopy
+   chrom <- chrom.numeric
+   uchrom <- unique(chrom)
+   genomdat <- acghdata
+   ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
+   trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
+   outlier.SD <- outlier.SD.scale * trimmed.SD
+   smooth.SD <- smooth.SD.scale * trimmed.SD
+   k <- smooth.region
+   for (i in uchrom) {
+       ina <-
+           which(!is.na(genomdat) & !(abs(genomdat) == Inf) & chrom == i)
+       n <- length(genomdat[ina])
+       smoothed.data <-
+           sapply(1:n,
+                  function(i, x, n, nbhd, oSD, sSD) {
+                      xi <- x[i]
+                      nbhd <- i + nbhd
+                      xnbhd <- x[nbhd[nbhd > 0 & nbhd <= n]]
+                      if (xi > max(xnbhd) + oSD) 
+                          xi <- median(c(xi, xnbhd)) + sSD
+                      if (xi < min(xnbhd) - oSD) 
+                          xi <- median(c(xi, xnbhd)) - sSD
+                      xi
+                  },
+                  genomdat[ina], n, c(-k:-1, 1:k), outlier.SD, smooth.SD)
+       acghdata[ina] <- smoothed.data
+   }
+   acghdata
+}
+
+
+
 
 internalDNAcopy <- function(acghdata,
                             chrom.numeric,
@@ -1566,7 +1603,7 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
         pixels.point <- 3
         chrheight <- 500
         for(cnum in 1:length(chrom.nums)) {
-            cat("\n .... doing chromosome ", cnum)
+##            cat("\n .... doing chromosome ", cnum, ": ")
             indexchr <- which(chrom == chrom.nums[cnum])
             chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
             chrwidth <- max(chrwidth, 800)
@@ -1612,14 +1649,15 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
 ##             correction.factor <- (ccircle[1, lichr] - last.point.pixel.should.be)/lichr
 ##             richr <- (1:lichr) * correction.factor
 ##             ccircle[1, ] <- round(ccircle[1 ,] - richr)
-            write(ccircle, file = "pngCoordChr",
+            nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+            write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
                   sep ="\t", ncolumns = 3)
-            write(as.character(geneNames[indexchr]), file = "geneNamesChr")
+            write(as.character(geneNames[indexchr]),
+                  file = paste("geneNamesChr_", nameChrIm, sep = ""))
             imClose(im2)
             ## call the Python function
-            system(paste(.python.toMap.py,
-                         paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                         idtype, organism, sep = " "))
+            system(paste(.python.toMap.py,  nameChrIm, 
+                 idtype, organism, sep = " "))
             
 
         } ## looping over chromosomes
@@ -2040,7 +2078,8 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
                           State = res$Gain.Loss)
         out$chrom.numeric <- chrom.numeric
         class(out) <- c("adacgh.generic.out", "summary.ace")
-        return(out)
+    attr(out, "aceFDR.for.output") <- aceFDR.for.output
+    return(out)
         ##         class(res) <- c("summary.ACE", "CGH.ACE.summary")
 ## 	rownames(res) <- 1:nrow(res)
 ##         ncr <- ncol(res) - 1
@@ -2134,7 +2173,8 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
         ##         res
        out$chrom.numeric <- chrom.numeric
         class(out) <- c("adacgh.generic.out", "summary.ace")
-        return(out)
+    attr(out, "aceFDR.for.output") <- aceFDR.for.output
+    return(out)
         
         
     }
@@ -3264,7 +3304,7 @@ plot.ace2 <- function(res, chrom,
         im1 <- imagemap3(nameIm, height = imheight,
                          width = imwidth, ps = 12)
     }
-##    browser()
+
     plot(logr ~ simplepos, col= col, ylab = "log ratio",
          xlab ="Chromosome location", axes = FALSE, cex = 0.7, main = main,
          pch = pch, ylim = ylim)
@@ -3311,7 +3351,7 @@ plot.ace2 <- function(res, chrom,
         pixels.point <- 3
         chrheight <- 500
         for(cnum in 1:length(chrom.nums)) {
-            cat(" .... doing chromosome ", cnum, "\n")
+##            cat(" .... doing chromosome ", cnum, "\n")
             indexchr <- which(chrom == chrom.nums[cnum])
             chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
             chrwidth <- max(chrwidth, 800)
@@ -3457,7 +3497,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
     chrheight <- 500
     chrom.nums <- unique(chrom)
     for(cnum in 1:length(chrom.nums)) {
-        cat(" .... doing chromosome ", cnum, "\n")
+##        cat(" .... doing chromosome ", cnum, "\n")
         indexchr <- which(chrom == chrom.nums[cnum])
         chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
         chrwidth <- max(chrwidth, 800)
@@ -3469,14 +3509,12 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
         nfig <- 1
         for(arraynum in arraynums) { ## first, plot the points
 ##            cat(" ........ for points doing arraynum ", arraynum, "\n")
-##            browser()
             logr <- res[[arraynum]][, 2]
             if(length(segment.pos) == 1) {
                 res.dat <- res[[arraynum]][, segment.pos]
                 col <- rep("orange",length(res.dat))
                 col[which(res.dat == -1)] <- "green"
                 col[which(res.dat == 1)] <- "red"
- #               simplepos <- 1:length(res.dat)
             } else {
                 ## first the smoothed mean, then the class
                 res.dat <- res[[arraynum]][, segment.pos[1]]
@@ -3484,9 +3522,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
                 color.code <- res[[arraynum]][, segment.pos[2]]
                 col[which(color.code == -1)] <- "green"
                 col[which(color.code == 1)] <- "red"
-#                simplepos <- 1:length(res.dat)
             }        
-#            segmented <- res.dat * segment.height
             simplepos <- ifelse(is.null(pos), 1:length(res.dat), pos)
             if(nfig == 1) {
                 par(xaxs = "i")
@@ -4144,7 +4180,7 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
         ## of points to work OK
         nfig <- 1
         for(arraynum in arraynums) { ## first, plot the points
-            cat(" ........ for points doing arraynum ", arraynum, "\n")
+##            cat(" ........ for points doing arraynum ", arraynum, "\n")
             logr <- res$data[, 2 + arraynum]
             if(nfig == 1) {
                 par(xaxs = "i")
@@ -4164,7 +4200,7 @@ plot.olshen4 <- function(res, arraynums = 1:numarrays, main = NULL,
             nfig <- nfig + 1
         }
         for(arraynum in arraynums) { ## now, do the segments
-            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
             segmented <-
                 res$output[res$output$ID == colnames(res$data)[2 + arraynum], ]
             
@@ -4582,7 +4618,7 @@ old.plot.wavelets4 <- function(res, xdata, chrom, arraynums = 1:numarrays, main 
         ## of points to work OK
         nfig <- 1
         for(arraynum in arraynums) { ## first, plot the points
-            cat(" ........ for points doing arraynum ", arraynum, "\n")
+##            cat(" ........ for points doing arraynum ", arraynum, "\n")
             logr <- xdata[, arraynum]
             simplepos <- 1:length(logr)
             if(nfig == 1) {
@@ -4603,7 +4639,7 @@ old.plot.wavelets4 <- function(res, xdata, chrom, arraynums = 1:numarrays, main 
             nfig <- nfig + 1
         }
         for(arraynum in arraynums) { ## now, do the segments
-            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
             segmented <- res$Predicted[indexchr, arraynum]
             lines(segmented ~ simplepos[indexchr], col = "black", lwd = 2, type = "l")
         }

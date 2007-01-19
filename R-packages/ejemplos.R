@@ -330,7 +330,19 @@ psw.neg.out <- pSegmentPSW(cghMCRe[, 5:7], chrom.numeric, sign = -1)
 biohmm.out <- pSegmentBioHMM(cghMCRe[, 5:7], chrom.numeric, MidPoint)
 
 
-############# Plots
+
+
+
+
+
+
+
+
+
+
+
+
+############# Plots and priting.
 
 setwd("/tmp/o3") ## all slaves need a common dir to read and write.
 mpiInit()
@@ -357,8 +369,11 @@ cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric)
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, merge = FALSE)
+
 cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
 cbs.nm.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE)
+cbs.nm.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE,
+                                 smooth = FALSE)
 
 psw.pos.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = 1)
 psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1)
@@ -413,13 +428,13 @@ segmentPlot(cbs.out,
             idtype = "ug",
             organism = "Hs")
 
-
-segmentPlot(cbs.nm.out,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
-            idtype = "ug",
-            organism = "Hs")
+### Te following will fail, because it is now deprecated
+## segmentPlot(cbs.nm.out,
+##             geneNames = cghE1[, 1],
+##             chrom.numeric = chrom.numeric,
+##             cghdata = cghE1[, 5:7],
+##             idtype = "ug",
+##             organism = "Hs")
 
 segmentPlot(psw.pos.out,
             geneNames = cghE1[, 1],
@@ -428,7 +443,7 @@ segmentPlot(psw.pos.out,
             idtype = "ug",
             organism = "Hs")
 
-segmentPlot(pws.neg.out,
+segmentPlot(psw.neg.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
@@ -440,13 +455,13 @@ segmentPlot(pws.neg.out,
 segmentPlot(biohmm.out, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
-            cghdata = cghE1[, 5:7],
+            cghdata = cghE1[, 5:6],
             idtype = "ug",
             organism = "Hs")
 
+## need to choose fdr
 
-## can choose fdr
-ace.out.sum <- summary(ace.out)
+ce.out.sum <- summary(ace.out)
 segmentPlot(ace.out.sum, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
@@ -454,3 +469,20 @@ segmentPlot(ace.out.sum,
             idtype = "ug",
             organism = "Hs")
 
+
+
+
+
+#### Writing
+common <- cghE1[, -c(5:7)]
+
+writeResults(hmm.out, cghE1[, 5:7], common)
+writeResults(glad.out, cghE1[, 5:7], common)        
+writeResults(cghseg.out, cghE1[, 5:7], common)   
+writeResults(ace.out, cghE1[, 5:7], common)
+writeResults(wave.out, cghE1[, 5:7], common)
+writeResults(wave.nm.out, cghE1[, 5:7], common)
+writeResults(cbs.out, cghE1[, 5:7], common)
+writeResults(psw.pos.out, cghE1[, 5:7], common)
+writeResults(psw.neg.out, cghE1[, 5:7], common)
+writeResults(biohmm.out, cghE1[, 5:6], common)

@@ -3,7 +3,7 @@
 
 
 ################
-setwd("/tmp")
+setwd("/tmp/o3")
 mpiInit()
 data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
@@ -445,7 +445,7 @@ segmentPlot(biohmm.out,
             organism = "Hs")
 
 
-## need to choose fdr
+## can choose fdr
 ace.out.sum <- summary(ace.out)
 segmentPlot(ace.out.sum, 
             geneNames = cghE1[, 1],

@@ -357,7 +357,7 @@ pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE,
     outl <- list()
     outl$segm <- papout
     outl$chrom.numeric <- chrom.numeric
-    class(outl) <- "CGHseg"
+    class(outl) <- "DNAcopy"
     if(merge) class(outl) <- c(class(outl), "adacgh.generic.out")
     return(outl)
 }
@@ -400,7 +400,8 @@ segmentPlot <- function(x, geneNames,
             original.pos <- 1
             segment.pos <- 2
         }
-        if (inherits(x, "CGH.wave") & !inherits(x, "CGH.wave.merged")){
+        if (inherits(x, "CGHseg") |
+            (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged")))){
             colors <- c(rep("orange", 3), "blue")
         } else {
             colors <- c("orange", "red", "green", "blue")
@@ -2433,7 +2434,7 @@ plot.adacgh.superimp <- function(res, chrom, main,  colors, ylim, geneNames,
 
 
 
-plot.cw.superimp <-    function(res, chrom, 
+plot.cw.superimp <- function(res, chrom, 
                                 main = "All_arrays",
                                 colors = c("orange", "red", "green", "blue"),
                                 ylim =NULL, 
@@ -2457,7 +2458,7 @@ plot.cw.superimp <-    function(res, chrom,
         
         nfig <- 1
         for(arraynum in 1:arraynums) { ## first, plot the points
-            cat(" ........ for points doing arraynum ", arraynum, "\n")
+##            cat(" ........ for points doing arraynum ", arraynum, "\n")
 
             logr <- res[[arraynum]][, 1]
             res.dat <- res[[arraynum]][, 3]
@@ -2479,7 +2480,7 @@ plot.cw.superimp <-    function(res, chrom,
             points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
                    cex = 1, pch = 20)
             
-            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
             lines(smoothdat[indexchr] ~ simplepos[indexchr],
                   col = "black", lwd = 2, type = "l")
     
@@ -2498,7 +2499,12 @@ mapCloseAndPythonChrom <- function() {
     nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
     write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
           sep ="\t", ncolumns = 3)
-    write(as.character(geneNames[indexchr]),
+    calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
+    if(!exists("arraynums")) arraynums <- 1
+    if(calcnarrays != arraynums)
+        stop("Serious problem: number of arrays does not match")
+    
+    write(rep(as.character(geneNames[indexchr]), arraynums), 
           file = paste("geneNamesChr_", nameChrIm, sep = ""))
     imClose(im2)
     system(paste(.python.toMap.py, nameChrIm, 
@@ -2526,8 +2532,7 @@ pngCircleRegion <- function() {
         xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
         r <- abs(xyrc[2, 1] - xyrc[3, 1])
         return(c(xyrc[1, 1], xyrc[1, 2], r))
-    } ## no, do not do cbind!!
-    browser()
+    } 
     ccircle <- cbind(ccircle,
                      mapply(usr2pngCircle, simplepos[indexchr],
                             logr[indexchr]))
@@ -2536,7 +2541,7 @@ pngCircleRegion <- function() {
 
 
 mapChromOpen <- function() {
-    cat(" .... doing chromosome ", cnum, "\n")
+##    cat(" .... doing chromosome ", cnum, "\n")
     nameIm <- main
     pixels.point <- 3
     chrheight <- 500
@@ -3463,7 +3468,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
         ## of points to work OK
         nfig <- 1
         for(arraynum in arraynums) { ## first, plot the points
-            cat(" ........ for points doing arraynum ", arraynum, "\n")
+##            cat(" ........ for points doing arraynum ", arraynum, "\n")
 ##            browser()
             logr <- res[[arraynum]][, 2]
             if(length(segment.pos) == 1) {
@@ -3501,7 +3506,7 @@ plot.ace4 <- function(res, chrom, arraynums = 1:numarrays,
             nfig <- nfig + 1
         }
         for(arraynum in arraynums) { ## now, do the segments
-            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
             res.dat <- res[[arraynum]][indexchr, 3]
             segmented <- res.dat * segment.height
             lines(segmented ~ simplepos[indexchr], col = "black", lwd = 2, type = "l")

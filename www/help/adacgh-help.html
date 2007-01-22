@@ -133,12 +133,13 @@ rdf:resource="http://web.resource.org/cc/ShareAlike"
 
 <h2><a name="intro">Introduction and purpose</a></h2>
 
-<p>ADaCGH is a web-based tool for the analysis of aCGH data. 
-We focus on the problems of calling gains and losses and the
-estimation of the number of copy changes. We have implemented several
-methods, some of which have been lately shown in the literature to
-work relatively well or are methods with which we have had some
-previous positive experiences.
+<p>ADaCGH is a web-based tool for the analysis of aCGH data.  We focus on
+the problems of calling gains and losses and the estimation of the number
+of copy changes.  We include <b>all</b> the methods that have been shown
+in recent reviews (<cite>Willenbrock and Fridlyand, 2005</cite>; <cite>Lai
+et al., 2005</cite>) to be the best performers or among the best
+performers, as well as some methods with which we have had some previous
+positive experiences.
 </p>
 
 <p>Most of the methods implemented have their very own ways of
@@ -148,18 +149,21 @@ previous positive experiences.
   plots" are included for the binary segmentation method).</p>
 
 
-
-
-<p><a name="beta1">Please note that this is an <b>early beta
-    version</b> </a>of the application. Comments, suggestions, ideas
-    of possible enhancements, etc, will be most welcome. We are
-    currently working on adding other algorithms, improving the look
-    of the output, speeding up the computations and improving the
-    user-friendliness of the output. In particular, as this
-    application returns (and depends on) graphics heavily, you might
-    notice that it is slow to return the results to you.</p>
-
-
+<p>Many of the methods have a variety of paremetrs. For the web-based
+application, we have tried to simplify as much as possible, setting most
+parameters to their default values, for several reasons. First, the
+comparative analysis of performance often use the default parameters, so
+any assertion such as "method X works well" really means "method X with
+its default parameters works well". Second, after over a year of
+operation, we've found most users do not change the default values
+we provide, but tend to find it confussing to face so many choices. Third,
+the interpreation of these default parameters is either difficult, or
+completely abstract, requiring a good understanding of the statistical
+basis of the method (i.e., precludes playing casually with
+parameters). Fourth, if you really want to play with parameters (maybe for
+research), all of our code is freely available. There, you can set
+parameters and modify settings as you please, in a fully programmable
+way.</p>
 
 
 <h2><a name="methods">Methods</a></h2>
@@ -234,50 +238,67 @@ centering will often be very small.</p>
   This method is described in detail in <cite>Olshen et al.,
   2004</cite> and <cite>Lucito et al. 2003</cite>.
 
-<p>Details on the meaning of the parameters can be found in the
-  original references. The following are copied verbatim from the help
-  for
-  the <a
-  href="http://www.bioconductor.org/packages/bioc/1.7/src/contrib/html/DNAcopy.html">DNAcopy</a>
-  package.</p>
+
+<p><a name="merge">Following the reslts in <cite>Willenbrock and Fridlyand (2005)</cite>
+as well as recent applied publications with Fridlyand and Olshen as
+coauthors, we use CBS with the mergeLevels algorithm. This can reduce the
+number of final "states" returned, and provides a way to map from segments
+to "loss/gain/no-change" states.</a> We use the  mergeLevels
+algorithm is implemented in the bioconductor package aCGH, maintained by
+J. Fridlyand. We have post-processed the mergeLevels output a little bit,
+so that the output has only three levels, -1, 0, 1, that you might want to
+map into "loss", "no change", and "gain". Note that we have made the
+assumption, in this mapping, that the "no change" class is the one that
+has the absolute value closest to zero, and any other classes are either
+gains or losses. When the data are normalized, the "no change" class
+should be the most common one.</p>
 
 
-<h4>Smoothing parameters</h4>
-<ul>
-<li>Smooth region: number of points to consider on the left and the right
-          of a point to detect it as an outlier.</li>
 
-<li>Outlier SD scale: the number of SDs away from the nearest point in the
-          smoothing region to call a point an outlier.</li>
+<!-- <p>Details on the meaning of the parameters can be found in the -->
+<!--   original references. The following are copied verbatim from the help -->
+<!--   for -->
+<!--   the <a -->
+<!--   href="http://www.bioconductor.org/packages/bioc/1.7/src/contrib/html/DNAcopy.html">DNAcopy</a> -->
+<!--   package.</p> -->
 
-<li>Smooth SD scale: the number of SDs from the median in the smoothing
-          region where a smoothed point is positioned.</li>
 
-<li>trim: proportion of data to be trimmed for variance calculation for
-          smoothing outliers and undoing splits based on SD.</li>
-</ul>
+<!-- <h4>Smoothing parameters</h4> -->
+<!-- <ul> -->
+<!-- <li>Smooth region: number of points to consider on the left and the right -->
+<!--           of a point to detect it as an outlier.</li> -->
 
-<h4>Segmentation parameters</h4>
+<!-- <li>Outlier SD scale: the number of SDs away from the nearest point in the -->
+<!--           smoothing region to call a point an outlier.</li> -->
 
-<ul>
-<li>alpha: significance levels for the test to accept change-points.</li>
+<!-- <li>Smooth SD scale: the number of SDs from the median in the smoothing -->
+<!--           region where a smoothed point is positioned.</li> -->
 
-<li>Number permutations: number of permutations used for p-value
-  computation.</li>
+<!-- <li>trim: proportion of data to be trimmed for variance calculation for -->
+<!--           smoothing outliers and undoing splits based on SD.</li> -->
+<!-- </ul> -->
 
-<li>Max. width. smaller for perm. (kmax): the maximum width of smaller segment for permutation in the
-          hybrid method.</li>
-<li>Min length. hybbrid approx.(nmin): the minimum length of data for which the approximation of
-          maximum statistic is used under the hybrid method.</li>
-<li> overlap: proportion of data that overlap for adjacent windows.</li>
+<!-- <h4>Segmentation parameters</h4> -->
 
-<li>undo.prune: the proportional increase in sum of squares allowed when
-          eliminating splits if undo.splits="prune".</li>
-</ul>
+<!-- <ul> -->
+<!-- <li>alpha: significance levels for the test to accept change-points.</li> -->
 
-<p>(Please note that we set as, undoing splits method, the "prune"
-  method and, as p.method, the "hybrid" method with a kmax and nmi of
-  25 and 200, respectively, as in the defaults.)</p>
+<!-- <li>Number permutations: number of permutations used for p-value -->
+<!--   computation.</li> -->
+
+<!-- <li>Max. width. smaller for perm. (kmax): the maximum width of smaller segment for permutation in the -->
+<!--           hybrid method.</li> -->
+<!-- <li>Min length. hybbrid approx.(nmin): the minimum length of data for which the approximation of -->
+<!--           maximum statistic is used under the hybrid method.</li> -->
+<!-- <li> overlap: proportion of data that overlap for adjacent windows.</li> -->
+
+<!-- <li>undo.prune: the proportional increase in sum of squares allowed when -->
+<!--           eliminating splits if undo.splits="prune".</li> -->
+<!-- </ul> -->
+
+<!-- <p>(Please note that we set as, undoing splits method, the "prune" -->
+<!--   method and, as p.method, the "hybrid" method with a kmax and nmi of -->
+<!--   25 and 200, respectively, as in the defaults.)</p> -->
 
 
 <h4><a name="mergeLevels">Use mergeLevels algorithm for figures?</a> (<FONT COLOR="red">New!!</FONT>)</h4>

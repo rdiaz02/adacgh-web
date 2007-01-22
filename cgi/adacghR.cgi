@@ -306,43 +306,44 @@ if tmp1 >= tmp2:
 
 
 methodaCGH = radioUpload('methodaCGH', acceptedMethodaCGH)
-if methodaCGH == 'CBS':
-    tmp = valueNumUpload('DNA.smooth.region', 'int', 1, 'Smooth Region')
-    tmp = valueNumUpload('DNA.outlier.SD.scale', 'float', 0.000001, 'Outlier sd scale')
-    tmp = valueNumUpload('DNA.smooth.SD.scale', 'float', 0.000001, 'Smooth sd scale')
-    tmp = valueNumUpload('DNA.trim', 'float', 0.0001, 'Trim')
-    if tmp > 0.99999:
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"
-        print "<p> Trim must be smaller than 1 </p>"
-        print "</body></html>"
-        sys.exit()        
-    tmp = valueNumUpload('DNA.copy.alpha', 'float', 0.0001, 'alpha')
-    if tmp > 0.99999:
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"
-        print "<p> Alpha must be between 0.0001 and 1 </p>"
-        print "</body></html>"
-        sys.exit()
-    tmp = valueNumUpload('DNA.nperm', 'int', 10, 'Number permutations')
-    tmp = valueNumUpload('DNA.overlap', 'float', 0, 'Overlap')
-    if tmp > 0.99999:
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"
-        print "<p> Overlap must be between 0 and 1 </p>"
-        print "</body></html>"
-        sys.exit()
-    tmp = valueNumUpload('DNA.undo.prune', 'float', 0, 'Undo prune')
-    tmp = valueNumUpload('DNA.nmin', 'float', 0, 'Min length. hybrid. approx.')
-    tmp = valueNumUpload('DNA.kmax', 'float', 0, 'Max. width. smaller for perm')
-    tmp = radioUpload('DNA.merge', ('Yes','No'))
+# if methodaCGH == 'CBS':
+#     tmp = valueNumUpload('DNA.smooth.region', 'int', 1, 'Smooth Region')
+#     tmp = valueNumUpload('DNA.outlier.SD.scale', 'float', 0.000001, 'Outlier sd scale')
+#     tmp = valueNumUpload('DNA.smooth.SD.scale', 'float', 0.000001, 'Smooth sd scale')
+#     tmp = valueNumUpload('DNA.trim', 'float', 0.0001, 'Trim')
+#     if tmp > 0.99999:
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"
+#         print "<p> Trim must be smaller than 1 </p>"
+#         print "</body></html>"
+#         sys.exit()        
+#     tmp = valueNumUpload('DNA.copy.alpha', 'float', 0.0001, 'alpha')
+#     if tmp > 0.99999:
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"
+#         print "<p> Alpha must be between 0.0001 and 1 </p>"
+#         print "</body></html>"
+#         sys.exit()
+#     tmp = valueNumUpload('DNA.nperm', 'int', 10, 'Number permutations')
+#     tmp = valueNumUpload('DNA.overlap', 'float', 0, 'Overlap')
+#     if tmp > 0.99999:
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"
+#         print "<p> Overlap must be between 0 and 1 </p>"
+#         print "</body></html>"
+#         sys.exit()
+#     tmp = valueNumUpload('DNA.undo.prune', 'float', 0, 'Undo prune')
+#     tmp = valueNumUpload('DNA.nmin', 'float', 0, 'Min length. hybrid. approx.')
+#     tmp = valueNumUpload('DNA.kmax', 'float', 0, 'Max. width. smaller for perm')
+#     tmp = radioUpload('DNA.merge', ('Yes','No'))
 if methodaCGH == 'WS':
     tmp = valueNumUpload('Wave.minDiff', 'float', 0)
+    tmp = radioUpload('Wave.merge', ('Yes','No'))
 if methodaCGH == 'ACE':
     tmp = valueNumUpload('ACE.fdr', 'float', 0)
 if methodaCGH == 'PSW':
     tmp = valueNumUpload('PSW.nIter', 'int', 10)
-    tmp = valueNumUpload('PSW.prec', 'int', 10)
+#     tmp = valueNumUpload('PSW.prec', 'int', 10)
     tmp = valueNumUpload('PSW.p.crit', 'float', 0)
 centering = radioUpload('centering', acceptedMethodCentering)
 twofiles = radioUpload('twofiles', ('Two.files', 'One.file'))

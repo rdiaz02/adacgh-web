@@ -124,27 +124,6 @@ genes/clones to positions in chromosomes.</p>
 </tr>
 
 
-
-<!-- cambiar hrs <hr size=12 noshade="noshade"> -->
-
-
-
-<!-- <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"> -->
-<!-- A tab-separated text file with the aCGH data. In this file, rows -->
-<!--     represent variables (generally genes), and columns represent -->
-<!--     subjects, or samples, or arrays. If you want to -->
-<!--     <b>name your arrays</b> place a line that starts with "&#035;", -->
-<!--     after the "&#035;" put "Name" or "NAME" or "name" and write the -->
-<!--     array names (separated by tabs) (but leave no space between -->
-<!--     "&#035;" and "name" or whatever; thus, write "&#035;name", NOT -->
-<!--     "&#035; name").  The <b>first column</b> is -->
-<!--     assumed to contain the ID information for genes, marker, or -->
-<!--     whatever. This column need not be the same as the first column of -->
-<!--     the coordinate or position information file. For further details -->
-<!--     see the -->
-<!-- <a href="./help/adacgh-help.html#input" -->
-<!--    target="help_window">help</a>. Missing values might be allowed, -->
-<!--    but are not recommended.</p> -->
 <tr><td>
 <b>Coordinate/position information file:</b>   
 </td>
@@ -152,18 +131,6 @@ genes/clones to positions in chromosomes.</p>
 <input type="FILE" name="positionInfo" size = "40" maxlength = "150"> 
 </td></tr>
 </table>
-<!-- <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"> -->
-<!-- A tab-separated text file with the coordinate or mapping -->
-<!-- information. The number of rows in this file must be identical to the -->
-<!-- number of rows in the file above. If there is no coordinate -->
-<!-- information for a given clone/gene, its row will be empty (or filled -->
-<!-- with NA). The file must contain, in this exact order:Name of clone, -->
-<!-- Chromosome, Start, End. Please note that <b>we will not check that the columns you use are in -->
-<!--   the right order or use reasonable names</b>. If you use any column -->
-<!-- names, use a "#" as the first character of the first column in the row -->
-<!-- of names. You can use our -->
-<!-- tool <a href="http://idconverter.bioinfo.cnio.es">IDconverter</a> to obtain -->
-<!-- coordinate information for a variety of types of identifiers.</p> -->
 
 <hr>
 
@@ -176,21 +143,6 @@ names, next three columns are coordinates.)<br>
 <b>Genomic data + coordinate information file:</b>   
 <input type="FILE" name="acghAndPosition" size = "40" maxlength ="200"> 
 
-<!-- <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"> -->
-<!-- A tab-separated text file with the aCGH data + coordinate data. The -->
-<!-- file must contain, in this exact order:Name of clone, Chromosome, -->
-<!-- Start, End. After that, all the columns with aCGH data. If for a given -->
-<!-- clone/gene there is no position information, the entries for Start -->
-<!-- and/or End and/or Chromosome will be empty (or have an "NA"). Please -->
-<!-- note that <b>we will not check that the columns you use are in the -->
-<!-- right order: all column names for the first four columns will be discarded.</b>. -->
-<!-- For further details -->
-<!--     see the -->
-<!-- <a href="./help/adacgh-help.html#input" -->
-<!--    target="help_window">help</a>. Missing values for the aCGH data might be allowed, -->
-<!--    but are not recommended. You can use our -->
-<!-- tool <a href="http://idconverter.bioinfo.cnio.es">IDconverter</a> to obtain -->
-<!-- coordinate information for a variety of types of identifiers.</p> -->
 
 <hr size=12 noshade="noshade">
 
@@ -216,86 +168,44 @@ interpretation. See further details in the <a href="./help/adacgh-help.html#cent
 
 <p>
 <input type="RADIO" name="methodaCGH" checked value="CBS">
-<FONT COLOR="#CC00FF" SIZE=+1><b>CBS</b></FONT>: Olshen & Venkatraman's circular binary
-    segmentation (CBS).<br>
-
-<table>
-<tr align=top>
-<td align=top>
-<b>Smoothing parameters</b>
-<table align=top>
-  <tr><td width="100"></td><td width="240">Smooth region</td>
-  <td><input type="TEXT" name="DNA.smooth.region" value="2" size="5"
-    maxlength="5"></td></tr>
-
-<tr><td width="100"></td><td width="240"> Outlier sd scale</td><td> 
-<input type="TEXT" name="DNA.outlier.SD.scale" value="4" size="5" maxlength="5"> </td></tr>
-
-<tr><td width="100"></td><td width="240">Smooth sd scale</td><td>
-<input type="TEXT" name="DNA.smooth.SD.scale" value="2"
-  size="5" maxlength="5"></td></tr>
-
-<tr><td width="100"></td><td width="240">Trim</td>
-  <td><input type="TEXT" name="DNA.trim" value="0.025" size="5"
-    maxlength="5"></td></tr>
-<tr><td
-       width="100"></td>
-  <td width="240"> </td>
-  <td> </td></tr>
-  <tr><td width="100"></td>
-    <td width="240"> </td><td> </td></tr>
-</table>
-</td>
-<td>
-<b>Segmentation parameters</b>
-<table>
-<tr><td width="100"></td><td width="240">alpha</td>
-  <td><input type="TEXT" name="DNA.copy.alpha" value="0.01" size="5"
-    maxlength="5"></td></tr>
-
-<tr><td width="100"></td><td width="240">Number permutations</td>
-  <td><input type="TEXT" name="DNA.nperm" value="10000" size="5"
-    maxlength="5"></td></tr>
-
-<tr><td width="100"></td><td width="240">Max. width. smaller for perm.</td>
-  <td><input type="TEXT" name="DNA.kmax" value="25" size="5"
-    maxlength="5"></td></tr>
-
-<tr><td width="100"></td><td width="240">Min length. hybbrid approx.</td>
-  <td><input type="TEXT" name="DNA.nmin" value="200" size="5"
-    maxlength="5"></td></tr>
-
-<tr><td width="100"></td><td width="240">Overlap</td>
-  <td><input type="TEXT" name="DNA.overlap" value="0.25" size="5"2
-    maxlength="5"></td></tr>
-
-<tr><td width="100"></td><td width="240">Undo prune</td>
-  <td><input type="TEXT" name="DNA.undo.prune" value="0.05" size="5"
-    maxlength="5"></td></tr>
-
-<!-- <tr><td width="100"></td><td width="240">Overlap</td> -->
-<!--   <td><input type="TEXT" name="DNA.overlap" value="0.25" size="5" -->
-<!--     maxlength="5"></td></tr> -->
-</table>
-
-</td></tr></table>
-
-<b>Use mergeLevels algorithm for figures?</b> (<a
-href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</FONT>)
-<input type="RADIO" name="DNA.merge" checked value="Yes"> Yes
-<input type="RADIO" name="DNA.merge" value="No"> No
-
-
-
-
-
-<p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size:
-	  9pt">For details about the parameters see the <a href="./help/adacgh-help.html#CBS"
-   target="help_window">help</a> and original references.</p>
-
-
+<FONT COLOR="#CC00FF" SIZE=+1><b>CBS</b></FONT>: Olshen & Venkatraman's
+    circular binary segmentation (CBS) (BioC package DNAcopy).<br>
 <hr>
 <br />
+
+
+<p>
+<input type="RADIO" name="methodaCGH" checked value="HMM">
+<FONT COLOR="#CC00FF" SIZE=+1><b>HMM</b></FONT>: Fridlyand et al.'s
+    homogeneous Hidden Markov Model (HMM).<br>
+<hr>
+<br />
+
+
+<p>
+<input type="RADIO" name="methodaCGH" checked value="BioHMM">
+<FONT COLOR="#CC00FF" SIZE=+1><b>CBS</b></FONT>: Marioni et al.'s
+    non-homogeneous HMM. <b>This is the only method that incorporates
+    distance between probes</b><br>
+<hr>
+<br />
+
+
+<p>
+<input type="RADIO" name="methodaCGH" checked value="CGHseg">
+<FONT COLOR="#CC00FF" SIZE=+1><b>CGHseg</b></FONT>: Piccard et al.'s
+    CGHseg (zz).<br>
+<hr>
+<br />
+
+
+<p>
+<input type="RADIO" name="methodaCGH" checked value="GLAD">
+<FONT COLOR="#CC00FF" SIZE=+1><b>GLAD</b></FONT>: Huppé et al.'s Gain and
+    Loss Analysis of DNA (GLAD).<br>
+<hr>
+<br />
+
 <input type="RADIO" name="methodaCGH" value="WS">
 <FONT COLOR="#CC00FF" SIZE=+1><b>Wavelet smoothing (WS)</b></FONT>: Hsu et
     al.'s wavelet-based smoothing.<br>
@@ -304,6 +214,11 @@ href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>
   <td><input type="TEXT" name="Wave.minDiff" value="0.25" size="5"
     maxlength="5"></td></tr>
 </table>
+
+<b>Use mergeLevels algorithm?</b> (<a
+href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</FONT>)
+<input type="RADIO" name="Wave.merge" checked value="Yes"> Yes
+<input type="RADIO" name="Wave.merge" value="No"> No
 
 <hr>
 <br />
@@ -320,15 +235,15 @@ href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>
     maxlength="5"></td></tr>
 </table>
 </td>
-<td width="40"></td>
-<td>
-<b>Robustness calculation</b>
-<table>
-<tr><td width="200">Precision</td>
-  <td><input type="TEXT" name="PSW.prec" value="100" size="5"
-    maxlength="5"></td></tr>
-</table>
-</td>
+<!-- <td width="40"></td> -->
+<!-- <td> -->
+<!-- <b>Robustness calculation</b> -->
+<!-- <table> -->
+<!-- <tr><td width="200">Precision</td> -->
+<!--   <td><input type="TEXT" name="PSW.prec" value="100" size="5" -->
+<!--     maxlength="5"></td></tr> -->
+<!-- </table> -->
+<!-- </td> -->
 <td width="40"></td>
 <td>
 <b>Plotting</b>
@@ -348,6 +263,13 @@ href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>
   <td><input type="TEXT" name="ACE.fdr" value="0.15" size="10"
     maxlength="10"></td></tr>
 </table>
+
+
+
+
+
+
+
 
 <hr/ >
 <h2>Minimal common regions (<a

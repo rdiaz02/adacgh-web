@@ -21,9 +21,59 @@ import cgitb
 cgitb.enable() ## zz: eliminar for real work?
 sys.stderr = sys.stdout ## eliminar?
 
-R_MAX_time = 12 * 3600 ## 4 hours is max duration allowd for any process
+R_MAX_time = 12 * 3600 ## 12 hours is max duration allowd for any process
 
 ## For redirections, from Python Cookbook
+
+
+
+
+def results_print_general(method):
+    outf.write('<h2>Segmented data plots <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+    thumb(tmpDir, open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t'),
+          outf, maxsthumb = 350)
+    thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
+    outf.write('<p>Smoothed values for all genes/clones are available from file' +
+               ' <a href="./CBS.results.txt">"CBS.results.txt".</a></p>')
+    outf.write('<br />')
+    merge = open(tmpDir + '/DNA.merge', mode = 'r').readline()
+    if merge == "Yes":
+        outf.write('<h2>Plateau plots <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+        outf.write('Plateau plots are not available (do not make sense) with merge levels.\n')
+    else:
+        outf.write('<h2>Plateau plots <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+        pdf2html('CBS.plateau.plots', tmpDir, outf, allResults, 150)
+    outf.write('<br />')
+    if os.path.exists(tmpDir + "/mcr.results.html"):
+        outf.write('<h2>Minimal common regions</h2>\n')
+        outf.write(open(tmpDir + "/mcr.results.html").read())
+    outf.write('<br />')
+    if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
+    if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')
+    if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
+    #if os.path.exists(tmpDir + '/.RData'): os.remove(tmpDir + '/.RData')
+    allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
+    os.chdir(tmpDir)
+    ll1 = glob.glob('*.log')
+    for dname in ll1:
+        os.remove(dname)
+    lll = glob.glob('*')
+    for flname in lll:
+        try: allResults.add(flname)
+        except: None
+    allResults.close()
+    outf.write('<hr> <a href="http://adacgh.bioinfo.cnio.es/tmp/' +
+               newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
+
+    if(open('DNA.merge').read().strip() == 'Yes'):
+        outf.write(printPalsURLADaCGH(newDir))
+
+    outf.write("</body></html>")
+    outf.close()
+    Rresults.close()
+    shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
+
+
 
 
 def printPalsURLADaCGH(newDir, application_url = "http://adacgh.bioinfo.cnio.es"):

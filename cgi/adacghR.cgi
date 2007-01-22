@@ -45,7 +45,7 @@ MAX_covariate_size = 363948523L ## a 500 * 40000 array of floats
 ##                  paste(LETTERS, collapse="")), 1000)
 ## so each of 1000 labels has 48 chars.
 
-acceptedMethodaCGH = ('WS', 'PSW', 'CBS', 'ACE', 'GLAD')
+acceptedMethodaCGH = ('WS', 'PSW', 'CBS', 'ACE', 'GLAD', 'HMM', 'BioHMM', 'CGHseg')
 acceptedMethodCentering = ('Median', 'Mean', 'None')
 acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')
 acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')

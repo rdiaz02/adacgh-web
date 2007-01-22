@@ -844,9 +844,8 @@ hmmWrapper <- function(logratio, Chrom, Pos = NULL) {
                                        kb = Pos))
     res <- find.hmm.states(obj.aCGH)
     hmm(obj.aCGH) <- res
-
     out <- ourMerge(obj.aCGH$hmm$states.hmm[[1]][, 8],
-                      obj.aCGH$hmm$states.hmm[[1]][, 6])
+                      obj.aCGH$hmm$states.hmm[[1]][, 6]) 
     return(out)
 }
 
@@ -2653,6 +2652,76 @@ mapLinkChrom <- function() {
 }
 
 
+
+constructSegmObj <- function(x, chrom.numeric, data) {
+    ## x: our generic output object
+
+    l1 <- list()
+    l1$data <- data.frame(chrom = chrom.numeric,
+                          maploc = 1:nrow(data),
+                          data)
+    l1$output <- list()
+    cuniq <- unique(chrom.numeric)
+    for(i in 1:length(x)) { ## over arrays
+        running.start <- 0
+        z <- x[[i]][, 2]
+        for(chr in cuniq) {
+
+            y <- z[chrom.numeric == chr]
+            nelem <- length(y)
+            poschange <- which(diff(c(NA, y)) != 0)
+            this.start <- c(1, poschange)
+            this.end <- c(poschange - 1, nelem)
+            l1$output$ID <- c(l1$output$ID,
+                rep(colnames(data)[i], length(this.start)))
+            l1$output$chrom <- c(l1$output$chrom, rep(chr, length(this.start)))
+            l1$output$loc.start <- c(l1$output$loc.start,
+                                     this.start + running.start)
+            l1$output$loc.end <- c(l1$output$loc.end,
+                                   this.end + running.start)
+            l1$output$seg.mean <- c(l1$output$seg.mean,
+                                    y[this.start])
+            
+            running.start <- running.start + nelem
+        }
+    }
+    l1$output <- as.data.frame(l1$output)
+    return(l1)
+}
+
+
+
+doMCR <- function(x, chrom.numeric, data,
+                  MCR.gapAllowed = 500,
+                  MCR.alteredLow = 0.03,
+                  MCR.alteredHigh = 0.97,
+                  MCR.recurrence = 75) {
+    res <- constructSegmObj(x, chrom.numeric, data)
+    cghmcr <- cghMCR(res,
+                     gapAllowed = MCR.gapAllowed,
+                     alteredLow = MCR.alteredLow,
+                     alteredHigh = MCR.alteredHigh,
+                     recurrence = MCR.recurrence)
+    mcrs <- MCR(cghmcr)
+    tryms <- try(
+                 msamples <- sapply(mcrs[, 9],
+                                    function(x) length(unlist(strsplit(x, ","))))
+                 )
+    if(class
+    
+    mcrselect <- which(msamples > 1)
+    mcrs <- mcrs[mcrselect, ,drop = FALSE]
+    mcrsc <- data.frame(chromosome = mcrs[, 1],
+                        samples = mcrs[, 9],
+                        mcr.start  = as.numeric(mcrs[, 7]),
+                        mcr.end  = as.numeric(mcrs[, 8]))
+    mcrsc <- mcrsc[ order(as.numeric(as.character(mcrsc$chromosome)),
+                          mcrsc$mcr.start, mcrsc$mcr.end), ]
+    return(mcrsc)
+}
+
+
+    
 
 
 ##########################################################################
@@ -4815,3 +4884,4 @@ seginfo.obj <- function(obs, smoothed, state, chr) {
     out$state <- matrix(state, ncol = 1)
     return(out)
 }
+

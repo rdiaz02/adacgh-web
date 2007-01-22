@@ -484,3 +484,111 @@ writeResults(cbs.out, cghE1[, 5:7], common)
 writeResults(psw.pos.out, cghE1[, 5:7], common)
 writeResults(psw.neg.out, cghE1[, 5:7], common)
 writeResults(biohmm.out, cghE1[, 5:6], common)
+
+
+
+### verify constructSegmOut works:
+
+data(cghMCRe)
+common <- cghMCRe[, -c(5:7)]
+common$MidPoint <- common$Start + 0.5 * (common$End - common$Start)
+colnames(common)[1] <- "ID"
+chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
+chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
+chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+reorder <- order(chrom.numeric,
+                 common$MidPoint,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
+CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
+                  chrom = chrom.numeric,
+                  maploc = 1:nrow(cghMCRe),
+                  data.type = "logratio",
+                  sampleid = colnames(cghMCRe[, 5:7]))
+smoothed.CNA.object <- smooth.CNA(CNA.object)
+
+out.merge <- pSegmentDNAcopy(cghMCRe[, 5:7], chrom.numeric = chrom.numeric)
+out1 <- pSegmentDNAcopy(cghMCRe[, 5:7], merge = FALSE, nperm = 10000,
+                        chrom.numeric = chrom.numeric)
+
+## Yes, tilingArray has an identically named function, but DNAcopy does
+## not have a namespace. Problems would be caught by different params.
+
+out.original <- segment(smoothed.CNA.object, nperm = 10000,
+                        undo.splits = "prune")
+
+## Verify we are doing it OK. Test against original version. We need
+## to stretch the output of the original function
+
+stretchCNAoutput <- function(object) {
+    if(!(inherits(object, "DNAcopy")))
+        stop("This function can only be applied to DNAcopy objects")
+    numarrays <- ncol(object$data) - 2
+    stretched <- list()
+    for(arraynum in 1:numarrays) {
+        obs <- object$data[, 2 + arraynum]
+        segmented <-
+            object$output[object$output$ID ==
+                          colnames(object$data)[2 + arraynum], ]
+        smoothed <- object$data$maploc 
+        for(i in 1:nrow(segmented)) {
+            smoothed[(segmented[i,'loc.end'] >= smoothed) &
+                     (segmented[i,'loc.start'] <= smoothed)] <-
+                         segmented[i,'seg.mean']
+        }
+        
+        stretched[[arraynum]] <- cbind(Observed = obs,
+                                       Predicted = smoothed)
+        
+    }
+    return(stretched)
+}
+
+
+## recall the originall segment rounds output
+verifCNA <- mapply(function(x, y) all.equal(x[, 2], round(y[, 2], 4)),
+                    stretchCNAoutput(out.original), out1$segm) 
+
+
+
+
+## verify reconstruction
+reconstructed <- constructSegmObj(out1$segm,  chrom.numeric, cghMCRe[, 5:7])
+
+rec.verif <- function(x, y) {
+    t1 <- all.equal(x$output[, 3], y$output$loc.start)
+    t2 <- all.equal(x$output[, 4], y$output$loc.end)
+    t3 <- all.equal(x$output[, 6], round(y$output$seg.mean, 4))
+
+    if(t1) print("Start equal")
+    if(t2) print("End equal")
+    if(t3) print("seg.mean equal") else t3
+    if(t1 & t2 & t3) print("***Global result:  OK ***") else stop("Not equal")
+}
+rec.verif(out.original, reconstructed)
+
+
+## do MCR
+thismcr <- cghMCR(reconstructed)
+
+class(out.original[[1]]) <- "data.frame"
+othermcr <- cghMCR(out.original)
+## use our funct
+
+res <- reconstructed
+class(res[[1]]) <- "data.frame"
+cghmcr <- cghMCR(res,
+                 gapAllowed = 500,
+                 alteredLow = 0.03,
+                 alteredHigh = 0.97,
+                 recurrence = 50)
+mcrseg <- MCR(cghmcr)
+
+
+
+
+doMCR(out1$segm,  chrom.numeric, cghMCRe[, 5:7])

@@ -30,6 +30,7 @@ pre { font-family: monospace; }
 <span class="license">This document is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.0/">Creative Commons License</a></span>.
 <!-- /Creative Commons License -->
 </center>
+
 <!--
 
 <rdf:RDF xmlns="http://web.resource.org/cc/"
@@ -91,38 +92,37 @@ rdf:resource="http://web.resource.org/cc/ShareAlike"
 <hr>
 <ol>
   <li> <a href="#intro">Introduction and purpose</a></li>
-       <li><a  href="#methods">Methods</a>
-      <ul>   
-      <li>Processing common to all methods
-<ul>  
-          <li><a href="#average">Averaging over duplicated entries for names and locating clones/genes</a></li>
-	      <li><a href="#centering">Centering</a></li>
-</ul>
-	      </li>	      
-  </ul>	        
-  <ul>
-    <li><a href="#CBS">Circular binary segmentation (CBS) of Olshen
-	and Venkatraman</a></li>
-    <li><a href="#Wavelet">Wavelet-based smoothing approach of
-	Hsu et al.</a></li>
-    <li><a href="#PSW">Price-Smith-Waterman approach</a></li>
-    <li><a href="#ACE">ACE method of Lingj&#230;rde et al.</a></li>
-  </ul>
-  </li>
-  <li><a href="#usage">Usage</a>
-    <ul>
-        <li><a href="#input">Input</a></li>
-	  <li><a href="#output">Output</a></li>
-<li><a href="#examples">Examples</a></li>
-	  </ul> 
-  </li>
-  <!--        <li><a href="#speed">How long does it take?</a></li>  -->
+  <li><a  href="#methods">Methods</a></li>
+<!--       <ul>    -->
+<!--       <li>Processing common to all methods -->
+<!-- <ul>   -->
+<!--           <li><a href="#average">Averaging over duplicated entries for names and locating clones/genes</a></li> -->
+<!-- 	      <li><a href="#centering">Centering</a></li> -->
+<!-- </ul> -->
+<!-- 	      </li>	       -->
+<!--   </ul>	         -->
+<!--   <ul> -->
+<!--     <li><a href="#CBS">Circular binary segmentation (CBS) of Olshen -->
+<!-- 	and Venkatraman</a></li> -->
+<!--     <li><a href="#Wavelet">Wavelet-based smoothing approach of -->
+<!-- 	Hsu et al.</a></li> -->
+<!--     <li><a href="#PSW">Price-Smith-Waterman approach</a></li> -->
+<!--     <li><a href="#ACE">ACE method of Lingj&#230;rde et al.</a></li> -->
+<!--   </ul> -->
+<!--   <li><a href="#usage">Usage</a> -->
+<!--     <ul> -->
+  <li><a href="#input">Input</a></li>
+  <li><a href="#output">Output</a></li>
+  <li><a href="#examples">Examples</a></li>
+<!-- 	 </ul>  -->
+<!--   </li> -->
+<!--   <\!--        <li><a href="#speed">How long does it take?</a></li>  -\-> -->
   
   <li><a href="#authors">Author and Acknowledgements</a></li>
-  <li><a href="#bugs">Before you start: If "The program doesn't
-      work"</a></li>
-      <li><a href="#terms.use">Terms of use</a></li>
-      <li><a href="#privacy">Privacy and	Security</a></li>
+<!--   <li><a href="#bugs">Before you start: If "The program doesn't -->
+<!--       work"</a></li> -->
+   <li><a href="#terms.use">Terms of use</a></li>
+   <li><a href="#privacy">Privacy and	Security</a></li>
   <li><a href="#warranty">Disclaimer</a></li>  
   <li><a href="#refs">References</a></li>
   </ol>
@@ -301,22 +301,50 @@ should be the most common one.</p>
 <!--   25 and 200, respectively, as in the defaults.)</p> -->
 
 
-<h4><a name="mergeLevels">Use mergeLevels algorithm for figures?</a> (<FONT COLOR="red">New!!</FONT>)</h4>
 
-<p>If you say yes (the default) ADaCGH will use the mergeLevels algorithm
-of <cite>Willenbrock and Fridlyand (2005)</cite> on the results from the
-circular binary segmentation; the mergeLevels algorithm is implemented in
-the bioconductor package aCGH, maintained by J. Fridlyand. We have
-post-processed the mergeLevels output a little bit, so that the output has
-only three levels, -1, 0, 1, that you might want to map into "loss", "no
-change", and "gain". Note that we have made the assumption, in this
-mapping, that the "no change" class is the one that has the absolute value
-closest to zero, and any other classes are either gains or losses. When
-the data are normalized, the "no change" class should be the most common
-one.</p>
+<h3>a name="HMM">Hidden Markov Model of Fridlyand et al. (HMM)</a></h3>
+<p>This method uses Hidden Markov Models (HMM). HMMs are a natural model
+for these type of data. Several homogeneous HMMs are fitted (with
+different numbers of underlying states) and then model selection, using
+AIC, is employed to select the number of states. Finally, and following the
+results in <cite>Willenbrock and Fridlyand (2005)</cite>, mergeLevels is
+applied to the outcome.</p>
 
-<p>Using mergeLevels only affects the figures. You still get the segmented
-output from CBS (and from mergeLevels) in the output file.</p>
+
+<h3>a name="BioHMM">Non-homogeneous Hidden Markov Model of Marioni et al. (BioHMM)</a></h3>
+<p>This method, developed by <cite>Marioni et al., 2006</cite> is similar
+to the above, except the models used are non-homogeneous HMMs that allow
+to incorporate distance between successive probes.  Several
+non-homogeneous HMMs are fitted (with different numbers of underlying
+states) and then model selection, using AIC, is employed to select the
+number of states. Finally, mergeLevels is applied to the outcome.</p>
+
+
+<h3>a name="CGHseg">Random Gaussian process of Picard et al. (CGH
+segmentation)</a></h3>
+
+<p><cite>Picard et al. (2005)</cite> model aCGH data as a random Gaussian
+process with abrupt changes (in the mean and, possibly, the variance).  We
+only use the model with changes in the mean, following Picard et al. The
+key problem then becomes one of selecting the number of segments (and
+their location). We use the tilingArray implementation with additional
+code that follows Picard et al.s suggestion for selecting the number of
+segments. In particular, the model with common variance allows detecting
+segments with one observation (e.g., singletons). </p>
+
+<p>The original paper includes no details on mapping the segmentation
+results to the "gain/loss/no-change" classes. Simply using mergeLevels on
+the outcome does not seem appropriate (because of the explicit model-based
+assumptions of this procedure). In the absence of any comparison work, we
+return the segmented results for the user to then assign to groups
+of "gain/loss/no-change" if desired.</p>
+
+
+<h3>a name="GLAD">Gain and Loss Analysis of DNA by Hupe et a. (GLAD)</a></h3>
+<p>Huppe et al. build upon work of Polzehl and Spkoiny on non-parametric
+likelihood methods for breakpoint detection. Hupe et al. include a final
+merging algorithm, specific for their method, that allows mapping results
+to the "gain/loss/no-change" status; we use this approach with GLAD.</p>
 
 
 
@@ -342,18 +370,31 @@ output from CBS (and from mergeLevels) in the output file.</p>
   your data, ploidy of samples, etc.</p>
 
 
-<p>This method has a few other parameters, such as the maximum number
-  of initial clusters (set to 10, as done by default by Hsu et al.),
-  that rarely affect the outcome, and a few specific settings for the
-  wavelet transforms (specifically, the wavelet had a depth of three
-  levels, the recommended for a sample of size between 3 and 1096; if any
-  chromosome has more than 1096 or less than 3 samples, you will be
-  provided with a warning.). We have used the same defaults as Hsu et
-  al. Of the possible thresholding methods, we use only the "hybrid
-  method", with soft thresholding, as implemented by the authors
-  (slightly different from the one in the waveslim package). The
-  hybrid method with soft thresholding seemed to produce the best
-  results in the original paper.</p>
+<h4>Merging</h4>
+<p>The original paper does not map to a set of "gain/loss/no-change"
+levels. We have followed the same approach as in CBS, and use here the
+mergeLevels procedure. It must be emphasized that this is an experimental
+procedure, not described in the original paper. Moreover, the
+wavelet-smoothing procedure returns smoothed values that rarely fool into
+a set of categories, so applying mergeLevels here often leads to non-sense
+results. Thus, we apply mergeLevels after running the original clustering
+procedure of this method with a very small threshold for merging
+(currently set to 0.05, or five times smaller than the default of 0.25);
+some preliminary trials show that the final outcome from mergeLevels is
+not sensitive to small variations around this threshold.</p>
+
+<!-- <p>This method has a few other parameters, such as the maximum number -->
+<!--   of initial clusters (set to 10, as done by default by Hsu et al.), -->
+<!--   that rarely affect the outcome, and a few specific settings for the -->
+<!--   wavelet transforms (specifically, the wavelet had a depth of three -->
+<!--   levels, the recommended for a sample of size between 3 and 1096; if any -->
+<!--   chromosome has more than 1096 or less than 3 samples, you will be -->
+<!--   provided with a warning.). We have used the same defaults as Hsu et -->
+<!--   al. Of the possible thresholding methods, we use only the "hybrid -->
+<!--   method", with soft thresholding, as implemented by the authors -->
+<!--   (slightly different from the one in the waveslim package). The -->
+<!--   hybrid method with soft thresholding seemed to produce the best -->
+<!--   results in the original paper.</p> -->
 
 
 
@@ -419,7 +460,6 @@ plot. (Note that this last is a parameter in our implementation of the
 plots, not in the original code). In contrast to the previous version of
 ADaCGH, we now use a Bonferroni-corrected p-value (we divide the p-value
 by the number of chromosomes).</p>
-
 
 
 <p>The imlementation by T.S.Price allowed the specification of
@@ -618,14 +658,73 @@ These statistics are provided before and after centering. If there are
 
 
 
-<p>The
-  details about the rest of the output depend on the method. In all the plots, the
-  original data are shown using small orange dots. In plots that show
-  a subject/array, the chromosome numbers are indicated in the x-labels, and
-  a vertical dotted grey line separates chromosomes. The main output shows
-  thumbnails; click on the thumbnails to expand.</p>
+<h3><a name="plot-out">Plots</a></h3>
+<p>Most methods return segmented plots (with genome-wide and
+chromosome-wide views). In all the plots, the original data are shown
+using small orange dots. In plots that show a subject/array, the
+chromosome numbers are indicated in the x-labels, and a vertical dotted
+grey line separates chromosomes. The main output shows thumbnails; click
+on the thumbnails to expand. If methods return "gain/loss/no-change"
+status, spots inferred as gained are shown in red, those inferred as loss
+as green.</p>
 
-<p><b><FONT COLOR="#CC00FF">NEW</font></b>We now provide clickable plots for the segmentation
+
+<p>For the Price-Smith-Waterman method, we provide island plots for each
+  subject/array, but we show two plots, one when for regions of gain and
+  one for regions of loss. In each plot (e.g., gain, array 1) we show the
+  original data, as well as horizontal red lines for segments with a
+  significant (i.e., p < <a href="#PWSparams">Largest p-value shown</a>)
+  island; the horizontal location of the segments is irrelevant (always at
+  the same height).We also provide a line that indicates the robustness.
+  You want to focus on red segments with high robustness. Recall that both
+  the p-values and the robustness are calculated here over each chromosome
+  (even when the thresholding is done using the complete genome). Note
+  that the p-values are not corrected for multiple testing at all. (The
+  original R function from T. Price included an indication of the
+  highest-scoring island; that is not provided here, as we've found it
+  potentially confussing when analyzing 23 chromosomes). </p>
+
+
+<h3><a name="TorontoDB">Link to the Database of Genomic Variants (<FONT
+COLOR="red">New!!</FONT>)</a></h3>
+<p>If you have specified that the organism is human, the chromosome-wide
+plots will include a link to the appropriate chromosome of the <a
+href="http://projects.tcag.ca/variation/">Database of Genomic
+Variants</a>. Note that you do not need to specify, for this to work, the
+type of identifier, simply the organism. We think this is the most useful
+type of link, and should allow you to relate your results to the already
+documented variation in humans.</p>
+
+
+
+<h3><a name="text-out">Results file (textual output)</a></h3>
+
+
+<p>A file with the output of the analysis. We show several columns: name
+  of gene, chromosome, start, end, and mid-point and, for each
+  subject/array, two or three columns, the original data, the smoothed
+  data, and, if returned by the method, the inferred state; in most cases,
+  the latter are columns with only three possible values : 0 (no change),
+  -1 (loss), 1 (gain).</p>
+
+<p>Warning: for some methods (e.g., CGH segmenatation) "state" is
+provided, as it is returned by the method. However, the same states do not
+necessarily mean the same thing over different chromosomes or over
+different arrays.</b>
+
+
+<p>For PSW, there are two results files, one for gains and one for
+  losses. Each of these files has the same five initial columns as above
+  (name of gene, chromosome, start, end, and mid-point) and for each
+  subject/array the sign (+1 if we were looking for gains, -1 if looking
+  for losses, the robustness of an island of gain/loss that includes that
+  gene/clone, and the p-value of that segment).</p>
+
+
+
+
+
+<p>We now provide clickable plots for the segmentation
 results. Clicking on the thumbnails will open the Genome View plots. If
 you move the mouse over the figure, you will be told what chromosome it
 is. If you click, you will be taken to the Chromosome View plot. On the
@@ -640,108 +739,6 @@ information on that clone/gene. Please note that for the "All_arrays"
 plots, you need to click on the line at the log-ratio of 0, not on a dot at
 any other height.</p>
 
-
-<h3><a name="outputCBS">Circular binary segmentation of Olshen and Venkatraman</a></h3>
-
-<p> We first provide several <b>diagnostic plots</b> to help <b>check that the smoothing is
-  appropriate</b>. We plot the original vs. the smoothed data, both for
-  the complete genome for each sample and for each chromosome within
-  each sample.</p>
-
-
-<p>We provide <b>segmented data plots</b> with the original data plus segments (smoothed
-  regions), both by subject/array and superimposing all subjects. The
-  later are useless if your subjects/arrays are a heterogeneous bunch,
-  but might be helpful otherwise; in the supperimposed plots, and to
-  enhance readability, no points are shown, only the estimated
-  segments. Segments are shown in black.</p>
-
-<p>Finally, we show <b>plateau plots</b>; here segments are shown in
-  red. Plateau plots can help decide how many levels of gain/loss are
-  really in the data, and can even be used to estimate the copy
-  number. This is explained in p. 2296 of <cite>Lucito et al., 2003</cite>. We actually provide three types of
-  plateau plots: one per sample, as originally done by Olshen and
-  collaborators; then, we provide a simple superimposition of all the
-  plateau plots, and finally we provide a "global" plateau plot, after
-  setting all the data and segments as if they came from one single
-  genome. Again, if your subjects/arrays are a very heterogeneous
-  bunch, these last two plots are unlikely to help at all. Otherwise,
-  they can make it easier to spot which are the actual levels of
-  gain/loss.</p>
-
-<p>A file with the output is available for download (including also
-  the figures in both png and pdf formats). The results file is a
-  tab-delimited text file with columns: name of gene, chromosome,
-  start, end, and mid-point and, for each subject/array, two columns,
-  the original data, and the smoothed data (the mean of the
-  segment).</p>
-
-
-
-
-
-<h3><a name="outputWS">Wavelet-based smoothing</a></h3>
-
-<p>We first show <b>plots of the autocorrelation (lag 1)</b>, BEFORE
-  any wavelet smooting. These plots,
-  one per chromosome, are histograms of the lag-1 autocorrelation of
-  all the subjects/arrays. Small autocorrelations suggest that the
-  wavelet-based smoothing might not work very effectively.</p>
-
-
-<p>Next, we provide very similar plots as for CBS, including both plots of
-  the segments for each subject/arrays and plateau plots. Plateau
-  plots are not a set of plots that were used in the original paper by
-  Hsu et al., but we think they could be useful, and since this is
-  experimental software anyway,... If they are useless for you,
-  disregard them. If you think they are actually a bad idea that could
-  lead to confusion, please let us know.</p>
-
-<p>We also provide a tab-separated text file with the results, similar
-  to what is done with the CBS, above. Here, however, for each
-  subject/array we have three columns: the original log-ratio, the
-  smoothed log-ratio, and the "state" (an integer indicator starting
-  at 1). Please note that a state of 2 in one sample might denote
-  a completely different thing from a state of 2 in another
-  sample. These are the states for each subject/array, but are not
-  necessarily comparable among subjects/arrays.</p>
-
-
-<h3><a name="outputPSW">Price-Smith-Waterman approach</a></h3>
-
-<p>For this method, we provide island plots for each subject/array,
-  but we show two plots, one when for regions of gain and one for
-  regions of loss. In each plot (e.g., gain, array 1) we show the
-  original data, as well as horizontal red lines for segments with a
-  significant (i.e., p < <a href="#PWSparams">Largest p-value
-  shown</a>) island; the horizontal location of the segments is
-  irrelevant (always at the same height).We also provide a line that
-  indicates the robustness.  You want to focus on red segments with
-  high robustness. Recall that both the p-values and the robustness
-  are calculated here over each chromosome (even when the thresholding
-  is done using the complete genome). Note that the p-values are not
-  corrected for multiple testing at all. (The original R function from
-  T. Price included an indication of the highest-scoring island; that
-  is not provided here, as we've found it potentially confussing when
-  analyzing 23 chromosomes). </p>
-
-
-<p>If you download the output, in addition to the figures, you get two
-  text files, one for gains and one for losses. Each of these files
-  has the same five initial columns as above (name of gene, chromosome,
-  start, end, and mid-point) and for each subject/array the sign (+1
-  if we were looking for gains, -1 if looking for losses, the
-  robustness of an island of gain/loss that includes that gene/clone, and
-  the p-value of that segment).</p>
-
-
-
-<h3><a name="outputACE">ACE</a></h3>
-<p>We first show the <b>FDR table</b>, with the number of genes that are
-considered to have altered copy numbers for each pFDR. Then, we provide
-the segmented plots.</p>
-<p>If you wish to change the FDR, you can do it here, by entering a new
-FDR and pressing submit.</p>
 
 
 
@@ -774,6 +771,140 @@ back, and keep playing with the very same gene list, modifying the options.</p>
 
 
 
+<!-- <h3><a name="outputCBS">Circular binary segmentation of Olshen and Venkatraman</a></h3> -->
+
+<!-- <p> We first provide several <b>diagnostic plots</b> to help <b>check that the smoothing is -->
+<!--   appropriate</b>. We plot the original vs. the smoothed data, both for -->
+<!--   the complete genome for each sample and for each chromosome within -->
+<!--   each sample.</p> -->
+
+
+<!-- <p>We provide <b>segmented data plots</b> with the original data plus segments (smoothed -->
+<!--   regions), both by subject/array and superimposing all subjects. The -->
+<!--   later are useless if your subjects/arrays are a heterogeneous bunch, -->
+<!--   but might be helpful otherwise; in the supperimposed plots, and to -->
+<!--   enhance readability, no points are shown, only the estimated -->
+<!--   segments. Segments are shown in black.</p> -->
+
+<!-- <p>Finally, we show <b>plateau plots</b>; here segments are shown in -->
+<!--   red. Plateau plots can help decide how many levels of gain/loss are -->
+<!--   really in the data, and can even be used to estimate the copy -->
+<!--   number. This is explained in p. 2296 of <cite>Lucito et al., 2003</cite>. We actually provide three types of -->
+<!--   plateau plots: one per sample, as originally done by Olshen and -->
+<!--   collaborators; then, we provide a simple superimposition of all the -->
+<!--   plateau plots, and finally we provide a "global" plateau plot, after -->
+<!--   setting all the data and segments as if they came from one single -->
+<!--   genome. Again, if your subjects/arrays are a very heterogeneous -->
+<!--   bunch, these last two plots are unlikely to help at all. Otherwise, -->
+<!--   they can make it easier to spot which are the actual levels of -->
+<!--   gain/loss.</p> -->
+
+<!-- <p>A file with the output is available for download (including also -->
+<!--   the figures in both png and pdf formats). The results file is a -->
+<!--   tab-delimited text file with columns: name of gene, chromosome, -->
+<!--   start, end, and mid-point and, for each subject/array, two columns, -->
+<!--   the original data, and the smoothed data (the mean of the -->
+<!--   segment).</p> -->
+
+
+
+
+
+
+<!-- <h3><a name="outputWS">Wavelet-based smoothing</a></h3> -->
+
+<!-- <p>We first show <b>plots of the autocorrelation (lag 1)</b>, BEFORE -->
+<!--   any wavelet smooting. These plots, -->
+<!--   one per chromosome, are histograms of the lag-1 autocorrelation of -->
+<!--   all the subjects/arrays. Small autocorrelations suggest that the -->
+<!--   wavelet-based smoothing might not work very effectively.</p> -->
+
+
+<!-- <p>Next, we provide very similar plots as for CBS, including both plots of -->
+<!--   the segments for each subject/arrays and plateau plots. Plateau -->
+<!--   plots are not a set of plots that were used in the original paper by -->
+<!--   Hsu et al., but we think they could be useful, and since this is -->
+<!--   experimental software anyway,... If they are useless for you, -->
+<!--   disregard them. If you think they are actually a bad idea that could -->
+<!--   lead to confusion, please let us know.</p> -->
+
+<!-- <p>We also provide a tab-separated text file with the results, similar -->
+<!--   to what is done with the CBS, above. Here, however, for each -->
+<!--   subject/array we have three columns: the original log-ratio, the -->
+<!--   smoothed log-ratio, and the "state" (an integer indicator starting -->
+<!--   at 1). Please note that a state of 2 in one sample might denote -->
+<!--   a completely different thing from a state of 2 in another -->
+<!--   sample. These are the states for each subject/array, but are not -->
+<!--   necessarily comparable among subjects/arrays.</p> -->
+
+
+<!-- <h3><a name="outputPSW">Price-Smith-Waterman approach</a></h3> -->
+
+<!-- <p>For this method, we provide island plots for each subject/array, -->
+<!--   but we show two plots, one when for regions of gain and one for -->
+<!--   regions of loss. In each plot (e.g., gain, array 1) we show the -->
+<!--   original data, as well as horizontal red lines for segments with a -->
+<!--   significant (i.e., p < <a href="#PWSparams">Largest p-value -->
+<!--   shown</a>) island; the horizontal location of the segments is -->
+<!--   irrelevant (always at the same height).We also provide a line that -->
+<!--   indicates the robustness.  You want to focus on red segments with -->
+<!--   high robustness. Recall that both the p-values and the robustness -->
+<!--   are calculated here over each chromosome (even when the thresholding -->
+<!--   is done using the complete genome). Note that the p-values are not -->
+<!--   corrected for multiple testing at all. (The original R function from -->
+<!--   T. Price included an indication of the highest-scoring island; that -->
+<!--   is not provided here, as we've found it potentially confussing when -->
+<!--   analyzing 23 chromosomes). </p> -->
+
+
+<!-- <p>If you download the output, in addition to the figures, you get two -->
+<!--   text files, one for gains and one for losses. Each of these files -->
+<!--   has the same five initial columns as above (name of gene, chromosome, -->
+<!--   start, end, and mid-point) and for each subject/array the sign (+1 -->
+<!--   if we were looking for gains, -1 if looking for losses, the -->
+<!--   robustness of an island of gain/loss that includes that gene/clone, and -->
+<!--   the p-value of that segment).</p> -->
+
+
+
+<!-- <h3><a name="outputACE">ACE</a></h3> -->
+<!-- <p>We first show the <b>FDR table</b>, with the number of genes that are -->
+<!-- considered to have altered copy numbers for each pFDR. Then, we provide -->
+<!-- the segmented plots.</p> -->
+<!-- <p>If you wish to change the FDR, you can do it here, by entering a new -->
+<!-- FDR and pressing submit.</p> -->
+
+
+
+<!-- <h3><a name="pals">Sending results to <a -->
+<!-- href="http://pals.bioinfo.cnio.es">PaLS</a> (<FONT -->
+<!-- COLOR="red">New!!</FONT>) </h3> -->
+<!-- <p>It is now possible to send the results to <a -->
+<!-- href="http://pals.bioinfo.cnio.es">PaLS</a>, for those cases where -->
+<!-- assignment of genes to "gain", "loss", and "no change" is provided -->
+<!-- (for now, ACE, CBS with merge, and PSW). PaLS "analyzes sets -->
+<!-- of lists of genes or single lists of genes. It filters those -->
+<!-- genes/clones/proteins that are referenced by a given percentage of -->
+<!-- PubMed references, Gene Ontology terms, KEGG pathways or Reactome -->
+<!-- pathways." (from <a -->
+<!-- href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's -->
+<!-- help</a>). By sending your results to PaLS, it might be easier to make -->
+<!-- biological sense of your results, because you are "annotating" your -->
+<!-- results with additional biological information.</p> -->
+
+
+<!-- <p>Scroll to the bottom of the main outpu, where you will find the <img src="../palsfavicon40.png" -->
+<!-- align="middle">PaLS icon and three lists t. When you click on any of the links, the -->
+<!-- corresponding list of genes will be sent to PaLS. There, you can -->
+<!-- configure the options as you want (please, consult <a -->
+<!-- href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's help</a> -->
+<!-- for details) and then submit the list. In PaLS, you can always go -->
+<!-- back, and keep playing with the very same gene list, modifying the options.</p> -->
+
+
+
+
+
 <h2><a name="examples">Examples</a></h2>
 <p>An example with fictitious data is provided in <a
 href="http://adacgh.bioinfo.cnio.es/Examples/index.html">here</a>. You can
@@ -787,30 +918,41 @@ examples (from a somewhat less interactive version) are also available there.</p
     
     <p>This program was developped by <a href="http://ligarto.org/rdiaz"
       target="_blank">Ramón Díaz-Uriarte</a> and <a
-      href="mailto:omrueda%%cnio.es">Oscar Rueda-Palacio</a>, from the <a
-      href="http://bioinfo.cnio.es" target="_blank">Bioinformatics
-      Unit</a> at <a href="http://www.cnio.es" target="_blank">CNIO</a>.
-      This tool uses <a href="http://www.python.org">Python</a> for the
-      CGI and <a href="http://www.r-project.org">R</a> for the
-      computations.  The R library underlying the Price-Smith-Waterman
-      method was kindly provided by Tom Price. The R code for the
-      wavelet-based smoothing method was kindly provided by Doug
-      Grove. The binary segmentation approach uses the <a
+      href="mailto:omrueda%%cnio.es">Oscar Rueda-Palacio</a>, from the
+      Spanish National Cancer Research Centre <a href="http://www.cnio.es"
+      target="_blank">CNIO</a>.  This tool uses <a
+      href="http://www.python.org">Python</a> for the CGI and <a
+      href="http://www.r-project.org">R</a> for the computations.  The R
+      library underlying the Price-Smith-Waterman method was kindly
+      provided by Tom Price. The R code for the wavelet-based smoothing
+      method was kindly provided by Doug Grove. The binary segmentation
+      approach uses the <a
       href="http://www.bioconductor.org/packages/bioc/1.7/src/contrib/html/DNAcopy.html">DNAcopy</a>
       R/BioConductor package by E. S. Venkatraman and Adam Olshen.  The
       ACE algorithm was implemented from scratch in R and C by Oscar Rueda
       Palacio using, as basis, the Java code and documentation from
       Lingj&#230;rde et al. (available <a
       href="http://www.ifi.uio.no/forskning/grupper/bioinf/Papers/CGH/">here</a>).
-      Some of the above functions might have been modified slightly (by
-      R. Díaz-Uriarte) to parallelize some of the computations.  The
-      mergeLevels algorithm is from the <a
+      The analysis for GLAD, HMM, and BioHMM use the BioC packages from
+      their corresponding authors: <a
+      href="http://bioconductor.org/packages/1.9/bioc/html/GLAD.html">GLAD</a>,
+      by P. Hupé, <a
+      href="http://bioconductor.org/packages/1.9/bioc/html/snapCGH.html">snapCGH</a>,
+      by Mike L. Smith, John C. Marioni, Steven McKinney, Natalie
+      P. Thorne for BioHMM, and <a
       href="http://www.bioconductor.org/packages/1.9/bioc/html/aCGH.html">aCGH</a>
-      package, by Frdlyand and Dimitorv, and the minimal common regions
+      package, by Fridlyand and Dimitorv, for HMM. For CGH segmentation we
+      use the functionality provided by the <a
+      href="http://bioconductor.org/packages/1.9/bioc/html/tilingArray.html">tilingArray</a>
+      package by Wolfgang Huber.  Some of the above functions might have
+      been modified slightly by R. Díaz-Uriarte to parallelize
+      computations.  The mergeLevels algorithm is from the <a
+      href="http://www.bioconductor.org/packages/1.9/bioc/html/aCGH.html">aCGH</a>
+      package, by Fridlyand and Dimitorv, and the minimal common regions
       functionality from the <a
       href="http://www.bioconductor.org/packages/1.9/bioc/html/cghMCR.html">cghMCR</a>
-      by J. Zhang and B. Feng. Our code
-      and/or some of the above packages use the R packages <a
+      by J. Zhang and B. Feng. Our code and/or some of the above packages
+      use the R packages <a
       href="http://www.image.ucar.edu/staff/whitcher/">waveslim</a> by
       Brandom Whitchern, <a
       href="http://cran.r-project.org/src/contrib/Descriptions/cluster.html">cluster</a>,
@@ -821,19 +963,17 @@ examples (from a somewhat less interactive version) are also available there.</p
       href="http://www.warwick.ac.uk/go/cgiwithr">CGIwithR</a> by David
       Firth, <a href="http://www.rosuda.org/R/GDD/">GDD</a> by Simon
       Urbanek, <a href="http://www.stats.uwo.ca/faculty/yu/Rmpi">Rmpi</a>,
-      by Hao Yu,
-<a href="http://www.maths.lancs.ac.uk/Software/Imagemap/">imagemap</a> by
-Barry Rowlingson, 
-<a
-   href="http://cran.r-project.org/src/contrib/Descriptions/R2HTML.html">R2HTML</a>
-   by Eric Lecoutre, and 
-<a
+      by Hao Yu, <a
+      href="http://www.maths.lancs.ac.uk/Software/Imagemap/">imagemap</a>
+      by Barry Rowlingson, <a
+      href="http://cran.r-project.org/src/contrib/Descriptions/R2HTML.html">R2HTML</a>
+      by Eric Lecoutre, and <a
       href="http://cran.r-project.org/src/contrib/Descriptions/papply.html">papply</a>,
-      by D. Currie.
- We have also used and modified the  ToolTip script <a
- href="http://www.dynamicdrive.com">Dynamic Drive</a> as well as taken
- some ideas from <a href="http://www.bosrup.com/web/overlib/">overLIB</a>,
- by Erik Bosrup.</p> 
+      by D. Currie.  We have also used and modified the ToolTip script <a
+      href="http://www.dynamicdrive.com">Dynamic Drive</a> as well as
+      taken some ideas from <a
+      href="http://www.bosrup.com/web/overlib/">overLIB</a>, by Erik
+      Bosrup.</p>
     
       <p>Our understanding about aCGH and their analysis has
       beneffited greatly from discussions with Sara Alvarez de Andrés,
@@ -872,14 +1012,7 @@ statistical computing</a>.</p>
 <!--     improving the user-friendliness of the output.</p> -->
 
 
-
-    <h2><a name="bugs">Before you start: If "The program doesn't work"</a></h2>
-    <p>Please, before calling/emailing us if "the program doesn't work", make
-      sure you have read this documentation. In particular, make sure
-      your data are <a href="#requirements">formatted appropriately</a>.</p>
-
-
-      
+     
       
     <h2><a name="terms.use">Terms of use</a></h2>
     <ul>
@@ -942,10 +1075,27 @@ characterization of the pancreatic adenocarcinoma genome. PNAS, 24:
 9067--9072. <a "href=http://www.pnas.org/cgi/content/abstract/101/24/9067">link</a>.</p>
 
 
+<p>Fridlyand J, Snijders AM, Pinkel D, Albertson DG. (2004).
+Hidden markov models approach to the analysis of array cgh data.
+Journal of Multivariate Analysis}, 90:132--153, July 2004.</p>
+
+
 
 <p> Hsu L, Self SG, Grove D, Randolph T, Wang K, Delrow JJ, Loo L,
 Porter P. (2005) Denoising array-based comparative genomic
 hybridization data using wavelets.  Biostatistics, 6:211-26.</p>
+
+
+<p>Hupe P, Stransky N, Thiery JP, Radvanyi F, and Barillot E. (2004).
+Analysis of array cgh data: from signal ratio to gain and loss of dna
+  regions. Bioinformatics, 20:3413--3422.</p>
+
+
+<p>Lai WRR, Johnson MDD, Kucherlapati R, Park PJJ. (2005).
+Comparative analysis of algorithms for identifying amplifications and
+  deletions in array cgh data. Bioinformatics, 21:3763--3770.</p>
+
+
 
 
 <p>Lingjærde OC, Baumbusch LO, Liestøl K, Glad I, Børresen-Dale
@@ -960,9 +1110,23 @@ AL. (2005). CGH-Explorer: a program for analysis of CGH-data. Bioinformatics, 21
       oligonucleotide microarray analysis: a high-resolution method to
       detect genome copy number variation.  Genome Res. 13:2291-305</p>
 
+
+
+<p>Marioni JC, Thorne NP, Tavaré S. (2006). Biohmm: a heterogeneous hidden
+  markov model for segmenting array cgh data. Bioinformatics, 22:1144--1146.</p>
+
+
+
+
 <p>Olshen AB, Venkatraman ES, Lucito R, Wigler M. (2004) Circular
 binary segmentation for the analysis of array-based DNA copy number
 data.  Biostatistics, 5(4):557-72.</p>
+
+
+<p>Picard P, Robin S, Lavielle M, Vaisse C, Daudin JJ. (2005).  A
+statistical approach for array cgh data analysis.BMC Bioinformatics},
+6:27, 2005.</p>
+
 
 
 <p>Price TS, Regan R, Mott R, Hedman A, Honey B, Daniels RJ, Smith L,
@@ -978,7 +1142,7 @@ segmentation to array CGH data for downstream analyses Bioinformatics, 21:
 4084-4091.</p>
 
 <h3>Copyright</h3>
-This document is copyrighted. Copyright © 2005, 2006 Ramón
+This document is copyrighted. Copyright © 2005, 2006, 2007 Ramón
 Díaz-Uriarte. Please, respect the copyright and the license.
 <hr>
 

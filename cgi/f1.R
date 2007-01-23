@@ -762,160 +762,35 @@ if(methodaCGH == "CBS") {
 #######################################################
 #######################################################
 #######################################################
-    
-    ADaCGH:::mpiCBS()
+  
+    mpiInit()
 
-    trythis <- try(
-                   CNA.object <- CNA(as.matrix(xcenter), chrom = positions.merge1$chrom.numeric,
-                                     ##                  maploc = positions.merge1$MidPoint,
-                                     maploc = 1:length(positions.merge1$MidPoint),
-                                     ## plotting is simpler
-                                     data.type = "logratio",
-                                     sampleid = colnames(xcenter))
-                   )
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Function CNA bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
-        
-    
     trythis <-
         try(
-            smoothed.CNA.object <- smooth.CNA(CNA.object,
-                                              smooth.region = DNA.smooth.region,
-                                              outlier.SD.scale = DNA.outlier.SD.scale,
-                                              smooth.SD.scale = DNA.smooth.SD.scale,
-                                              trim = DNA.trim)
-            )
+            segmres <-
+            pSegmentDNAcopy(as.matrix(xcenter),
+                            chrom.numeric = positions.merge1$chrom.numeric,
+                            merge = TRUE, smooth = TRUE)
+                            )
     if(class(trythis) == "try-error")
-        caughtOurError(paste("Function smooth.CNA bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
+        caughtOurError(trythis)
 
-
-
-    trythis <- try({
-## FIXME: eventually, use the DNAcopyDiagnosticPlots function
-                                        #    pdf("CBS.diagnostic.plots.%03d.pdf", height = 12, width = 18)
-        pdf("CBS.diagnostic.plots.pdf", height = 12, width = 18)
-        par(mfrow = c(4, 6))  ## zz: change this to a smaller number when few arrays.
-        par(pty = "s")
-        ## diagnostic plots for DNA copy; think about output zz
-        for(i in 1:numarrays)
-            plot(CNA.object[, (i + 2)], smoothed.CNA.object[, (i + 2)],
-                 main = colnames(CNA.object[i + 2]),
-                 xlab = "Original data", ylab = "Smoothed data")
-        dev.off()
-        
-        ## so we will probably run into problems of huge pdf files. will deal with
-        ## it later. Can use
-        ## first, creat multiple pdf files.
-        ##    tmp.npl <- ceiling(numarrays/24)
-        ##   convert -quality 70 Gains.V2.pdf g2.png
-        ## and insert those into an html
-        
-        pdf("CBS.diagnostic.plots.per.array.and.chromosome.pdf",
-            height = 12, width = 18)
-        par(pty = "s")
-        for(i in 1:numarrays) {
-            par(mfrow = c(4, 6))
-            ncr <- unique(positions.merge1$chrom.numeric)
-            for(j in ncr) {
-                x <- CNA.object[positions.merge1$chrom.numeric == j, (i + 2)]
-                y <- smoothed.CNA.object[positions.merge1$chrom.numeric == j, (i + 2)]
-                plot(x, y,
-                     main = paste(colnames(CNA.object[i+2]), "; Chr ", j, sep = ""),
-                     xlab = "Original data", ylab = "Smoothed data")
-            }
-        }
-        dev.off()
-    })
-#    if((!is.null(class(trythis))) & (class(trythis == "try-error")))
+    trythis <- try(
+                   tryMCR(segmres,
+                          chrom.numeric = positions.merge1$chrom.numeric,
+                          data = as.matrix(xcenter),
+                          MCR.gapAllowed = MCR.gapAllowed,
+                          MCR.alteredLow = MCR.alteredLow,
+                          MCR.alteredHigh = MCR.alteredHigh,
+                          MCR.recurrence = MCR.recurrence)
+                   )
     if(class(trythis) == "try-error")
-        caughtOurError(paste("Error in diagnostic plots with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
+        caughtOurError(trythis)
+
+
 
 
     
-    ## p.method= we use hybrid
-    trythis <-
-        try({
-            if(numarrays == 1) {
-                segment.smoothed.CNA.object <- segment(smoothed.CNA.object,
-                                                       alpha = DNA.copy.alpha,
-                                                       kmax = DNA.kmax,
-                                                       nmin = DNA.nmin,
-                                                       nperm = DNA.nperm,
-                                                       overlap = DNA.overlap,
-                                                       trim = DNA.trim,
-                                                       undo.splits = DNA.undo.splits,
-                                                       undo.prune = DNA.undo.prune,
-                                                       undo.SD = DNA.undo.sd,
-                                                       p.method = "hybrid",
-                                                       verbose = 2)
-            } else {
-                segment.smoothed.CNA.object <-
-                    pSegmentDNAcopy(smoothed.CNA.object,
-                                    alpha = DNA.copy.alpha,
-                                    kmax = DNA.kmax,
-                                    nmin = DNA.nmin,
-                                    nperm = DNA.nperm,
-                                    overlap = DNA.overlap,
-                                    trim = DNA.trim,
-                                    undo.splits = DNA.undo.splits,
-                                    undo.prune = DNA.undo.prune,
-                                    undo.SD = DNA.undo.sd,
-                                    p.method = "hybrid")
-##                                    verbose = 2)
-            }
-            })
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Function segment (in CBS) bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
-save.image()                             
-    ### Minimal common regions
-    if(numarrays > 1) {
-        ## cghMCR seems needs different classes.
-        res <-  segment.smoothed.CNA.object
-        class(res[[1]]) <- "data.frame"
-        cghmcr <- cghMCR(res,
-                         gapAllowed = MCR.gapAllowed,
-                         alteredLow = MCR.alteredLow,
-                         alteredHigh = MCR.alteredHigh)
-        mcrs <- MCR(cghmcr)
-        msamples <- sapply(mcrs[, 9],
-                           function(x) length(unlist(strsplit(x, ","))))
-        mcrselect <- which(msamples > 1)
-        mcrs <- mcrs[mcrselect, ,drop = FALSE]
-        mcrsc <- data.frame(chromosome = mcrs[, 1],
-                            samples = mcrs[, 9],
-                            mcr.start  = as.numeric(mcrs[, 7]),
-                            mcr.end  = as.numeric(mcrs[, 8]))
-        mcrsc <- mcrsc[ order(as.numeric(as.character(mcrsc$chromosome)),
-                              mcrsc$mcr.start, mcrsc$mcr.end), ]
-
-
-        sink(file = "mcr.results.html")
-        ##cat("<h3>Minimal common regions</h3>\n")
-##         cat("<p>(Yes, this output might be ugly. We want your comments on how to",
-##             "make the output more useful to you.)</p>\n")
-        if (nrow(mcrsc) == 0) {
-          cat("\n<p> No common minimal regions found.</p>\n")
-        } else {
-          html.data.frame(mcrsc, first.col = "Case",
-                          file = "mcr.results.html", append = TRUE)
-        }
-        sink()
-        
-        sink(file = "results.txt")
-        cat("\n\n\nMinimal common regions\n")
-##         cat("(Yes, this output is ugly. We want your comments on how to",
-##             "make the output more useful for you.)\n")
-        if (nrow(mcrsc) == 0)
-          cat("\n No common minimal regions found.\n")
-        else 
-          print(mcrsc)
-        sink()
-      }
-
 
     if(DNA.merge == "No") {
         trythis <- try({

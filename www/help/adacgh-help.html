@@ -519,10 +519,12 @@ closest FDR to the one you entered.</p>
 <p>We use the cghMCR function, as provided in the cghMCR bioconductor
 package, by J. Zhang and B. Feng, which implements an algorithm originally
 proposed in <cite>Aguirre et al. (2004)</cite>. This algorithm should be
-applicable to other methods, but so far we are only using it with CBS, as
-Zheng and Feng do. Note that you can find "common regions" that do not
-correspond to any region of gain/loss found by the <a
-href="#mergeLevels">mergeLevels</a> algorithm (see <a href="#examples">examples</a>).</p>
+applicable to other methods, although the original code is applicable only
+to the CBS method. We have extended the code, so it can be used with all
+methods (except for PSW). Note that you can find "common regions" that do
+not correspond to any region of gain/loss found by the <a
+href="#mergeLevels">mergeLevels</a> algorithm (see <a
+href="#examples">examples</a>).</p>
 
 <!-- <p>Please note that this is a beta version of how to best display this -->
 <!-- information. <FONT COLOR="red">We want your feedback about how you want us -->
@@ -543,7 +545,11 @@ as from version 1.2.0, and thus there are changes in the ADaCGH interface.)</p>
 cghMCR function. <b>gapAllowed</b>: an integer specifying low
 threshold of base pair number to separate two adjacent segments,
 belower which the two segments will be joined as an altered
-span. <b>alteredLow</b>: a positive number between 0 and 1 specifying
+span. Note that how you enter the data does matter a lot here. The default
+value of 500 refers to distances of Kb. Thus, for MCR to yield sensible
+results you should use position data in Kb, or else adjust this threshold
+to the scale of your data.
+<b>alteredLow</b>: a positive number between 0 and 1 specifying
 the lower threshold percential value. Only segments with values falling
 below this threshold are considered as altered
 span. <b>alteredHigh</b>: a positive number between 0 and 1 specifying

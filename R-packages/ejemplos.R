@@ -79,7 +79,7 @@ biohmm.out <- pSegmentBioHMM(cghMCRe[, 5:7], chrom.numeric, MidPoint)
 
 
 ############# Plots and priting.
-
+library(ADaCGH)
 setwd("/tmp/o3") ## all slaves need a common dir to read and write.
 mpiInit()
 
@@ -238,42 +238,10 @@ writeResults(biohmm.out, cghE1[, 5:6], common)
 #######################################################
 #######################################################
 
-data(cghMCRe)
-common <- cghMCRe[, -c(5:7)]
-common$MidPoint <- common$Start + 0.5 * (common$End - common$Start)
-colnames(common)[1] <- "ID"
-chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
-chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
-chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
-reorder <- order(chrom.numeric,
-                 common$MidPoint,
-                 cghMCRe$Start,
-                 cghMCRe$End,
-                 cghMCRe$Name)
-cghMCRe <- cghMCRe[reorder, ]
-chrom.numeric <- chrom.numeric[reorder]
-
-CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
-                  chrom = chrom.numeric,
-                  maploc = 1:nrow(cghMCRe),
-                  data.type = "logratio",
-                  sampleid = colnames(cghMCRe[, 5:7]))
-smoothed.CNA.object <- smooth.CNA(CNA.object)
-
-out.merge <- pSegmentDNAcopy(cghMCRe[, 5:7], chrom.numeric = chrom.numeric)
-out1 <- pSegmentDNAcopy(cghMCRe[, 5:7], merge = FALSE, nperm = 10000,
-                        chrom.numeric = chrom.numeric)
-
-## Yes, tilingArray has an identically named function, but DNAcopy does
-## not have a namespace. Problems would be caught by different params.
-
-out.original <- segment(smoothed.CNA.object, nperm = 10000,
-                        undo.splits = "prune")
-
-## Verify we are doing it OK. Test against original version. We need
-## to stretch the output of the original function
 
 stretchCNAoutput <- function(object) {
+## Verify we are doing it OK. Test against original version. We need
+## to stretch the output of the original function
     if(!(inherits(object, "DNAcopy")))
         stop("This function can only be applied to DNAcopy objects")
     numarrays <- ncol(object$data) - 2
@@ -294,15 +262,6 @@ stretchCNAoutput <- function(object) {
     }
     return(stretched)
 }
-
-
-## recall the originall segment rounds output
-verifCNA <- mapply(function(x, y) all.equal(x[, 2], round(y[, 2], 4)),
-                    stretchCNAoutput(out.original), out1$segm) 
-
-## verify reconstruction
-reconstructed <- constructSegmObj(out1$segm,  chrom.numeric, cghMCRe[, 5:7])
-
 rec.verif <- function(x, y) {
     t1 <- all.equal(x$output[, 3], y$output$loc.start)
     t2 <- all.equal(x$output[, 4], y$output$loc.end)
@@ -313,7 +272,65 @@ rec.verif <- function(x, y) {
     if(t3) print("seg.mean equal") else t3
     if(t1 & t2 & t3) print("***Global result:  OK ***") else stop("Not equal")
 }
+
+
+
+
+data(cghMCRe)
+common <- cghMCRe[, -c(5:7)]
+common$MidPoint <- common$Start + 0.5 * (common$End - common$Start)
+colnames(common)[1] <- "ID"
+chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
+chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
+chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
+reorder <- order(chrom.numeric,
+                 common$MidPoint,
+                 cghMCRe$Start,
+                 cghMCRe$End,
+                 cghMCRe$Name)
+cghMCRe <- cghMCRe[reorder, ]
+common  <- common[reorder, ]
+chrom.numeric <- chrom.numeric[reorder]
+
+CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
+                  chrom = chrom.numeric,
+                  maploc = 1:nrow(cghMCRe),
+                  data.type = "logratio",
+                  sampleid = colnames(cghMCRe[, 5:7]))
+smoothed.CNA.object <- smooth.CNA(CNA.object)
+out.original <- segment(smoothed.CNA.object, nperm = 10000,
+                        undo.splits = "prune")
+
+out1 <- pSegmentDNAcopy(cghMCRe[, 5:7], mergeSegs= FALSE, nperm = 10000,
+                        chrom.numeric = chrom.numeric)
+
+## recall the originall segment rounds output
+verifCNA <- mapply(function(x, y) all.equal(x[, 2], round(y[, 2], 4)),
+                    stretchCNAoutput(out.original), out1$segm) 
+
+## verify reconstruction
+reconstructed <- ADaCGH:::constructSegmObj(out1$segm,  chrom.numeric, cghMCRe[, 5:7],
+                                  Pos = 1:nrow(cghMCRe))
+
 rec.verif(out.original, reconstructed)
+
+
+
+###### another, with "real" pos
+CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
+                  chrom = chrom.numeric,
+                  maploc = common$MidPoint,
+                  data.type = "logratio",
+                  sampleid = colnames(cghMCRe[, 5:7]))
+smoothed.CNA.object <- smooth.CNA(CNA.object)
+out.original <- segment(smoothed.CNA.object, nperm = 10000,
+                        undo.splits = "prune")
+reconstructed <- ADaCGH:::constructSegmObj(out1$segm,  chrom.numeric, cghMCRe[, 5:7],
+                                  Pos = common$MidPoint)
+rec.verif(out.original, reconstructed)
+
+
+
 
 
 
@@ -330,6 +347,8 @@ rec.verif(out.original, reconstructed)
 #######################################################
 #######################################################
 
+
+library(ADaCGH)
 setwd("/tmp/o3") ## all slaves need a common dir to read and write.
 mpiInit()
 
@@ -347,10 +366,24 @@ cghE1 <- cghE1[reorder, ]
 chrom.numeric <- chrom.numeric[reorder]
 
 
+
+
+SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
+                 merge = FALSE, pos = cghE1$UG.Start,
+                 idtype = "ug", organism = "Hs",
+                 method = "Wavelets",
+                 geneNames = cghE1[, 1],
+                 commondata = cghE1[, 1:4])
+
+
+
 for(mm in c("Wavelets", "DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg")) {
 
+    cat("\n\n mm is ", mm, "\n\n")
     SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
-                     merge = TRUE, pos = cghE1$UG.Start,
-                     idtype = "None", organism = "None",
-                     method = mm)
+                     merge = TRUE, Pos = cghE1$UG.Start,
+                     idtype = "ug", organism = "Hs",
+                     method = mm,
+                     geneNames = cghE1[, 1],
+                     commondata = cghE1[, 1:4])
 }

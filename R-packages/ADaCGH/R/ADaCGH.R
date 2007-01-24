@@ -199,7 +199,7 @@ pSegmentPSW <- function(x, chrom.numeric, sign = -1,
 }
 
 
-pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
+pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
                              minDiff = 0.25,
                              minMergeDiff = 0.05,
                              thrLvl = 3, initClusterLevels = 10, ...) {
@@ -238,7 +238,7 @@ pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
     }
     out0 <- papply(datalist, funwv,
                    papply_commondata =list(thrLvl = thrLvl,
-                   minDiff = if(merge) minMergeDiff else minDiff))
+                   minDiff = if(mergeSegs) minMergeDiff else minDiff))
 
     ## list with one entry per array
     out <- list()
@@ -252,7 +252,7 @@ pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
     }
 
     ## if merging, call ourMerge
-    if(!merge) {
+    if(!mergeSegs) {
         outl <- list()
         outl$segm <- out
         outl$chrom.numeric <- chrom.numeric
@@ -278,12 +278,12 @@ pSegmentWavelets <- function(x, chrom.numeric, merge = TRUE,
 }
 
 
-pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE, smooth = TRUE,
+pSegmentDNAcopy <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
                             alpha=0.01, nperm=10000, kmax=25, nmin=200,
                             eta = 0.05, overlap=0.25, trim = 0.025,
                             undo.prune=0.05, undo.SD=3, merge.pv.thresh =
                             1e-04, merge.ansari.sign = 0.05,
-                            merge.thresMin = 0.05, merge.thresMax = 0.5) {
+                            merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
     
     if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
         sbdry <- default.DNAcopy.bdry
@@ -305,7 +305,7 @@ pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE, smooth = TRUE,
                           slave_undo.SD      = undo.SD,
                           slave_sbdry        = sbdry,
                           slave_sbn          = sbn,
-                          slave_merge        = merge,
+                          slave_merge        = mergeSegs,
                           slave_pv_th_merge  = merge.pv.thresh,
                           slave_ansari_sign  = merge.ansari.sign,
                           slave_merge_tmin   = merge.thresMin,
@@ -350,7 +350,7 @@ pSegmentDNAcopy <- function(x, chrom.numeric, merge = TRUE, smooth = TRUE,
     outl$segm <- papout
     outl$chrom.numeric <- chrom.numeric
     class(outl) <- "DNAcopy"
-    if(merge) class(outl) <- c(class(outl), "adacgh.generic.out")
+    if(mergeSegs) class(outl) <- c(class(outl), "adacgh.generic.out")
     return(outl)
 }
 
@@ -528,7 +528,7 @@ plateauPlot.CGH.wave <- function(obj, cghdata, ...) {
 
 
 SegmentPlotWrite <- function(data, chrom,
-                             merge, pos,
+                             mergeSegs, Pos,
                              idtype, organism,
                              method,
                              geneNames,
@@ -539,14 +539,17 @@ SegmentPlotWrite <- function(data, chrom,
 
     fseg <- get(paste("pSegment", method, sep = ""))
     trythis <- try(
-                   segmres <- fseg(data, chrom, ...)
+                   segmres <- fseg(data, chrom,
+                                   Pos = Pos,
+                                   mergeSegs = mergeSegs, ...)
                    )
-    if(class(trythis) == "try-error")
-        caughtOutError(trythis)
+    if(inherits(trythis, "try-error"))
+        caughtOurError(trythis)
 
-    trythis <- try(doMCR(segmres, chrom, data, ...))
-    if(class(trythis) == "try-error")
-        caughtOutError(trythis)
+    trythis <- try(doMCR(segmres$segm, chrom = chrom, data = data,
+                         Pos = Pos, ...))
+    if(inherits(trythis, "try-error"))
+        caughtOurError(trythis)
     
     trythis <- try(segmentPlot(segmres,
                                geneNames = geneNames,
@@ -554,12 +557,12 @@ SegmentPlotWrite <- function(data, chrom,
                                cghdata = data,
                                idtype = idtype,
                                organism = organism))
-    if(class(trythis) == "try-error")
-        caughtOutError(trythis)
+    if(inherits(trythis, "try-error"))
+        caughtOurError(trythis)
     trythis <- try(writeResults(segmres,
                                 data, commondata))
-    if(class(trythis) == "try-error")
-        caughtOutError(trythis)
+    if(inherits(trythis, "try-error"))
+        caughtOurError(trythis)
 }                                
 
 
@@ -626,7 +629,7 @@ WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
                 as.vector(acf(dat[index.dat, subject],
                               lag.max = 1, plot = FALSE)$acf)[2]
                            )
-            if(class(trythis) == "try-error")
+            if(inherits(trythis, "try-error"))
                 caughtOurError(paste("acf bombed unexpectedly with error",
                                      trythis, ". \n Please let us know so we can fix the code."))
 
@@ -689,7 +692,7 @@ writeResults.CGH.PSW <- function(obj, acghdata, commondata, file = "PSW.output.t
 
 writeResults.summaryACE <- function(obj, acghdata, commondata, file = NULL, ...) {
     if(is.null(file)) {
-        file <-  paste("ACE.results.FDR=",
+        file <-  paste("ACE.output.FDR=",
                        attr(obj, "aceFDR.for.output"), ".txt", sep ="")
     }
     print.adacgh.generic.results(obj, acghdata, commondata, output = file)
@@ -2684,12 +2687,12 @@ mapLinkChrom <- function() {
 
 
 
-constructSegmObj <- function(x, chrom.numeric, data) {
+constructSegmObj <- function(x, chrom.numeric, data, Pos) {
     ## x: our generic output object
 
     l1 <- list()
     l1$data <- data.frame(chrom = chrom.numeric,
-                          maploc = 1:nrow(data),
+                          maploc = Pos,
                           data)
     l1$output <- list()
     cuniq <- unique(chrom.numeric)
@@ -2697,23 +2700,21 @@ constructSegmObj <- function(x, chrom.numeric, data) {
         running.start <- 0
         z <- x[[i]][, 2]
         for(chr in cuniq) {
-
+            thispos <- Pos[chrom.numeric == chr]
             y <- z[chrom.numeric == chr]
             nelem <- length(y)
             poschange <- which(diff(c(NA, y)) != 0)
-            this.start <- c(1, poschange)
-            this.end <- c(poschange - 1, nelem)
+            this.start <- c(thispos[1], thispos[poschange])
+            this.end <- c(thispos[poschange - 1], thispos[nelem])
             l1$output$ID <- c(l1$output$ID,
                 rep(colnames(data)[i], length(this.start)))
             l1$output$chrom <- c(l1$output$chrom, rep(chr, length(this.start)))
             l1$output$loc.start <- c(l1$output$loc.start,
-                                     this.start + running.start)
+                                     this.start)
             l1$output$loc.end <- c(l1$output$loc.end,
-                                   this.end + running.start)
+                                   this.end)
             l1$output$seg.mean <- c(l1$output$seg.mean,
-                                    y[this.start])
-            
-            running.start <- running.start + nelem
+                                    y[c(1, poschange)])
         }
     }
     l1$output <- as.data.frame(l1$output)
@@ -2723,6 +2724,68 @@ constructSegmObj <- function(x, chrom.numeric, data) {
 
 
 doMCR <- function(x, chrom.numeric, data,
+                  MCR.gapAllowed = 500,
+                  MCR.alteredLow = 0.03,
+                  MCR.alteredHigh = 0.97,
+                  MCR.recurrence = 75,
+                  fsink = "results.txt",
+                  hsink = "mcr.results.html",
+                  Pos,  ...) {
+    if(ncol(data) > 1) {
+        delta <- 0.05
+        res <- constructSegmObj(x, chrom.numeric, data, Pos)
+        ## Hoping over the bugs in cghMCR
+        tryms <- try({
+            cghmcr <- cghMCR(res,
+                             gapAllowed = MCR.gapAllowed,
+                             alteredLow = MCR.alteredLow,
+                             alteredHigh = MCR.alteredHigh,
+                             recurrence = MCR.recurrence)
+            mcrs <- MCR(cghmcr)
+        })
+        if(class(tryms) == "try-error") {
+            sink(file = hsink)
+            cat("\n<p> No common minimal regions found.</p>\n")
+            sink()
+            sink(file = fsink)
+            cat("\n\n\nMinimal common regions\n")
+            cat("\n No common minimal regions found.\n")
+            sink()
+        } else {
+            msamples <- sapply(mcrs[, 9],
+                               function(x) length(unlist(strsplit(x, ",")))) 
+            mcrselect <- which(msamples > 1)
+            mcrs <- mcrs[mcrselect, ,drop = FALSE]
+            mcrsc <- data.frame(chromosome = mcrs[, 1],
+                                samples = mcrs[, 9],
+                                mcr.start  = as.numeric(mcrs[, 7]),
+                                mcr.end  = as.numeric(mcrs[, 8]))
+            mcrsc <- mcrsc[ order(as.numeric(as.character(mcrsc$chromosome)),
+                                  mcrsc$mcr.start, mcrsc$mcr.end), ]
+            sink(file = hsink)
+            if (nrow(mcrsc) == 0) {
+                cat("\n<p> No common minimal regions found.</p>\n")
+            } else {
+                my.html.data.frame(mcrsc, first.col = "Case",
+                                file = hsink, append = TRUE)
+            }
+            sink()
+            
+            sink(file = fsink)
+            cat("\n\n\nMinimal common regions\n")
+            if (nrow(mcrsc) == 0)
+                cat("\n No common minimal regions found.\n")
+            else 
+                print(mcrsc)
+            sink()
+        }
+    }
+}
+
+    
+
+
+old.doMCR <- function(x, chrom.numeric, data,
                   MCR.gapAllowed = 500,
                   MCR.alteredLow = 0.03,
                   MCR.alteredHigh = 0.97,
@@ -2746,7 +2809,7 @@ doMCR <- function(x, chrom.numeric, data,
                                  recurrence = MCR.recurrence)
                 mcrs <- MCR(cghmcr)
             })
-            if(class(tryms) == "try--error") {
+            if(class(tryms) == "try-error") {
                 MCR.unsucc <- TRUE
                 MCR.alteredLow <- MCR.alteredLow + delta
                 MCR.alteredHigh <- MCR.alteredHigh - delta
@@ -2760,7 +2823,8 @@ doMCR <- function(x, chrom.numeric, data,
                 keep.running <- FALSE
             }
         }
-        
+        msamples <- sapply(mcrs[, 9],
+                           function(x) length(unlist(strsplit(x, ",")))) 
         mcrselect <- which(msamples > 1)
         mcrs <- mcrs[mcrselect, ,drop = FALSE]
         mcrsc <- data.frame(chromosome = mcrs[, 1],
@@ -2791,6 +2855,5 @@ doMCR <- function(x, chrom.numeric, data,
 }
 
     
-
 
 

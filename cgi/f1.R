@@ -1,11 +1,4 @@
-## Quitar plateau plots & diagnostic plots; these are an after thought
-## never used by users
-## Quitar params from dnacopy
-
-
-
-
-####  Copyright (C) 2005, 2006, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
+####  Copyright (C) 2005, 2006, 2007, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 
 #### This program is free software; you can redistribute it and/or
 #### modify it under the terms of the GNU General Public License
@@ -50,7 +43,7 @@ rm(list = ls()) ## Just in case.
     try(system(paste("/http/mpi.log/killLAM.py", lamSESSION, "&")))
     try(mpi.quit(save = "yes"), silent = TRUE)
 }
-
+ 
 
 ##startExecTime <- format(Sys.time())
 
@@ -225,29 +218,15 @@ MCR.recurrence <- try(scan("MCR.recurrence", what = double(0), n = 1))
 
 
 methodaCGH <- scan("methodaCGH", what = "", n = 1)
-if (methodaCGH == "CBS") {
-    DNA.smooth.region    <- scan("DNA.smooth.region", what = double(0), n = 1)   
-    DNA.outlier.SD.scale <- scan("DNA.outlier.SD.scale", what = double(0), n = 1)
-    DNA.smooth.SD.scale  <- scan("DNA.smooth.SD.scale", what = double(0), n = 1) 
-    DNA.trim             <- scan("DNA.trim", what = double(0), n = 1)
-    DNA.nmin             <- scan("DNA.nmin", what = double(0), n = 1)
-    DNA.kmax             <- scan("DNA.kmax", what = double(0), n = 1)   
-    DNA.copy.alpha       <- scan("DNA.copy.alpha", what = double(0), n = 1)      
-    DNA.nperm            <- scan("DNA.nperm", what = double(0), n = 1)           
-    DNA.overlap          <- scan("DNA.overlap", what = double(0), n = 1)         
-    DNA.undo.prune       <- scan("DNA.undo.prune", what = double(0), n = 1)
-    DNA.merge            <- scan("DNA.merge", what = "", n = 1)          
-} else if (methodaCGH == "WS") {
+if (methodaCGH == "WS") {
     Wave.minDiff <-  scan("Wave.minDiff", what = double(0), n = 1)
+    merge <- Wave.merge            <- scan("Wave.merge", what = "", n = 1)          
 } else if (methodaCGH == "PSW") {
     PSW.nIter <- scan("PSW.nIter", what = double(0), n = 1)
-    PSW.prec <- scan("PSW.prec", what = double(0), n = 1)
     PSW.p.crit <- scan("PSW.p.crit", what = double(0), n = 1)
 } else if (methodaCGH == "ACE") {
     ACE.fdr <- scan("ACE.fdr", what = double(0), n = 1)
-} else { ## nothing else for now
-    caughtUserError("This method is not yet implemented.")
-}
+} 
 
 
 twoFiles <- try(scan("twofiles", what = "", n = 1))
@@ -461,24 +440,13 @@ cat("<h3>Settings</h3>\n")
 
 cat("<h4>Method:              ", methodaCGH,"</h4>\n")
 
-cat("<h4>Method parameters </h4>\n")
-if (methodaCGH == "CBS") {
-    cat("<p>        DNA.smooth.region\t\t:     ",    DNA.smooth.region,"</p>\n")   
-    cat("<p>        DNA.outlier.SD.scale\t\t:  ", DNA.outlier.SD.scale,"</p>\n")
-    cat("<p>        DNA.smooth.SD.scale\t\t:   ",  DNA.smooth.SD.scale,"</p>\n") 
-    cat("<p>        DNA.trim\t\t:              ",             DNA.trim,"</p>\n")            
-    cat("<p>        DNA.nmin\t\t:              ",             DNA.nmin,"</p>\n")            
-    cat("<p>        DNA.kmax\t\t:              ",             DNA.kmax,"</p>\n")            
-    cat("<p>        DNA.copy.alpha\t\t:        ",       DNA.copy.alpha,"</p>\n")      
-    cat("<p>        DNA.nperm\t\t:             ",            DNA.nperm,"</p>\n")           
-    cat("<p>        DNA.overlap\t\t:           ",          DNA.overlap,"</p>\n")         
-    cat("<p>        DNA.undo.prune\t\t:        ",       DNA.undo.prune,"</p>\n")
-    cat("<p>        DNA.merge\t\t:             ",       DNA.merge,"</p>\n")
-} else if (methodaCGH == "WS") {
+cat("<h4>Methods parameters </h4>\n")
+
+if (methodaCGH == "WS") {
     cat("<p>        Wave.minDiff\t\t:          ",         Wave.minDiff,"</p>\n")
+    cat("<p>        Wave.merge\t\t:            ",         Wave.merge,"</p>\n")
 } else if (methodaCGH == "PSW") {
     cat("<p>        PSW.nIter\t\t:             ",             PSW.nIter,"</p>\n")
-    cat("<p>        PSW.prec\t\t:              ",             PSW.prec,"</p>\n")
     cat("<p>        PSW.p.crit\t\t:            ",             PSW.p.crit,"</p>\n")
 }
 
@@ -496,10 +464,6 @@ cat("<h4>Centering:              </h4>", centering,"\n")
 sink()
 
 
-
-
-
-
 sink(file = "results.txt")
 
 cat("\n\n\n*********************************************************************\n")
@@ -513,23 +477,13 @@ cat("*********************************************************************\n\n")
 cat("\n\n Method:              ", methodaCGH)
 
 cat("\n\n Parameters:")
-if (methodaCGH == "CBS") {
-    cat("\n\nDNA.smooth.region\t\t:",    DNA.smooth.region)   
-    cat("\n\nDNA.outlier.SD.scale\t\t:  ", DNA.outlier.SD.scale)
-    cat("\n\nDNA.smooth.SD.scale\t\t:   ",  DNA.smooth.SD.scale) 
-    cat("\n\nDNA.trim\t\t:              ",             DNA.trim)            
-    cat("\n\nDNA.nmin\t\t:              ",             DNA.nmin)            
-    cat("\n\nDNA.kmax\t\t:              ",             DNA.kmax)            
-    cat("\n\nDNA.copy.alpha\t\t:        ",       DNA.copy.alpha)      
-    cat("\n\nDNA.nperm\t\t:             ",            DNA.nperm)           
-    cat("\n\nDNA.overlap\t\t:           ",          DNA.overlap)         
-    cat("\n\nDNA.undo.prune\t\t:        ",       DNA.undo.prune)
-    cat("\n\nDNA.merge\t\t:             ",       DNA.merge)        
-} else if (methodaCGH == "WS") {
+
+
+if (methodaCGH == "WS") {
     cat("\n\nWave.minDiff\t\t:          ",         Wave.minDiff)
+    cat("\n\nWave.merge\t\t:             ",       Wave.merge)        
 } else if (methodaCGH == "PSW") {
     cat("\n\nPSW.nIter\t\t:             ",             PSW.nIter)
-    cat("\n\nPSW.prec\t\t:              ",             PSW.prec)
     cat("\n\nPSW.p.crit\t\t:            ",             PSW.p.crit)
 }
 

@@ -11,7 +11,8 @@ export("mpiInit",
        "pSegmentCGHseg",
        "segmentPlot",
        "plateauPlot",
-       "writeResults")
+       "writeResults",
+       "SegmentPlotWrite")
 
 
 

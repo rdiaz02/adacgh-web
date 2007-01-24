@@ -45,7 +45,7 @@ MAX_covariate_size = 363948523L ## a 500 * 40000 array of floats
 ##                  paste(LETTERS, collapse="")), 1000)
 ## so each of 1000 labels has 48 chars.
 
-acceptedMethodaCGH = ('WS', 'PSW', 'CBS', 'ACE', 'GLAD', 'HMM', 'BioHMM', 'CGHseg')
+acceptedMethodaCGH = ('Wavelets', 'PSW', 'DNAcopy', 'ACE', 'GLAD', 'HMM', 'BioHMM', 'CGHseg')
 acceptedMethodCentering = ('Median', 'Mean', 'None')
 acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')
 acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
@@ -306,7 +306,7 @@ if tmp1 >= tmp2:
 
 
 methodaCGH = radioUpload('methodaCGH', acceptedMethodaCGH)
-# if methodaCGH == 'CBS':
+# if methodaCGH == 'DNAcopy':
 #     tmp = valueNumUpload('DNA.smooth.region', 'int', 1, 'Smooth Region')
 #     tmp = valueNumUpload('DNA.outlier.SD.scale', 'float', 0.000001, 'Outlier sd scale')
 #     tmp = valueNumUpload('DNA.smooth.SD.scale', 'float', 0.000001, 'Smooth sd scale')
@@ -336,7 +336,7 @@ methodaCGH = radioUpload('methodaCGH', acceptedMethodaCGH)
 #     tmp = valueNumUpload('DNA.nmin', 'float', 0, 'Min length. hybrid. approx.')
 #     tmp = valueNumUpload('DNA.kmax', 'float', 0, 'Max. width. smaller for perm')
 #     tmp = radioUpload('DNA.merge', ('Yes','No'))
-if methodaCGH == 'WS':
+if methodaCGH == 'Wavelets':
     tmp = valueNumUpload('Wave.minDiff', 'float', 0)
     tmp = radioUpload('Wave.merge', ('Yes','No'))
 if methodaCGH == 'ACE':

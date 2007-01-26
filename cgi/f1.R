@@ -83,16 +83,9 @@ assign(".__ADaCGH_WEB_APPL", TRUE)
 print("testing existence of indicator")
 print(exists(".__ADaCGH_WEB_APPL"))
 library(Hmisc)
-library(cgh)
-library(aCGH)
 library("waveslim") ## we will have to load ADaCGH soon,
 ## but we must mask certain defs. in waveslim. So load
 ## waveslim here
-library("cluster") 
-library(cghMCR)
-library(DNAcopy)
-library(GDD)
-library(imagemap)
 library(ADaCGH)
 
 
@@ -220,7 +213,7 @@ MCR.recurrence <- try(scan("MCR.recurrence", what = double(0), n = 1))
 methodaCGH <- scan("methodaCGH", what = "", n = 1)
 if (methodaCGH == "WS") {
     Wave.minDiff <-  scan("Wave.minDiff", what = double(0), n = 1)
-    merge <- Wave.merge            <- scan("Wave.merge", what = "", n = 1)          
+    mergeRes <- Wave.merge            <- scan("Wave.merge", what = "", n = 1)          
 } else if (methodaCGH == "PSW") {
     PSW.nIter <- scan("PSW.nIter", what = double(0), n = 1)
     PSW.p.crit <- scan("PSW.p.crit", what = double(0), n = 1)
@@ -705,19 +698,19 @@ mpiInit()
 
 if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
-    if(!(exists("merge"))) merge <- NULL
-
+    if(!(exists("mergeRes"))) mergeRes <- TRUE
+    
     common.data <- data.frame(ID = positions.merge1$name,
                               Chromosome = positions.merge1$chromosome,
                               Start = positions.merge1$start,
                               End = positions.merge1$end,
                               MidPoint = positions.merge1$MidPoint)
-    
+
     SegmentPlotWrite(as.matrix(xcenter),
                      chrom = positions.merge1$chrom.numeric,
-                     merge = merge,
-                     pos = positions.merge1$MidPoint,
-                     itype = idtype,
+                     mergeSegs = mergeRes,
+                     Pos = positions.merge1$MidPoint,
+                     idtype = idtype,
                      organism = organism,
                      method = methodaCGH,
                      geneNames = positions.merge1$name,
@@ -726,7 +719,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                      MCR.alteredLow = MCR.alteredLow,
                      MCR.alteredHigh = MCR.alteredHigh,
                      MCR.recurrence = MCR.recurrence)
-
+    
     quit()
     
 } else if(methodaCGH == "PSW") {

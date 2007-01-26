@@ -536,7 +536,7 @@ SegmentPlotWrite <- function(data, chrom,
     ymax <- max(data)
     ymin <- min(data)
     numarrays <- ncol(data)
-
+    
     fseg <- get(paste("pSegment", method, sep = ""))
     trythis <- try(
                    segmres <- fseg(data, chrom,
@@ -545,7 +545,7 @@ SegmentPlotWrite <- function(data, chrom,
                    )
     if(inherits(trythis, "try-error"))
         caughtOurError(trythis)
-
+    cat("\n\n Segmentation done \n\n")
     trythis <- try(doMCR(segmres$segm, chrom = chrom, data = data,
                          Pos = Pos, ...))
     if(inherits(trythis, "try-error"))
@@ -559,6 +559,8 @@ SegmentPlotWrite <- function(data, chrom,
                                organism = organism))
     if(inherits(trythis, "try-error"))
         caughtOurError(trythis)
+    cat("\n\n Plotting done \n\n")
+
     trythis <- try(writeResults(segmres,
                                 data, commondata))
     if(inherits(trythis, "try-error"))
@@ -818,6 +820,7 @@ writeForPaLS <- function(alist, names, outfile) {
     ## names: subject or array names
     ## outfile: guess what? is the name of the output file
 
+    
   if(is.array(alist) | is.matrix(alist) )
     if (dim(alist)[2] == 1) alist <- as.vector(alist)
 
@@ -825,14 +828,18 @@ writeForPaLS <- function(alist, names, outfile) {
         ## we suppose we are dealing with a one-array data set
         alist <- list(alist)
     }
-    if(length(names) != length(alist))
-        stop("ERROR in writeForPaLS: names and alist should have the same length")
-    write(
-          unlist(
-                 mapply(function(x, y) return(c(paste("#", y, sep = ""), as.character(x))),
-                        alist, names)
-                 ),
-          file = outfile)
+  if(length(alist) == 0) {
+      write("", file = outfile)
+  } else if(length(names) != length(alist)) {
+      stop("ERROR in writeForPaLS: names and alist should have the same length")
+  } else {
+      write(
+            unlist(
+                   mapply(function(x, y) return(c(paste("#", y, sep = ""), as.character(x))),
+                          alist, names)
+                   ),
+            file = outfile)
+  }
 }
 
 
@@ -877,7 +884,7 @@ hmmWrapper <- function(logratio, Chrom, Pos = NULL) {
                             data.frame(Clone = Clone,
                                        Chrom = Chrom,
                                        kb = Pos))
-    res <- find.hmm.states(obj.aCGH)
+    res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
     hmm(obj.aCGH) <- res
     out <- ourMerge(obj.aCGH$hmm$states.hmm[[1]][, 8],
                       obj.aCGH$hmm$states.hmm[[1]][, 6]) 

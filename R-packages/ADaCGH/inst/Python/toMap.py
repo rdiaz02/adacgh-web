@@ -29,7 +29,8 @@ if organism == 'Hs':
     if chrom == '24': chrom = 'Y'
     toronto_db_link = '<a href="http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr' + \
                       chrom + '&cols=">Toronto Database of Genomic Variants link</a>\n'
-
+else:
+    toronto_db_link = ''
 
 outList = []
 outList.append(out_squeleton1)

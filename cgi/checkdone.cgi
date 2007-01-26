@@ -25,8 +25,8 @@ R_MAX_time = 12 * 3600 ## 12 hours is max duration allowd for any process
 
 ## For redirections, from Python Cookbook
 
-def results_print_general():
-    outf.write('<h2>Segmented data plots <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#output">(help)</a></h2> \n')
+def results_print_general(outf, tmpDir, newDir, Rresults):
+    outf.write('<h2>Segmented data plots <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#output">(help)</a></h2> \n')
     thumb(tmpDir, open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t'),
           outf, maxsthumb = 350)
     thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
@@ -39,8 +39,8 @@ def results_print_general():
         outf.write('<h2>Minimal common regions</h2>\n')
         outf.write(open(tmpDir + "/mcr.results.html").read())
     outf.write('<br />')
-    if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')
-    if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
+#     if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')
+#     if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
     allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
     os.chdir(tmpDir)
     ll1 = glob.glob('*.log')
@@ -51,7 +51,7 @@ def results_print_general():
         try: allResults.add(flname)
         except: None
     allResults.close()
-    outf.write('<hr> <a href="http://adacgh.bioinfo.cnio.es/tmp/' +
+    outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
                newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
    
     try:
@@ -68,7 +68,7 @@ def results_print_general():
 
 
 
-def printPalsURLADaCGH(newDir, application_url = "http://adacgh.bioinfo.cnio.es"):
+def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.bioinfo.cnio.es"):
     """ Based on Pomelo II's Send_to_Pals.cgi."""
     f=open("idtype")
     idtype = f.read().strip()
@@ -130,7 +130,7 @@ def pdf2html(rootname, tmpDir, outf, compressedFile, maxsthumb = 350):
                   + str(fignum + 1) + '.jpeg"></a>\n')
 #         compressedFile.add(rootname + '.' + str(fignum + 1) + '.jpeg',
 #                            rootname + '.' + str(fignum + 1) + '.jpeg')
-    os.chdir('/http/adacgh/cgi')
+    os.chdir('/http/adacgh2/cgi')
 
 
 
@@ -151,7 +151,7 @@ def thumb(tmpDir, fnames, outf, maxsthumb = 350):
         outf.write(''.join(['<a href="', bname, '.html"> <img alt="',
 	                    bname, '" title="', bname, '" src="thumb.',
                             bname, '.jpeg"></a>']))
-    os.chdir('/http/adacgh/cgi')
+    os.chdir('/http/adacgh2/cgi')
 
 
 def getQualifiedURL(uri = None):
@@ -207,7 +207,7 @@ def relaunchCGI():
     print '</head> <body>'
     print '<p> This is an autorefreshing page; your results will eventually be displayed here.\n'
     print 'If your browser does not autorefresh, the results will be kept for five days at</p>'
-    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh.bioinfo.cnio.es/tmp/'+ newDir + '/results.html</a>.' 
+    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html</a>.' 
     print '</p> </body> </html>'
     
 
@@ -249,7 +249,7 @@ def printOKRun():
         outf.write('<IMG BORDER="0" SRC="ErrorFigure.png">')
         outf.write("<br /><br /> <hr>")
         outf.write("<pre>")
-        outf.write('<br /><br /><h2> Results <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
+        outf.write('<br /><br /><h2> Results <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
         outf.write("<br /><br /> <hr>")
         outf.write(cgi.escape(resultsFile))
         outf.write("</pre>")
@@ -258,7 +258,7 @@ def printOKRun():
         Rresults.close()
         shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
     else:
-        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
+        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
         outf.write(open(tmpDir + "/results.for.html").read())
         outf.write('<br />')
         outf.write('<hr>')
@@ -300,13 +300,13 @@ def printOKRun():
         methodUsed = open(tmpDir + '/methodaCGH').read()
         if (methodUsed == 'PSW') or (methodUsed == 'PSW\n'):
             arrayNames = open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t')
-            outf.write('<h2>Island plots, gains <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
+            outf.write('<h2>Island plots, gains <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
             outf.write('<p>Click on thumbnails to expand.</p>')
             gains_fig_list = [''.join(['Gains.', aname]) for aname in arrayNames]
             thumb(tmpDir, gains_fig_list, outf, maxsthumb = 350)
             outf.write('<br />')
             
-            outf.write('<h2>Island plots, losses <a href="http://adacgh.bioinfo.cnio.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
+            outf.write('<h2>Island plots, losses <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
             outf.write('<p>Click on thumbnails to expand.</p>')
             loss_fig_list = [''.join(['Losses.', aname]) for aname in arrayNames]
             thumb(tmpDir, loss_fig_list, outf, maxsthumb = 350)
@@ -329,7 +329,7 @@ def printOKRun():
             for flname in lll:
                 allResults.add(flname)
             allResults.close()
-            outf.write('<hr> <a href="http://adacgh.bioinfo.cnio.es/tmp/' +
+            outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
 
             outf.write(printPalsURLADaCGH(newDir))
@@ -345,7 +345,7 @@ def printOKRun():
             acefdr = acefdrtable.read()
             acefdrtable.close()
             outf.write(acefdr)
-            outf.write('<form action="http://adacgh.bioinfo.cnio.es/cgi-bin/ace.cgi" method="GET">\n')
+            outf.write('<form action="http://adacgh2.bioinfo.cnio.es/cgi-bin/ace.cgi" method="GET">\n')
             outf.write('<input type="hidden" NAME="newDir" VALUE="' + newDir + '">')
             currentfdr = str(open(tmpDir + '/aceFDR').readline())
             outf.write('<br><input type="TEXT" name="fdrace" value="' +
@@ -371,7 +371,7 @@ def printOKRun():
             for flname in lll:
                 allResults.add(flname)
             allResults.close()
-            outf.write('<hr> <a href="http://adacgh.bioinfo.cnio.es/tmp/' +
+            outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
 
             outf.write(printPalsURLADaCGH(newDir))
@@ -381,7 +381,7 @@ def printOKRun():
             Rresults.close()
             shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
         else:
-            results_print_general()
+            results_print_general(outf, tmpDir, newDir, Rresults)
 
 
 
@@ -440,7 +440,7 @@ if re.search(r'[^0-9]', str(newDir)):
     sys.exit()
     
 ##redirectLoc = "/tmp/" + newDir
-tmpDir = "/http/adacgh/www/tmp/" + newDir
+tmpDir = "/http/adacgh2/www/tmp/" + newDir
 
 if not os.path.isdir(tmpDir):
     commonOutput()
@@ -455,7 +455,7 @@ if not os.path.isdir(tmpDir):
 ## No need to reopen files or check anything else. Return url with results
 ## and bail out.
 if os.path.exists(tmpDir + "/natural.death.pid.txt") or os.path.exists(tmpDir + "/killed.pid.txt"):
-    print 'Location: http://adacgh.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
+    print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
     sys.exit()
 
 ## No, we were not done. Need to examine R output
@@ -496,10 +496,10 @@ if (not finishedOK) and (not errorRun) and (os.path.exists(tmpDir + "/pid.txt"))
 	try: os.remove(tmpDir + '/f1.R')
 	except: None
 	try:
-	    os.remove("/http/adacgh/www/R.running.procs/R." + newDir + "*")
+	    os.remove("/http/adacgh2/www/R.running.procs/R." + newDir + "*")
 	except:
 	    None
-	print 'Location: http://adacgh.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
+	print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
 	sys.exit()
 
 if errorRun > 0:
@@ -507,7 +507,7 @@ if errorRun > 0:
     os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
     os.remove(tmpDir + '/f1.R')
     try:
-        os.remove("/http/adacgh/www/R.running.procs/R." + newDir)
+        os.remove("/http/adacgh2/www/R.running.procs/R." + newDir)
     except:
 	None
     try:
@@ -518,7 +518,7 @@ if errorRun > 0:
         lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
     except:
         None
-    print 'Location: http://adacgh.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
+    print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
 
 elif finishedOK > 0:
     try:
@@ -535,9 +535,9 @@ elif finishedOK > 0:
     try: os.remove(tmpDir + '/f1.R')
     except: None
     try:
-        os.remove("/http/adacgh/www/R.running.procs/R." + newDir)
+        os.remove("/http/adacgh2/www/R.running.procs/R." + newDir)
     finally:
-        print 'Location: http://adacgh.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
+        print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
     
 else:
     ## we only end up here if: we were not done in a previous run AND no process was overtime 

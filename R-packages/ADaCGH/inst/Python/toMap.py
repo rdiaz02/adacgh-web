@@ -39,8 +39,8 @@ outList.append(out_squeleton2)
 
 outList.append(''.join(['<h1>Chromosome view: ', nameMap, '</h1>\n',
                         toronto_db_link,
-                        '<p><img src="', nameSrc, '"usemap="#', nameMap, '" ISMAP>\n',
-                        '<map name="', nameMap, '"></p>\n']))
+                        '<img src="', nameSrc, '"usemap="#', nameMap, '" ISMAP>\n',
+                        '<map name="', nameMap, '">\n']))
     
 
 if idtype == 'None' or organism == 'None':

@@ -72,12 +72,6 @@ system(paste("mv ../../R.running.procs/", new.name1,
 
 #########################################################
 
-library(Rmpi)
-mpi.spawn.Rslaves(nslaves= mpi.universe.size())
-library(papply)
-sink(file = "mpiOK")
-cat("MPI started OK\n")
-sink()
 
 assign(".__ADaCGH_WEB_APPL", TRUE)
 print("testing existence of indicator")
@@ -87,6 +81,13 @@ library("waveslim") ## we will have to load ADaCGH soon,
 ## but we must mask certain defs. in waveslim. So load
 ## waveslim here
 library(ADaCGH)
+
+
+mpiInit()
+sink(file = "mpiOK")
+cat("MPI started OK\n")
+sink()
+
 
 
 
@@ -500,11 +501,11 @@ cat("*********************************************************************\n")
 cat("*********************************************************************\n\n")
 
 tmp <- table(positions.merge1$chrom.numeric)
-tmp2 <- data.frame(as.vector(tmp))
+tmp2 <- data.frame(as.vector(round(tmp, 0)))
 rownames(tmp2) <- names(tmp)
 colnames(tmp2) <- "Number of genes/clones per chromosome"
-tmp2
-tmphtml <- html(tmp2, file = "clones.per.chrom.html", dec = 4, first.col = "Chromosome")
+tmp2[, 1] <- as.character(round(tmp2[, 1]))
+tmphtml <- ADaCGH:::my.html.data.frame(tmp2, file = "clones.per.chrom.html", dec = 0, first.col = "Chromosome")
                 
 rm(tmp, tmp2, tmphtml)
     
@@ -523,7 +524,7 @@ cat("*********************************************************************\n\n")
 
 tmpdf <- data.frame(means, medians, mads)
 colnames(tmpdf) <- c("Mean", "Median", "MAD")
-tmphtml <- html(tmpdf, file = "stats.before.centering.html", dec = 4, first.col = "Array name")
+tmphtml <- ADaCGH:::my.html.data.frame(tmpdf, file = "stats.before.centering.html", digits = 4, first.col = "Array name")
 
 
 cat("\n\n Means, medians, MAD of log ratios  per subject/array\n")
@@ -559,11 +560,11 @@ a3 <- apply(xdata.merge1, 2,
 
 round(a3, 3)
 
-tmphtml <- html(a1, file = "stats.subj.by.chrom.mean.BEFORE.html", dec = 4,
+tmphtml <- ADaCGH:::my.html.data.frame(a1, file = "stats.subj.by.chrom.mean.BEFORE.html", digits = 4,
                 first.col = "Chromosome")
-tmphtml <- html(a2, file = "stats.subj.by.chrom.median.BEFORE.html", dec = 4,
+tmphtml <- ADaCGH:::my.html.data.frame(a2, file = "stats.subj.by.chrom.median.BEFORE.html", digits = 4,
                 first.col = "Chromosome")
-tmphtml <- html(a3, file = "stats.subj.by.chrom.mad.BEFORE.html", dec = 4,
+tmphtml <- ADaCGH:::my.html.data.frame(a3, file = "stats.subj.by.chrom.mad.BEFORE.html", digits = 4,
                 first.col = "Chromosome")
 
 
@@ -600,7 +601,7 @@ cat("*********************************************************************\n\n")
 
 tmpdf <- data.frame(means, medians, mads)
 colnames(tmpdf) <- c("Mean", "Median", "MAD")
-tmphtml <- html(tmpdf, file = "stats.after.centering.html", dec = 4,
+tmphtml <- ADaCGH:::my.html.data.frame(tmpdf, file = "stats.after.centering.html", digits = 4,
                 first.col = "Array name")
 
 
@@ -644,9 +645,9 @@ round(a3, 3)
 
 sink()
 
-tmphtml <- html(a1, file = "stats.subj.by.chrom.mean.AFTER.html", dec = 4, first.col = "Chromosome")
-tmphtml <- html(a2, file = "stats.subj.by.chrom.median.AFTER.html", dec = 4, first.col = "Chromosome")
-tmphtml <- html(a3, file = "stats.subj.by.chrom.mad.AFTER.html", dec = 4, first.col = "Chromosome")
+tmphtml <- ADaCGH:::my.html.data.frame(a1, file = "stats.subj.by.chrom.mean.AFTER.html", digits = 4, first.col = "Chromosome")
+tmphtml <- ADaCGH:::my.html.data.frame(a2, file = "stats.subj.by.chrom.median.AFTER.html", digits = 4, first.col = "Chromosome")
+tmphtml <- ADaCGH:::my.html.data.frame(a3, file = "stats.subj.by.chrom.mad.AFTER.html", digits = 4, first.col = "Chromosome")
 
 
 ### Checking not weird data
@@ -694,7 +695,6 @@ options(warn = -1)
 ### This all there is to execution itself
 
   
-mpiInit()
 
 if(! (methodaCGH %in% c("PSW", "ACE"))) {
 

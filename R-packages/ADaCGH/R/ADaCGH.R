@@ -39,11 +39,6 @@ mpiInit <- function(wdir = getwd()) {
     mpi.setup.rngstream() ## or mpi.setup.sprng()
 ##    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     library(papply)
-    mpi.remote.exec(library(cluster))
-    mpi.remote.exec(library(waveslim))
-    mpi.remote.exec(library(cghMCR))
-    mpi.remote.exec(library(DNAcopy))
-    mpi.remote.exec(library(cgh))
     mpi.remote.exec(library(ADaCGH))
     mpi.bcast.Robj2slave(wdir)
     mpi.remote.exec(setwd(wdir))    
@@ -831,6 +826,10 @@ writeForPaLS <- function(alist, names, outfile) {
   if(length(alist) == 0) {
       write("", file = outfile)
   } else if(length(names) != length(alist)) {
+      print("names are ")
+      print(names)
+      print("alist is ")
+      print(alist)
       stop("ERROR in writeForPaLS: names and alist should have the same length")
   } else {
       write(

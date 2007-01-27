@@ -37,7 +37,7 @@ mpiInit <- function(wdir = getwd()) {
     library(Rmpi)
     mpi.spawn.Rslaves(nslaves= mpi.universe.size())
     mpi.setup.rngstream() ## or mpi.setup.sprng()
-##    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     library(papply)
     mpi.remote.exec(library(ADaCGH))
     mpi.bcast.Robj2slave(wdir)
@@ -894,7 +894,7 @@ hmmWrapper <- function(logratio, Chrom, Pos = NULL) {
 BioHMMWrapper <- function(logratio, Chrom, Pos) {
   logratio <- matrix(logratio, ncol=1)
   uchrom <- unique(Chrom)
-  obs <- NULL
+##  obs <- NULL
   smoothed <- NULL
   for (ic in uchrom) {
       ydat <- logratio[Chrom == ic]
@@ -902,10 +902,11 @@ BioHMMWrapper <- function(logratio, Chrom, Pos) {
       res <- fit.model(sample = 1, chrom = ic, dat = matrix(ydat, ncol = 1),
                        datainfo = data.frame(Name = 1:n, Chrom = rep(ic, n),
                        Position = Pos[Chrom == ic]))
-      obs <- c(obs, res$out.list$obs)
+##      obs <- c(obs, res$out.list$obs)
       smoothed <- c(smoothed, res$out.list$mean)
   }
-  out <- ourMerge(obs, smoothed)
+  out <- ourMerge(logratio, smoothed)
+  ##out <- ourMerge(obs, smoothed)
   return(out)
 }
 

@@ -243,10 +243,27 @@ fGLAD.mpi <- function(ind, samples) {
 fACE.mpi <- function(ind, samples) {
     data <- make.cghdata(ind, samples)
     chr <- dataList[[ind]]$Chrom
-    return(unix.time(trash <- pSegmentGLAD(data, chr))[3])
+    return(unix.time(trash <- pSegmentACE(data, chr))[3])
 }
 
-    
+fCGHseg.mpi <- function(ind, samples) {
+    data <- make.cghdata(ind, samples)
+    chr <- dataList[[ind]]$Chrom
+    return(unix.time(trash <- pSegmentCGHseg(data, chr))[3])
+}
+
+fPSW.mpi <- function(ind, samples) {
+    data <- make.cghdata(ind, samples)
+    chr <- dataList[[ind]]$Chrom
+    return(unix.time(trash <- pSegmentPSW(data, chr))[3])
+}
+
+fWave.mpi <- function(ind, samples) {
+    data <- make.cghdata(ind, samples)
+    chr <- dataList[[ind]]$Chrom
+    return(unix.time(trash <- pSegmentWavelets(data, chr, mergeSegs = TRUE))[3])
+}
+
 
 
 getTimes <- function(dataind,
@@ -266,16 +283,23 @@ getTimes <- function(dataind,
                            Method = Method,
                            MPI    = MPI)
     designm2 <- expand.grid(Rep = 1:reps,
-                           NumberArrays = nsamps,
-                           Method = method2,
-                           MPI    = mpi2)
+                            NumberArrays = nsamps,
+                            Method = method2,
+                            MPI    = mpi2)
     designm <- rbind(designm1, designm2)
     ## Make sure no order effects
     nd <- nrow(designm)
     designm <- designm[sample(1:nd), ]
-    
+    designm$number <- 1:nd
 
-    f1 <- function(nsamp, method, mpi) {
+    cat("\n\n **** getTimes will need to run for ",
+        nd, "  times. **** \n\n")
+
+    f1 <- function(nsamp, method, mpi, number) {
+        cat("\n\n Doing case number ", number,
+            ". Method = ", method, ". MPI = ", mpi,
+            ". Number of samples = ", nsamp, "\n\n")
+
         for(gci in 1:gcnum) print(gc())
         
         if(mpi == "None") {
@@ -290,20 +314,24 @@ getTimes <- function(dataind,
     }      
 
     out <- mapply(f1, designm$NumberArrays, designm$Method,
-                  designm$mpi)
+                  designm$mpi, designm$number)
     out <- cbind(designm, out)
     
 }
 
 
-numberArrays <- c(5, 10, 20, 40, 80, 120)
-mpiSizes     <- c(1, 4, 20, 60, 120)
+#numberArrays <- c(5, 10, 20, 40, 80, 120)
+#mpiSizes     <- c(1, 4, 20, 60, 120)
+#reps <- 5
 
+numberArrays <- c(5, 13)
+mpiSizes     <- c(1, 120)
+reps <- 2
 
 largeTiming <- getTimes(2, nsamps = numberArrays,
-                        reps = 5,
+                        reps = reps,
                         mpisizes = mpiSizes)
 
 smallTiming <- getTimes(1, nsamps = numberArrays,
-                        reps = 5,
+                        reps = reps,
                         mpisizes = mpiSizes)

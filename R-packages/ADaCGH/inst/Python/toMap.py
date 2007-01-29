@@ -27,10 +27,10 @@ if organism == 'Hs':
     ## FIXME: what about X and Y??
     if chrom == '23': chrom = 'X'
     if chrom == '24': chrom = 'Y'
-    toronto_db_link = '<a href="http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr' + \
-                      chrom + '&cols=">Toronto Database of Genomic Variants link</a>\n'
+    toronto_db_link = '<p><a href="http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr' + \
+                      chrom + '&cols=">Toronto Database of Genomic Variants link</a></p> <br />\n'
 else:
-    toronto_db_link = ''
+    toronto_db_link = '<p></p><br />'
 
 outList = []
 outList.append(out_squeleton1)

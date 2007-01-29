@@ -2410,7 +2410,18 @@ plot.adacgh.genomewide <- function(res, chrom,
     nameIm <- main
     logr <- res[[arraynum]][, 1]
     smoothdat <- res[[arraynum]][, 2]
-    simplepos <- if(is.null(geneLoc)) (1:length(logr)) else geneLoc
+    if(is.null(geneLoc)) {
+        simplepos <- (1:length(logr))
+    } else {
+        ## geneLoc is withing chromosome,
+        ## thus, we need some absolute, increasing pos.
+        lchr <- tapply(geneLoc, chrom, length)
+        mchr <- cumsum(tapply(geneLoc, chrom, max)) ## not very efficient
+        sumpos <- rep(c(0, mchr[-length(mchr)]),
+                      lchr)
+        simplepos <- geneLoc + sumpos
+    }
+                        
     res.dat <- res[[arraynum]][, 3]
     col <- rep(colors[1],length(res.dat))
     col[which(res.dat == -1)] <- colors[3]
@@ -2483,7 +2494,17 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
     for (arraynum in 1:arraynums) {
         logr <- res[[arraynum]][, 1]
         smoothdat <- res[[arraynum]][, 2]
-        simplepos <- if(is.null(geneLoc)) (1:length(logr)) else geneLoc
+        if(is.null(geneLoc)) {
+            simplepos <- (1:length(logr))
+        } else {
+            ## geneLoc is withing chromosome,
+            ## thus, we need some absolute, increasing pos.
+            lchr <- tapply(geneLoc, chrom, length)
+            mchr <- cumsum(tapply(geneLoc, chrom, max)) ## not very efficient
+            sumpos <- rep(c(0, mchr[-length(mchr)]),
+                          lchr)
+            simplepos <- geneLoc + sumpos
+        }
         res.dat <- res[[arraynum]][, 3]
         col <- rep(colors[1],length(res.dat))
         col[which(res.dat == -1)] <- colors[3]
@@ -2608,9 +2629,9 @@ plotChromWide <- function() {
 }
 
 pngCircleRegion <- function() {
-    usr2pngCircle <- function(x, y, rr = 2) {
+    usr2pngCircle <- function(x, y, rr = 2, rmin = 4) {
         xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-        r <- abs(xyrc[2, 1] - xyrc[3, 1])
+        r <- min(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
         return(c(xyrc[1, 1], xyrc[1, 2], r))
     } 
     ccircle <- cbind(ccircle,

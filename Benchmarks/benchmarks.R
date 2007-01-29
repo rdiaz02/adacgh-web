@@ -107,9 +107,9 @@ make.cghdata <- function(ind, samps) {
 
 make.cbs.obj <- function(ind, samps) {
     tmp <- make.cghdata(ind, samps)
-    cna.obj <- CNA(cbind(tmp, dataList[[ind]]$Chrom,
+    cna.obj <- CNA(tmp, dataList[[ind]]$Chrom,
                          dataList[[ind]]$Pos,
-                         data.type = "logratio"))
+                         data.type = "logratio")
     return(cna.obj)
 }
 
@@ -133,14 +133,14 @@ doCBS <- function(data) {
     segmented <- segment(smoothed, undo.splits = "prune", nperm = 10000)
 }
 
-doHMM <- function(data) {
+doHMM <- function(data, nsamp) {
     res <- find.hmm.states(data, aic = TRUE, bic = FALSE)
     hmm(data) <- res
     m <- matrix(NA, nrow = nrow(data$hmm$states.hmm[[1]]),
-                ncol = length(data$hmm$states.hmm))
+                ncol = nsamp)
     for(j in 1:ncol(data)) {
-        m[, j] <- mergeLevels(data$hmm$states.hmm[[j]][, 8],
-                              data$hmm$states.hmm[[j]][, 6])
+        m[, j] <- mergeLevels(data$hmm$states.hmm[[1]][, 2 + (6 * n)],
+                              data$hmm$states.hmm[[1]][, 2 + (6 * n) - 2])$vecMerged
     }
 }
         
@@ -160,15 +160,14 @@ doBioHMM <- function(data, Chrom, Pos) {
             
             smoothed <- c(smoothed, res$out.list$mean)
         }
-        m[, j] <- mergeLevels(data[, j],
-                              res$out.list$mean)
+        m[, j] <- mergeLevels(data[, j], smoothed)$vecMerged
     }
 }
 
 
 doGLAD <- function(data, Chrom, Pos) {
     m <- matrix(NA, nrow = nrow(data), ncol = ncol(data))
-    Pos <- if (is.null(Pos)) (1:length(x)) else Pos
+    Pos <- if (is.null(Pos)) (1:nrow(data)) else Pos
     for(j in 1:ncol(data)) {
         x <- data[, j]
         tmpf <- data.frame(LogRatio = x,
@@ -191,7 +190,7 @@ doGLAD <- function(data, Chrom, Pos) {
 
 fHMM <- function(ind, samples) {
     data <- make.hmm.obj(ind, samples)
-    return(unix.time(trash <- doHMM(data))[3])
+    return(unix.time(trash <- doHMM(data, samples))[3])
 }
 
 fCBS <- function(ind, samples) {

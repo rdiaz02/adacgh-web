@@ -64,7 +64,7 @@ load("dataList.RData")
 library(Rmpi)
 library(papply)
 library(ADaCGH)
-
+library(DNAcopy)
 
 
 mpiSetup <- function(nslaves) {
@@ -323,14 +323,17 @@ getTimes <- function(dataind,
 #mpiSizes     <- c(1, 4, 20, 60, 120)
 #reps <- 5
 
-numberArrays <- c(5, 13)
-mpiSizes     <- c(1, 120)
-reps <- 2
+numberArrays <- c(5, 10, 50, 100)
+mpiSizes     <- c(1, 10, 60, 120)
+reps <- 3
+
+
+smallTiming <- getTimes(1, nsamps = numberArrays,
+                        reps = reps,
+                        mpisizes = mpiSizes)
+
 
 largeTiming <- getTimes(2, nsamps = numberArrays,
                         reps = reps,
                         mpisizes = mpiSizes)
 
-smallTiming <- getTimes(1, nsamps = numberArrays,
-                        reps = reps,
-                        mpisizes = mpiSizes)

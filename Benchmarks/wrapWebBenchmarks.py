@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+## outappend = sys.argv[1]
+
+outappend = 'singlerun'
+
+NUM_USERS = (1, 1, 1,  
+             2, 2, 
+             5,
+             10)
+
+
+TESTS = ('CBS_large',
+         'HMM_large',
+         'BioHMM_large',
+         'CGHseg_large',
+         'GLAD_large',
+         'Wavelets_large',
+         'ACE_large',
+         'PSW_large',
+         'CBS_small',
+         'HMM_small',
+         'BioHMM_small',
+         'CGHseg_small',
+         'GLAD_small',
+         'Wavelets_small',
+         'ACE_small',
+         'PSW_small')
+         
+
+
+def launchUTests(test, users):
+    t = [-99999 for i in range(users)]
+    timef = [-99999 for i in range(users)]
+    for uu in range(users):
+        iin, t[uu] = os.popen2('fl-run-test benchmarkADaCGH2.py ADaCGH.test' + test)
+    
+    for uu in range(users):
+        timef[uu] = float(t[uu].readlines()[1].strip())
+
+    return timef
+
+def launchAll(test, lusers):
+    outall = []
+    for users in lusers:
+        print 'users ' + str(users)
+        outall = outall + launchUTests(test, users)
+    return outall
+
+
+
+def writeFile(testout, name):
+    fout = open(name, mode = 'w')
+    for result in testout:
+        fout.write(str(result))
+        fout.write('\t')
+    fout.close()
+    
+
+for test in TESTS:
+    timings = launchAll(test, NUM_USERS)
+    writeFile(timings, 'web.bnchmk.' + test + 'txt')

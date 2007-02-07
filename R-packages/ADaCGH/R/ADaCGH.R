@@ -85,6 +85,15 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
                   papply_commondata = list(
                   slave_chrom = chrom.numeric,
                   slave_kb    = Pos))
+
+    te <- unlist(lapply(out, function(x) inherits(x, "try-error")))
+    if(any(te)) {
+        m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
+        m2 <- "You can try rerunning it a few times."
+        m3 <- "You can also tell the original authors that you get the error "
+        mm <- paste(m1, m2, m3, out[[which(te)]])
+        caughtError(mm)
+    }
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
@@ -899,11 +908,14 @@ BioHMMWrapper <- function(logratio, Chrom, Pos) {
   for (ic in uchrom) {
       ydat <- logratio[Chrom == ic]
       n <- length(ydat)
-      res <- fit.model(sample = 1, chrom = ic, dat = matrix(ydat, ncol = 1),
+      res <- try(fit.model(sample = 1, chrom = ic, dat = matrix(ydat, ncol = 1),
                        datainfo = data.frame(Name = 1:n, Chrom = rep(ic, n),
-                       Position = Pos[Chrom == ic]))
-##      obs <- c(obs, res$out.list$obs)
-      smoothed <- c(smoothed, res$out.list$mean)
+                       Position = Pos[Chrom == ic])))
+      if(inherits(res, "try-error")) {
+          return(res)
+      } else {
+          smoothed <- c(smoothed, res$out.list$mean)
+      }
   }
   out <- ourMerge(logratio, smoothed)
   ##out <- ourMerge(obs, smoothed)
@@ -2242,6 +2254,36 @@ PSWtoPaLS <- function(x = .__PSW_PALS.Lost_for_PaLS.txt,
                                  u, v, names(u))
     write(unlist(ooo(x, y)), file = out)     
 }
+
+
+caughtError <- function(message) {
+    png.height <- 400
+    png.width  <- 400
+    png.pointsize <- 10
+
+    if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
+        GDD("ErrorFigure.png", width = png.width,
+               height = png.height, 
+               ps = png.pointsize)
+        plot(x = c(0, 1), y = c(0, 1),
+             type = "n", axes = FALSE, xlab = "", ylab = "")
+        box()
+        text(0.5, 0.7, "There was a PROBLEM with this run.")
+        dev.off()
+        sink(file = "results.txt")
+        cat(message)
+        sink()
+        sink(file = "exitStatus")
+        cat("Error\n\n")
+        cat(message)
+        sink()
+        quit(save = "no", status = 11, runLast = TRUE)
+    } else {
+        message <- paste("This is a known problem in a package we depend upon. ", message)
+        stop(message)
+    }
+}
+
 
 
 

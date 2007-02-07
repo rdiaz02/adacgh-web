@@ -16,41 +16,41 @@
 
 #### Prepare data; only needed once
 
-library(DNAcopy)
-data(coriell)
+## library(DNAcopy)
+## data(coriell)
 
 
-## Prepare data
-cordat <- na.omit(unlist(coriell[, c(4, 5)]))
-names(cordat) <- NULL
-cordat <- matrix(c(cordat, sample(cordat, 353)), ncol = 2)
+## ## Prepare data
+## cordat <- na.omit(unlist(coriell[, c(4, 5)]))
+## names(cordat) <- NULL
+## cordat <- matrix(c(cordat, sample(cordat, 353)), ncol = 2)
 
-dataList <- list()
-dataList[[1]] <- list()
-dataList[[1]]$acgh <- cordat
-dataList[[1]]$nr <- 2271
-dataList[[1]]$nc <- 2
-dataList[[1]]$Chrom <- coriell$Chromosome
-dataList[[1]]$Pos <- coriell$Positions
+## dataList <- list()
+## dataList[[1]] <- list()
+## dataList[[1]]$acgh <- cordat
+## dataList[[1]]$nr <- 2271
+## dataList[[1]]$nc <- 2
+## dataList[[1]]$Chrom <- coriell$Chromosome
+## dataList[[1]]$Pos <- coriell$Position
 
-load("long.data.RData")
+## load("long.data.RData")
 
 
-## give ordered data
-start2 <- unlist(tapply(posdat2$start, posdat2$chrom, sort))
+## ## give ordered data
+## start2 <- unlist(tapply(posdat2$start, posdat2$chrom, sort))
 
-## verify ordered
-cucu <- tapply(start2, posdat2$chrom, order)
-lapply(cucu, function(z) max(abs(z - (1:length(z)))))
+## ## verify ordered
+## cucu <- tapply(start2, posdat2$chrom, order)
+## lapply(cucu, function(z) max(abs(z - (1:length(z)))))
 
-dataList[[2]] <- list()
-dataList[[2]]$acgh <- long.long
-dataList[[2]]$nr <- 42325
-dataList[[2]]$nc <- 11
-dataList[[2]]$Chrom <- posdat2$chrom
-dataList[[2]]$Pos <- start2
+## dataList[[2]] <- list()
+## dataList[[2]]$acgh <- long.long
+## dataList[[2]]$nr <- 42325
+## dataList[[2]]$nc <- 11
+## dataList[[2]]$Chrom <- posdat2$chrom
+## dataList[[2]]$Pos <- start2
 
-save(file = "dataList.RData", dataList)
+## save(file = "dataList.RData", dataList)
 
 
 
@@ -64,7 +64,7 @@ load("dataList.RData")
 library(Rmpi)
 library(papply)
 library(ADaCGH)
-library(DNAcopy)
+library(DNAcopy) ## try not to use segment from tilingArray
 
 
 mpiSetup <- function(nslaves) {
@@ -139,8 +139,8 @@ doHMM <- function(data, nsamp) {
     m <- matrix(NA, nrow = nrow(data$hmm$states.hmm[[1]]),
                 ncol = nsamp)
     for(j in 1:ncol(data)) {
-        m[, j] <- mergeLevels(data$hmm$states.hmm[[1]][, 2 + (6 * n)],
-                              data$hmm$states.hmm[[1]][, 2 + (6 * n) - 2])$vecMerged
+        m[, j] <- mergeLevels(data$hmm$states.hmm[[1]][, 2 + (6 * j)],
+                              data$hmm$states.hmm[[1]][, 2 + (6 * j) - 2])$vecMerged
     }
 }
         
@@ -202,7 +202,12 @@ fBioHMM <- function(ind, samples) {
     data <- make.cghdata(ind, samples)
     chr <- dataList[[ind]]$Chrom
     pos <- dataList[[ind]]$Pos
-    return(unix.time(trash <- doBioHMM(data, chr, pos))[3])
+    tt <- try(unix.time(trash <- doBioHMM(data, chr, pos))[3])
+    if(inherits(tt, "try-error")) {
+        return(NA)
+    } else {
+        return(tt)
+    }
 }
 
 fGLAD <- function(ind, samples) {
@@ -313,7 +318,7 @@ getTimes <- function(dataind,
     }      
 
     out <- mapply(f1, designm$NumberArrays, designm$Method,
-                  designm$mpi, designm$number)
+                  designm$MPI, designm$number)
     out <- cbind(designm, out)
     
 }
@@ -323,8 +328,8 @@ getTimes <- function(dataind,
 #mpiSizes     <- c(1, 4, 20, 60, 120)
 #reps <- 5
 
-numberArrays <- c(5, 10, 50, 100)
-mpiSizes     <- c(1, 10, 60, 120)
+numberArrays <- c(5, 10, 20, 50)
+mpiSizes     <- c(10, 30, 60, 120)
 reps <- 3
 
 
@@ -332,8 +337,11 @@ smallTiming <- getTimes(1, nsamps = numberArrays,
                         reps = reps,
                         mpisizes = mpiSizes)
 
+save(file = "smallTiming.RData", smallTiming)
 
 largeTiming <- getTimes(2, nsamps = numberArrays,
                         reps = reps,
                         mpisizes = mpiSizes)
+
+save(file = "largeTiming.RData", largeTiming)
 

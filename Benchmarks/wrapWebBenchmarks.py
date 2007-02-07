@@ -7,30 +7,30 @@ import sys
 
 outappend = 'singlerun'
 
-NUM_USERS = (1, 1, 1,  
-             2, 2, 
+NUM_USERS = (1, 1, 1, 1, 1,  
              5,
-             10)
+             10,
+             20)
 
 
-TESTS = ('CBS_large',
-         'HMM_large',
-         'BioHMM_large',
-         'CGHseg_large',
-         'GLAD_large',
-         'Wavelets_large',
-         'ACE_large',
-         'PSW_large',
-         'CBS_small',
-         'HMM_small',
-         'BioHMM_small',
-         'CGHseg_small',
-         'GLAD_small',
-         'Wavelets_small',
-         'ACE_small',
-         'PSW_small')
+TESTS = (
+    'CBS_small',
+    'HMM_small',
+    'BioHMM_small',
+    'CGHseg_small',
+    'GLAD_small',
+    'Wavelets_small',
+    'ACE_small',
+    'PSW_small',
+    'CBS_large',
+    'HMM_large',
+    'BioHMM_large',
+    'CGHseg_large',
+    'GLAD_large',
+    'Wavelets_large',
+    'ACE_large',
+    'PSW_large')
          
-
 
 def launchUTests(test, users):
     t = [-99999 for i in range(users)]

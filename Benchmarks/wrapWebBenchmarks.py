@@ -3,20 +3,15 @@
 import os
 import sys
 
-## outappend = sys.argv[1]
-
-outappend = 'singlerun'
-
-NUM_USERS = (1, 1, 1, 1, 1,  
+NUM_USERS = (1, 1, 1,
+             2, 2,
              5,
-             10,
-             20)
-
+             10)
 
 TESTS = (
     'CBS_small',
     'HMM_small',
-    'BioHMM_small',
+##    'BioHMM_small',
     'CGHseg_small',
     'GLAD_small',
     'Wavelets_small',
@@ -24,7 +19,7 @@ TESTS = (
     'PSW_small',
     'CBS_large',
     'HMM_large',
-    'BioHMM_large',
+##    'BioHMM_large',
     'CGHseg_large',
     'GLAD_large',
     'Wavelets_large',
@@ -46,7 +41,7 @@ def launchUTests(test, users):
 def launchAll(test, lusers):
     outall = []
     for users in lusers:
-        print 'users ' + str(users)
+        print 'test :' + test + '.   users: ' + str(users)
         outall = outall + launchUTests(test, users)
     return outall
 
@@ -57,9 +52,19 @@ def writeFile(testout, name):
     for result in testout:
         fout.write(str(result))
         fout.write('\t')
+    fout.flush()
     fout.close()
     
 
+
+SUFFIX = (1, 2, 3, 1, 2, 1, 1)
+
+kwd = zip(NUM_USERS, SUFFIX)
+
+
 for test in TESTS:
-    timings = launchAll(test, NUM_USERS)
-    writeFile(timings, 'web.bnchmk.' + test + 'txt')
+    for ks in kwd:
+        nu = ks[0]
+        timings = launchUTests(test, nu)
+        writeFile(timings, 'web.bnchmk.' + test + '_' + \
+                  str(nu) + '.' + str(ks[1]) + '.txt')

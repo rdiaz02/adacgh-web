@@ -46,6 +46,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -66,7 +67,7 @@ class ADaCGH(FunkLoadTestCase):
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
         final_output = 'DNA.smooth.region'
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -76,6 +77,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -95,7 +97,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -105,6 +107,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -124,7 +127,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -133,6 +136,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -152,7 +156,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -162,6 +166,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -181,7 +186,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -190,6 +195,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -209,7 +215,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -218,6 +224,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -237,7 +244,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -246,6 +253,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -265,7 +273,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -279,6 +287,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -299,7 +308,7 @@ class ADaCGH(FunkLoadTestCase):
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
         final_output = 'DNA.smooth.region'
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -309,6 +318,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -328,7 +338,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -338,6 +348,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -357,7 +368,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -366,6 +377,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -385,7 +397,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -395,6 +407,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -414,7 +427,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -423,6 +436,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -442,7 +456,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -451,6 +465,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -470,7 +485,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration
@@ -479,6 +494,7 @@ class ADaCGH(FunkLoadTestCase):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
+        start_time = time.time()
         self.post(server_url + "/cgi-bin/adacghR.cgi", params=[
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
@@ -498,7 +514,7 @@ class ADaCGH(FunkLoadTestCase):
             ['organism', 'None'],
             ['idtype', 'None']],
             description="CBS; numerical of parallel")
-        common_part(self)
+        common_part_bench(self)
         end_time = time.time()
         duration = end_time - start_time
         print duration

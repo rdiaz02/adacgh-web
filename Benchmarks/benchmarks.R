@@ -53,7 +53,7 @@
 ## save(file = "dataList.RData", dataList)
 
 
-
+## nohup R --no-save --no-restore --slave < benchmarks.R > benchmarksB.Rout &
 
 
 ##################################################33
@@ -277,7 +277,8 @@ getTimes <- function(dataind,
     ## we call gc() a number of times
     gcnum <- 5
 
-    Method <- c("GLAD", "HMM", "BioHMM", "CBS")
+    
+    Method <- c("GLAD", "HMM", "CBS") ## BioHMM excluded because of its crashes
     MPI    <- c("None", mpisizes)
     method2 <- c("ACE", "CGHseg", "PSW", "Wave")
     mpi2 <- as.character(mpisizes)
@@ -300,6 +301,9 @@ getTimes <- function(dataind,
         nd, "  times. **** \n\n")
 
     f1 <- function(nsamp, method, mpi, number) {
+        browser()
+        method <- as.character(method)
+        mpi <- as.character(mpi)
         cat("\n\n Doing case number ", number,
             ". Method = ", method, ". MPI = ", mpi,
             ". Number of samples = ", nsamp, "\n\n")
@@ -310,7 +314,7 @@ getTimes <- function(dataind,
             return(do.call(paste("f", method, sep = ""),
                            list(ind = dataind, samples = nsamp)))
         } else {
-            mpiSetup(as.numeric(as.character(mpi)))
+            mpiSetup(as.numeric(mpi))
             return(do.call(paste("f", method, ".mpi", sep = ""),
                            list(ind = dataind, samples = nsamp)))
             
@@ -324,6 +328,67 @@ getTimes <- function(dataind,
 }
 
 
+
+
+
+
+
+getTimesB <- function(dataind,
+                      nsamps,
+                      reps,
+                      Methods,
+                      MPI) {
+    ## starting and stopping MPI repeatedly leads to problems
+    ## we call gc() a number of times
+    ## like getTimes, but methods are passed as parameters, which allows
+    ## finer contol if need to repeat.
+    
+    gcnum <- 5
+    
+     designm <- expand.grid(Rep = 1:reps,
+                           NumberArrays = nsamps,
+                           Method = Methods,
+                           MPI    = MPI)
+    if(MPI != "None") {
+        mpiSetup(MPI)
+    }
+    
+    ## Make sure no order effects
+    nd <- nrow(designm)
+    designm <- designm[sample(1:nd), ]
+    designm$number <- 1:nd
+
+    cat("\n\n **** getTimes will need to run for ",
+        nd, "  times. **** \n\n")
+
+    f1 <- function(nsamp, method, mpi, number) {
+        method <- as.character(method)
+        mpi <- as.character(mpi)
+        cat("\n\n Doing case number ", number,
+            ". Method = ", method, ". MPI = ", mpi,
+            ". Number of samples = ", nsamp, "\n\n")
+
+        for(gci in 1:gcnum) print(gc())
+        
+        if(mpi == "None") {
+            return(do.call(paste("f", method, sep = ""),
+                           list(ind = dataind, samples = nsamp)))
+        } else {
+            return(do.call(paste("f", method, ".mpi", sep = ""),
+                           list(ind = dataind, samples = nsamp)))
+            
+        }
+    }      
+
+    out <- mapply(f1, designm$NumberArrays, designm$Method,
+                  designm$MPI, designm$number)
+    out <- cbind(designm, out)
+    
+}
+
+
+
+
 #numberArrays <- c(5, 10, 20, 40, 80, 120)
 #mpiSizes     <- c(1, 4, 20, 60, 120)
 #reps <- 5
@@ -331,17 +396,293 @@ getTimes <- function(dataind,
 numberArrays <- c(5, 10, 20, 50)
 mpiSizes     <- c(10, 30, 60, 120)
 reps <- 3
+Methods <- c("GLAD", "HMM", "CBS")
+
+## Already done
+smallTiming120 <- getTimesB(1, nsamps = numberArrays,
+                            reps = reps,
+                            MPI = 120, Methods = Methods)
+save(file = "smallTiming120.RData", smallTiming120)
 
 
-smallTiming <- getTimes(1, nsamps = numberArrays,
+smallTiming60 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
-                        mpisizes = mpiSizes)
+                        MPI = 60, Methods = Methods)
+save(file = "smallTiming60.RData", smallTiming60)
 
-save(file = "smallTiming.RData", smallTiming)
 
-largeTiming <- getTimes(2, nsamps = numberArrays,
+smallTiming30 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
-                        mpisizes = mpiSizes)
+                        MPI = 30, Methods = Methods)
+save(file = "smallTiming30.RData", smallTiming30)
 
-save(file = "largeTiming.RData", largeTiming)
+
+
+smallTimingNone <- getTimesB(1, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = "None", Methods = Methods)
+save(file = "smallTimingNone.RData", smallTimingNone)
+
+
+
+smallTiming10 <- getTimesB(1, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = Methods)
+save(file = "smallTiming10.RData", smallTiming10)
+
+
+
+largeTiming120 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 120, Methods = Methods)
+save(file = "largeTiming120.RData", largeTiming120)
+
+
+largeTiming60 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 60, Methods = Methods)
+save(file = "largeTiming60.RData", largeTiming60)
+
+
+largeTiming30 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 30, Methods = Methods)
+save(file = "largeTiming30.RData", largeTiming30)
+
+
+largeTimingNone <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = "None", Methods = Methods)
+save(file = "largeTimingNone.RData", largeTimingNone)
+
+largeTiming10 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = Methods)
+save(file = "largeTiming10.RData", largeTiming10)
+
+
+
+
+
+
+### Now only methods that have no sequential counterpart
+
+
+
+
+numberArrays <- c(5, 10, 20, 50)
+mpiSizes     <- c(10, 30, 60, 120)
+reps <- 3
+MethodsP <- c("ACE", "CGHseg", "PSW", "Wave")
+
+## Already done
+smallTimingNoSeq120 <- getTimesB(1, nsamps = numberArrays,
+                            reps = reps,
+                            MPI = 120, Methods = MethodsP)
+save(file = "smallTimingNoSeq120.RData", smallTimingNoSeq120)
+
+
+smallTimingNoSeq60 <- getTimesB(1, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 60, Methods = MethodsP)
+save(file = "smallTimingNoSeq60.RData", smallTimingNoSeq60)
+
+
+smallTimingNoSeq30 <- getTimesB(1, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 30, Methods = MethodsP)
+save(file = "smallTimingNoSeq30.RData", smallTimingNoSeq30)
+
+
+
+smallTimingNoSeq10 <- getTimesB(1, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = MethodsP)
+save(file = "smallTimingNoSeq10.RData", smallTimingNoSeq10)
+
+
+
+largeTimingNoSeq120 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 120, Methods = MethodsP)
+save(file = "largeTimingNoSeq120.RData", largeTimingNoSeq120)
+
+
+largeTimingNoSeq60 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 60, Methods = MethodsP)
+save(file = "largeTimingNoSeq60.RData", largeTimingNoSeq60)
+
+
+largeTimingNoSeq30 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 30, Methods = MethodsP)
+save(file = "largeTimingNoSeq30.RData", largeTimingNoSeq30)
+
+
+
+largeTimingNoSeq10 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = MethodsP)
+save(file = "largeTimingNoSeq10.RData", largeTimingNoSeq10)
+
+
+
+
+
+
+
+
+
+
+## smallTiming <- getTimes(1, nsamps = numberArrays,
+##                         reps = reps,
+##                         mpisizes = mpiSizes)
+
+## save(file = "smallTiming.RData", smallTiming)
+
+## largeTiming <- getTimes(2, nsamps = numberArrays,
+##                         reps = reps,
+##                         mpisizes = mpiSizes)
+
+## save(file = "largeTiming.RData", largeTiming)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## getTimes2 <- function(dataind,
+##                      nsamps,
+##                      reps,
+##                      MPI) {
+##     ## starting and stopping MPI repeatedly leads to problems
+##     ## we call gc() a number of times
+##     gcnum <- 5
+    
+##     Method <- c("GLAD", "HMM", "CBS") ## BioHMM excluded because of its crashes
+##     method2 <- c("ACE", "CGHseg", "PSW", "Wave")
+
+##     designm1 <- expand.grid(Rep = 1:reps,
+##                            NumberArrays = nsamps,
+##                            Method = Method,
+##                            MPI    = MPI)
+##     if(MPI != "None") {
+##         mpiSetup(MPI)
+##         designm2 <- expand.grid(Rep = 1:reps,
+##                                 NumberArrays = nsamps,
+##                                 Method = method2,
+##                                 MPI    = MPI)
+##         designm <- rbind(designm1, designm2)
+##     } else {
+##         designm <- designm1
+##     }
+    
+##     ## Make sure no order effects
+##     nd <- nrow(designm)
+##     designm <- designm[sample(1:nd), ]
+##     designm$number <- 1:nd
+
+##     cat("\n\n **** getTimes will need to run for ",
+##         nd, "  times. **** \n\n")
+
+##     f1 <- function(nsamp, method, mpi, number) {
+##         method <- as.character(method)
+##         mpi <- as.character(mpi)
+##         cat("\n\n Doing case number ", number,
+##             ". Method = ", method, ". MPI = ", mpi,
+##             ". Number of samples = ", nsamp, "\n\n")
+
+##         for(gci in 1:gcnum) print(gc())
+        
+##         if(mpi == "None") {
+##             return(do.call(paste("f", method, sep = ""),
+##                            list(ind = dataind, samples = nsamp)))
+##         } else {
+##             return(do.call(paste("f", method, ".mpi", sep = ""),
+##                            list(ind = dataind, samples = nsamp)))
+            
+##         }
+##     }      
+
+##     out <- mapply(f1, designm$NumberArrays, designm$Method,
+##                   designm$MPI, designm$number)
+##     out <- cbind(designm, out)
+    
+## }
+
+
+
+
+## getTimes3 <- function(dataind,
+##                      nsamps,
+##                      reps,
+##                      MPI) {
+##     ## starting and stopping MPI repeatedly leads to problems
+##     ## we call gc() a number of times
+##     ## like getTimes2, but only with methods that are also serial
+##     gcnum <- 5
+    
+##     Method <- c("GLAD", "HMM", "CBS") ## BioHMM excluded because of its crashes
+
+##     designm1 <- expand.grid(Rep = 1:reps,
+##                            NumberArrays = nsamps,
+##                            Method = Method,
+##                            MPI    = MPI)
+##     if(MPI != "None") {
+##         mpiSetup(MPI)
+##     }
+##     designm <- designm1
+    
+##     ## Make sure no order effects
+##     nd <- nrow(designm)
+##     designm <- designm[sample(1:nd), ]
+##     designm$number <- 1:nd
+
+##     cat("\n\n **** getTimes will need to run for ",
+##         nd, "  times. **** \n\n")
+
+##     f1 <- function(nsamp, method, mpi, number) {
+##         method <- as.character(method)
+##         mpi <- as.character(mpi)
+##         cat("\n\n Doing case number ", number,
+##             ". Method = ", method, ". MPI = ", mpi,
+##             ". Number of samples = ", nsamp, "\n\n")
+
+##         for(gci in 1:gcnum) print(gc())
+        
+##         if(mpi == "None") {
+##             return(do.call(paste("f", method, sep = ""),
+##                            list(ind = dataind, samples = nsamp)))
+##         } else {
+##             return(do.call(paste("f", method, ".mpi", sep = ""),
+##                            list(ind = dataind, samples = nsamp)))
+            
+##         }
+##     }      
+
+##     out <- mapply(f1, designm$NumberArrays, designm$Method,
+##                   designm$MPI, designm$number)
+##     out <- cbind(designm, out)
+    
+## }
 

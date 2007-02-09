@@ -63,7 +63,9 @@ system(paste("mv ../../R.running.procs/", new.name1,
              " ../../R.running.procs/", new.name,
              sep = ""))
 
-
+sink(file = "hostname")
+cat(hostn)
+sink()
 
 
 ########################################################
@@ -84,6 +86,7 @@ library(ADaCGH)
 
 
 mpiInit()
+cat("\n\nAbout to print mpiOK file\n")
 sink(file = "mpiOK")
 cat("MPI started OK\n")
 sink()
@@ -824,7 +827,9 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
   
     trythis <- try(
-                   writeResults(ACE.summ, commondata = positions.merge1,
+                   writeResults(ACE.summ,
+                                acghdata = as.matrix(xcenter),
+                                commondata = positions.merge1,
                                 file = NULL)
                    )
     if(class(trythis) == "try-error")

@@ -496,7 +496,7 @@ if (not finishedOK) and (not errorRun) and (os.path.exists(tmpDir + "/pid.txt"))
 	try: os.remove(tmpDir + '/f1.R')
 	except: None
 	try:
-	    os.remove("/http/adacgh2/www/R.running.procs/R." + newDir + "*")
+	    os.system("rm /http/adacgh2/www/R.running.procs/R." + newDir + "*")
 	except:
 	    None
 	print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
@@ -535,7 +535,7 @@ elif finishedOK > 0:
     try: os.remove(tmpDir + '/f1.R')
     except: None
     try:
-        os.remove("/http/adacgh2/www/R.running.procs/R." + newDir)
+        os.system("rm /http/adacgh2/www/R.running.procs/R." + newDir + "*")
     finally:
         print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
     

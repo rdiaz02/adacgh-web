@@ -28,14 +28,14 @@ import time
 import shutil
 import dircache
 import string
-import whrandom
+import random
 import re
 from stat import ST_SIZE
 import cgitb
 cgitb.enable() ## zz: eliminar for real work?
 sys.stderr = sys.stdout
 
-MAX_adacgh =  25 ## MAX_genesrf + 1 = Maximum number of R processes running 
+MAX_adacgh =  5000000005 ## MAX_genesrf + 1 = Maximum number of R processes running 
 ## at same time.
 MAX_time = 3600 * 24 * 5 ## 5 is days until deletion of a tmp directory
 R_MAX_time = 3600 * 12 ## 8 hours is max duration allowed for any process
@@ -266,16 +266,17 @@ def radioUpload(fieldName, acceptedValues):
 
 
 ## Deleting tmp directories older than MAX_time
+## NOT needed anymore; delete_old_dirs runs as cron job!
 currentTime = time.time()
-currentTmp = dircache.listdir("/http/adacgh2/www/tmp")
-for directory in currentTmp:
-    tmpS = "/http/adacgh2/www/tmp/" + directory
-    if (currentTime - os.path.getmtime(tmpS)) > MAX_time:
-        shutil.rmtree(tmpS)
+# currentTmp = dircache.listdir("/http/adacgh2/www/tmp")
+# for directory in currentTmp:
+#     tmpS = "/http/adacgh2/www/tmp/" + directory
+#     if (currentTime - os.path.getmtime(tmpS)) > MAX_time:
+#         shutil.rmtree(tmpS)
 
 
 ### Creating temporal directories
-newDir = str(whrandom.randint(1, 10000)) + str(os.getpid()) + str(whrandom.randint(1, 100000)) + str(int(currentTime)) + str(whrandom.randint(1, 10000))
+newDir = str(random.randint(1, 10000)) + str(os.getpid()) + str(random.randint(1, 100000)) + str(int(currentTime)) + str(random.randint(1, 10000))
 redirectLoc = "/tmp/" + newDir
 tmpDir = "/http/adacgh2/www/tmp/" + newDir
 os.mkdir(tmpDir)

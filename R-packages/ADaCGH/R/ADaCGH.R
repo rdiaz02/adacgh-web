@@ -36,7 +36,8 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 mpiInit <- function(wdir = getwd()) {
     library(Rmpi)
     mpi.spawn.Rslaves(nslaves= mpi.universe.size())
-    mpi.setup.rngstream() ## or mpi.setup.sprng()
+    ## mpi.setup.rngstream() ## or 
+    mpi.setup.sprng()
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     library(papply)
     mpi.remote.exec(library(ADaCGH))

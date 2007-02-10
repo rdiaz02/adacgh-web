@@ -15,7 +15,7 @@ TESTS = (
     'CGHseg_small',
     'GLAD_small',
     'Wavelets_small',
-    'ACE_small',
+##    'ACE_small',
     'PSW_small',
     'CBS_large',
     'HMM_large',
@@ -23,7 +23,7 @@ TESTS = (
     'CGHseg_large',
     'GLAD_large',
     'Wavelets_large',
-    'ACE_large',
+##    'ACE_large',
     'PSW_large')
          
 
@@ -32,7 +32,6 @@ def launchUTests(test, users):
     timef = [-99999 for i in range(users)]
     for uu in range(users):
         iin, t[uu] = os.popen2('fl-run-test benchmarkADaCGH2.py ADaCGH.test' + test)
-    
     for uu in range(users):
         timef[uu] = float(t[uu].readlines()[1].strip())
 
@@ -68,3 +67,4 @@ for test in TESTS:
         timings = launchUTests(test, nu)
         writeFile(timings, 'web.bnchmk.' + test + '_' + \
                   str(nu) + '.' + str(ks[1]) + '.txt')
+

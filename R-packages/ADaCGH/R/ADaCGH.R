@@ -1525,7 +1525,7 @@ my.sw3b <- function(logratio, chrom, sign = -1, p.crit = PSW.p.crit,
         swtlist[[klist]] <- swt[chrom == i]
         klist <- klist + 1
     }
-    
+
     funsw <- function(x) {
         swt.run <- sw(x, trace = FALSE)
         swt.perm <- sw.perm.test(x, max.nIslands = NULL,

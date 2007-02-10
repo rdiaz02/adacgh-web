@@ -766,7 +766,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                         chrom.numeric =  positions.merge1$chrom.numeric,
                         sign = +1, p.crit = PSW.p.crit,
                         nIter = PSW.nIter,
-                        prec = PSW.prec,
+                        prec = 100,
                         name = "Gains.")
         save.image()
         
@@ -792,7 +792,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                         chrom.numeric =  positions.merge1$chrom.numeric,
                         sign = -1, p.crit = PSW.p.crit,
                         nIter = PSW.nIter,
-                        prec = PSW.prec,
+                        prec = 100,
                         name = "Losses.")
         save.image()
         

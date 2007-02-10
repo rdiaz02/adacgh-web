@@ -33,8 +33,11 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 
 ###  Visible stuff
 
-mpiInit <- function(wdir = getwd()) {
+mpiInit <- function(wdir = getwd(), minUniverseSize = 15) {
     library(Rmpi)
+    if(mpi.universe.size() < minUniverseSize) {
+        stop("MPI problem: universe size < minUniverseSize")
+    }
     mpi.spawn.Rslaves(nslaves= mpi.universe.size())
     ## mpi.setup.rngstream() ## or 
     mpi.setup.sprng()
@@ -551,6 +554,10 @@ SegmentPlotWrite <- function(data, chrom,
     if(inherits(trythis, "try-error"))
         caughtOurError(trythis)
     cat("\n\n Segmentation done \n\n")
+
+    save.image()
+    save(segmres, file = "segmres.RData")
+
     trythis <- try(doMCR(segmres$segm, chrom = chrom, data = data,
                          Pos = Pos, ...))
     if(inherits(trythis, "try-error"))

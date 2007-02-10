@@ -546,7 +546,7 @@ shutil.copy("/http/adacgh2/cgi/f1.R", tmpDir)
 ##os.system('cp /http/js/js.adacgh.squeleton2.html ' + tmpDir + '/.')
 ##os.system('cp /http/js/final.adacgh.squeleton.html ' + tmpDir + '/.')
 
-tryrrun = os.system('/http/mpi.log/tryRrun2.py ' + tmpDir +' 10 ' + 'ADaCGH &')
+tryrrun = os.system('/http/mpi.log/tryRrun3.py ' + tmpDir + ' ADaCGH &')
 createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
 
 

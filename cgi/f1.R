@@ -16,6 +16,8 @@
 #### USA.
 
 
+#### For easier debugging: we go saving results as things go along.
+
 
 rm(list = ls()) ## Just in case.
 
@@ -84,12 +86,14 @@ library("waveslim") ## we will have to load ADaCGH soon,
 ## waveslim here
 library(ADaCGH)
 
-
-mpiInit()
-cat("\n\nAbout to print mpiOK file\n")
-sink(file = "mpiOK")
-cat("MPI started OK\n")
-sink()
+try({
+    mpiInit()
+    cat("\n\nAbout to print mpiOK file\n")
+    sink(file = "mpiOK")
+    cat("MPI started OK\n")
+    sink()
+}
+)
 
 
 
@@ -708,7 +712,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                               Start = positions.merge1$start,
                               End = positions.merge1$end,
                               MidPoint = positions.merge1$MidPoint)
-
+    save.image()
     SegmentPlotWrite(as.matrix(xcenter),
                      chrom = positions.merge1$chrom.numeric,
                      mergeSegs = mergeRes,
@@ -722,7 +726,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                      MCR.alteredLow = MCR.alteredLow,
                      MCR.alteredHigh = MCR.alteredHigh,
                      MCR.recurrence = MCR.recurrence)
-    
+
+    save.image()
     quit()
     
 } else if(methodaCGH == "PSW") {
@@ -750,7 +755,9 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                              MidPoint = positions.merge1$MidPoint)
     print("testing existence of indicator before gains")
     print(exists(".__ADaCGH_WEB_APPL"))
-    
+
+    save.image()
+
     ## Gains
     trythis <- try({
         out.gains <-
@@ -761,9 +768,13 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                         nIter = PSW.nIter,
                         prec = PSW.prec,
                         name = "Gains.")
+        save.image()
+        
         segmentPlot(out.gains, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
+        save.image()
+
     })
     if(class(trythis) == "try-error")
         caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
@@ -783,9 +794,13 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                         nIter = PSW.nIter,
                         prec = PSW.prec,
                         name = "Losses.")
+        save.image()
+        
         segmentPlot(out.losses, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
+        save.image()
+
     })
     if(class(trythis) == "try-error")
         caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
@@ -815,6 +830,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
                              trythis, ". \n Please let us know so we can fix the code."))
         
+    save.image()
 
     trythis <- try(
                    ACE.summ <- summary(ACE.object, fdr = ACE.fdr)
@@ -854,8 +870,9 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                          MCR.recurrence = MCR.recurrence)
                    )
     if(class(trythis) == "try-error")
-        caughtOutError(trythis)
+        caughtOurError(trythis)
 
+    save.image()
     
     trythis <- try({
         ## The segmented plots, one per array

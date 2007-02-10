@@ -178,7 +178,15 @@ pSegmentPSW <- function(x, chrom.numeric, sign = -1,
                   sl.name = name,
                   sl.p.crit = p.crit,
                   colnamesdata = colnames(x)))
-    
+    if(any(lapply(papout, function(z) z == "swt.perm.try-error"))) {
+        m1 <- "There was a problem in the PSW routine; this is "
+        m2 <- "probably related to the global thresholding + within "
+        m3 <- "chromosome perm test with your data."
+        m4 <- "You might want to try another method, or the original "
+        m5 <- " (thresholding within chromosome) PSW "
+        mm <- c(m1, m2, m3, m4, m5)
+        caughtOtherError(mm)
+    }    
     for(i in 1:ncol(x)) {
         out$Data <- cbind(out$Data, papout[[i]]$out)
         p.crit.bonferroni <- papout[[i]]$plotdat$p.crit / ncrom
@@ -1528,58 +1536,69 @@ my.sw3b <- function(logratio, chrom, sign = -1, p.crit = PSW.p.crit,
 
     funsw <- function(x) {
         swt.run <- sw(x, trace = FALSE)
-        swt.perm <- sw.perm.test(x, max.nIslands = NULL,
-                                        nIter = nIter)
-        swt.rob <- sw.rob(x, prec = prec)
-        list(swt.run = swt.run, swt.perm = swt.perm, swt.rob = swt.rob)
+        
+        swt.perm <- try(sw.perm.test(x, max.nIslands = NULL,
+                                        nIter = nIter))
+        if(inherits(swt.perm, "try-error")) {
+            return(list(swt.run = NA, swt.perm = "swt.perm.try-error",
+                        swt.rob = NA))
+        } else {
+            swt.rob <- sw.rob(x, prec = prec)
+            return(list(swt.run = swt.run, swt.perm = swt.perm,
+                        swt.rob = swt.rob))
+        }
     }
 
     papout <- lapply(swtlist, funsw)
 
-    swt.rob <- unlist(lapply(papout, function(x) x$swt.rob))
     swt.perm <- unlist(lapply(papout, function(x) x$swt.perm))
-    swt.run.l <- lapply(papout, function(x) x$swt.run)
-    
-    swt.run <- list()
-    swt.run$length <- unlist(lapply(swt.run.l, function(x) x$length))
-    swt.run$start <- unlist(lapply(swt.run.l, function(x) x$start))
+    if(any(swt.perm == "swt.perm.try-error")) {
+        return("swt.perm.try-error")
+    } else {
 
-    
-    ## recall that now all genes are numbered stgarting at 1 for each chromos
-    nsp <- lapply(swt.run.l, function(x) length(x$length))
-    npc <- table(chrom)
-    npca <- cumsum(npc[-length(npc)])
-    to.add <- rep(c(0, npca), nsp)
-
-    perm.p.values <- rep(NA, length(logratio))
-
-    x0 <- swt.run$start + to.add
-    x1 <- x0 + swt.run$length - 1
-
-    for(jj in 1:length(swt.perm)) {
-        perm.p.values[x0[jj]:x1[jj]] <- swt.perm[jj]
-    }
-    
-    plotdat <- list(logratio = logratio,
-                    sign = sign,
-                    rob = swt.rob,
-                    swt.run = swt.run,
-                    swt.perm = swt.perm,
-                    p.crit = p.crit,
-                    chrom = chrom)
-                    
-    out.values <- cbind(logratio, rep(sign, length(logratio)),
-                        swt.rob, perm.p.values)
-    colnames(out.values) <-
-        paste(name, c(".Original", ".Sign", ".Robust", ".p.value"),
-              sep = "")
-  
-    out <- list(out=out.values,
-                plotdat = plotdat)
-    class(out) <- c(class(out), "CGH.PSW")
-    return(out)
-}     
-
+        swt.rob <- unlist(lapply(papout, function(x) x$swt.rob))
+        swt.run.l <- lapply(papout, function(x) x$swt.run)
+        
+        swt.run <- list()
+        swt.run$length <- unlist(lapply(swt.run.l, function(x) x$length))
+        swt.run$start <- unlist(lapply(swt.run.l, function(x) x$start))
+        
+        
+        ## recall that now all genes are numbered stgarting at 1 for each chromos
+        nsp <- lapply(swt.run.l, function(x) length(x$length))
+        npc <- table(chrom)
+        npca <- cumsum(npc[-length(npc)])
+        to.add <- rep(c(0, npca), nsp)
+        
+        perm.p.values <- rep(NA, length(logratio))
+        
+        x0 <- swt.run$start + to.add
+        x1 <- x0 + swt.run$length - 1
+        
+        for(jj in 1:length(swt.perm)) {
+            perm.p.values[x0[jj]:x1[jj]] <- swt.perm[jj]
+        }
+        
+        plotdat <- list(logratio = logratio,
+                        sign = sign,
+                        rob = swt.rob,
+                        swt.run = swt.run,
+                        swt.perm = swt.perm,
+                        p.crit = p.crit,
+                        chrom = chrom)
+        
+        out.values <- cbind(logratio, rep(sign, length(logratio)),
+                            swt.rob, perm.p.values)
+        colnames(out.values) <-
+            paste(name, c(".Original", ".Sign", ".Robust", ".p.value"),
+                  sep = "")
+        
+        out <- list(out=out.values,
+                    plotdat = plotdat)
+        class(out) <- c(class(out), "CGH.PSW")
+        return(out)
+    }     
+}
 
 
     
@@ -2264,6 +2283,36 @@ PSWtoPaLS <- function(x = .__PSW_PALS.Lost_for_PaLS.txt,
 }
 
 
+
+
+caughtOtherError <- function(message) {
+    png.height <- 400
+    png.width  <- 400
+    png.pointsize <- 10
+
+    if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
+        GDD("ErrorFigure.png", width = png.width,
+               height = png.height, 
+               ps = png.pointsize)
+        plot(x = c(0, 1), y = c(0, 1),
+             type = "n", axes = FALSE, xlab = "", ylab = "")
+        box()
+        text(0.5, 0.7, "There was a PROBLEM with this run.")
+        dev.off()
+        sink(file = "results.txt")
+        cat(message)
+        sink()
+        sink(file = "exitStatus")
+        cat("Error\n\n")
+        cat(message)
+        sink()
+        quit(save = "no", status = 11, runLast = TRUE)
+    } else {
+        message <- paste("There is a possible problem: ", message)
+        stop(message)
+    }
+}
+
 caughtError <- function(message) {
     png.height <- 400
     png.width  <- 400
@@ -2291,7 +2340,6 @@ caughtError <- function(message) {
         stop(message)
     }
 }
-
 
 
 

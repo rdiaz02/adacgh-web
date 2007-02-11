@@ -115,11 +115,12 @@ make.cghdata <- function(ind, samps) {
 ## the next two, needed to feed the functions the appropriate
 ## type of object
 
+
 make.cbs.obj <- function(ind, samps) {
-    tmp <- make.cghdata(ind, samps)
+    tmp <- as.matrix(make.cghdata(ind, samps))
     cna.obj <- CNA(tmp, dataList[[ind]]$Chrom,
-                         dataList[[ind]]$Pos,
-                         data.type = "logratio")
+                   1:nrow(tmp),
+                   data.type = "logratio")
     return(cna.obj)
 }
 
@@ -403,7 +404,7 @@ getTimesB <- function(dataind,
 #mpiSizes     <- c(1, 4, 20, 60, 120)
 #reps <- 5
 
-numberArrays <- c(5, 10, 20, 50, 100)
+numberArrays <- c(5, 10, 20, 50, 100, 150)
 mpiSizes     <- c(10, 30, 60, 120)
 reps <- 3
 Methods <- c("GLAD", "HMM", "CBS")
@@ -442,6 +443,41 @@ save(file = "smallTiming10.RData", smallTiming10)
 
 
 
+
+mediumTiming120 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 120, Methods = Methods)
+save(file = "mediumTiming120.RData", mediumTiming120)
+
+
+mediumTiming60 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 60, Methods = Methods)
+save(file = "mediumTiming60.RData", mediumTiming60)
+
+
+mediumTiming30 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 30, Methods = Methods)
+save(file = "mediumTiming30.RData", mediumTiming30)
+
+
+mediumTimingNone <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = "None", Methods = Methods)
+save(file = "mediumTimingNone.RData", mediumTimingNone)
+
+mediumTiming10 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = Methods)
+save(file = "mediumTiming10.RData", mediumTiming10)
+
+
+
+
+
+
+
 largeTiming120 <- getTimesB(2, nsamps = numberArrays,
                         reps = reps,
                         MPI = 120, Methods = Methods)
@@ -474,35 +510,6 @@ save(file = "largeTiming10.RData", largeTiming10)
 
 
 
-
-
-mediumTiming120 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 120, Methods = Methods)
-save(file = "mediumTiming120.RData", mediumTiming120)
-
-
-mediumTiming60 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = Methods)
-save(file = "mediumTiming60.RData", mediumTiming60)
-
-
-mediumTiming30 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = Methods)
-save(file = "mediumTiming30.RData", mediumTiming30)
-
-
-mediumTimingNone <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = "None", Methods = Methods)
-save(file = "mediumTimingNone.RData", mediumTimingNone)
-
-mediumTiming10 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = Methods)
-save(file = "mediumTiming10.RData", mediumTiming10)
 
 
 

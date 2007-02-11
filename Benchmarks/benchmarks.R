@@ -403,7 +403,7 @@ getTimesB <- function(dataind,
 #mpiSizes     <- c(1, 4, 20, 60, 120)
 #reps <- 5
 
-numberArrays <- c(5, 10, 20, 50)
+numberArrays <- c(5, 10, 20, 50, 100)
 mpiSizes     <- c(10, 30, 60, 120)
 reps <- 3
 Methods <- c("GLAD", "HMM", "CBS")
@@ -475,6 +475,43 @@ save(file = "largeTiming10.RData", largeTiming10)
 
 
 
+
+mediumTiming120 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 120, Methods = Methods)
+save(file = "mediumTiming120.RData", mediumTiming120)
+
+
+mediumTiming60 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 60, Methods = Methods)
+save(file = "mediumTiming60.RData", mediumTiming60)
+
+
+mediumTiming30 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 30, Methods = Methods)
+save(file = "mediumTiming30.RData", mediumTiming30)
+
+
+mediumTimingNone <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = "None", Methods = Methods)
+save(file = "mediumTimingNone.RData", mediumTimingNone)
+
+mediumTiming10 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = Methods)
+save(file = "mediumTiming10.RData", mediumTiming10)
+
+
+
+
+
+
+
+
+
 ### Now only methods that have no sequential counterpart
 
 
@@ -538,161 +575,28 @@ save(file = "largeTimingNoSeq10.RData", largeTimingNoSeq10)
 
 
 
+mediumTimingNoSeq120 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 120, Methods = MethodsP)
+save(file = "mediumTimingNoSeq120.RData", mediumTimingNoSeq120)
 
 
-##### To do: zz: FIXME: increase to 100 arrays!!!
+mediumTimingNoSeq60 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 60, Methods = MethodsP)
+save(file = "mediumTimingNoSeq60.RData", mediumTimingNoSeq60)
 
 
-
-
-## smallTiming <- getTimes(1, nsamps = numberArrays,
-##                         reps = reps,
-##                         mpisizes = mpiSizes)
-
-## save(file = "smallTiming.RData", smallTiming)
-
-## largeTiming <- getTimes(2, nsamps = numberArrays,
-##                         reps = reps,
-##                         mpisizes = mpiSizes)
-
-## save(file = "largeTiming.RData", largeTiming)
-
+mediumTimingNoSeq30 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 30, Methods = MethodsP)
+save(file = "mediumTimingNoSeq30.RData", mediumTimingNoSeq30)
 
 
 
+mediumTimingNoSeq10 <- getTimesB(3, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = MethodsP)
+save(file = "mediumTimingNoSeq10.RData", mediumTimingNoSeq10)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## getTimes2 <- function(dataind,
-##                      nsamps,
-##                      reps,
-##                      MPI) {
-##     ## starting and stopping MPI repeatedly leads to problems
-##     ## we call gc() a number of times
-##     gcnum <- 5
-    
-##     Method <- c("GLAD", "HMM", "CBS") ## BioHMM excluded because of its crashes
-##     method2 <- c("ACE", "CGHseg", "PSW", "Wave")
-
-##     designm1 <- expand.grid(Rep = 1:reps,
-##                            NumberArrays = nsamps,
-##                            Method = Method,
-##                            MPI    = MPI)
-##     if(MPI != "None") {
-##         mpiSetup(MPI)
-##         designm2 <- expand.grid(Rep = 1:reps,
-##                                 NumberArrays = nsamps,
-##                                 Method = method2,
-##                                 MPI    = MPI)
-##         designm <- rbind(designm1, designm2)
-##     } else {
-##         designm <- designm1
-##     }
-    
-##     ## Make sure no order effects
-##     nd <- nrow(designm)
-##     designm <- designm[sample(1:nd), ]
-##     designm$number <- 1:nd
-
-##     cat("\n\n **** getTimes will need to run for ",
-##         nd, "  times. **** \n\n")
-
-##     f1 <- function(nsamp, method, mpi, number) {
-##         method <- as.character(method)
-##         mpi <- as.character(mpi)
-##         cat("\n\n Doing case number ", number,
-##             ". Method = ", method, ". MPI = ", mpi,
-##             ". Number of samples = ", nsamp, "\n\n")
-
-##         for(gci in 1:gcnum) print(gc())
-        
-##         if(mpi == "None") {
-##             return(do.call(paste("f", method, sep = ""),
-##                            list(ind = dataind, samples = nsamp)))
-##         } else {
-##             return(do.call(paste("f", method, ".mpi", sep = ""),
-##                            list(ind = dataind, samples = nsamp)))
-            
-##         }
-##     }      
-
-##     out <- mapply(f1, designm$NumberArrays, designm$Method,
-##                   designm$MPI, designm$number)
-##     out <- cbind(designm, out)
-    
-## }
-
-
-
-
-## getTimes3 <- function(dataind,
-##                      nsamps,
-##                      reps,
-##                      MPI) {
-##     ## starting and stopping MPI repeatedly leads to problems
-##     ## we call gc() a number of times
-##     ## like getTimes2, but only with methods that are also serial
-##     gcnum <- 5
-    
-##     Method <- c("GLAD", "HMM", "CBS") ## BioHMM excluded because of its crashes
-
-##     designm1 <- expand.grid(Rep = 1:reps,
-##                            NumberArrays = nsamps,
-##                            Method = Method,
-##                            MPI    = MPI)
-##     if(MPI != "None") {
-##         mpiSetup(MPI)
-##     }
-##     designm <- designm1
-    
-##     ## Make sure no order effects
-##     nd <- nrow(designm)
-##     designm <- designm[sample(1:nd), ]
-##     designm$number <- 1:nd
-
-##     cat("\n\n **** getTimes will need to run for ",
-##         nd, "  times. **** \n\n")
-
-##     f1 <- function(nsamp, method, mpi, number) {
-##         method <- as.character(method)
-##         mpi <- as.character(mpi)
-##         cat("\n\n Doing case number ", number,
-##             ". Method = ", method, ". MPI = ", mpi,
-##             ". Number of samples = ", nsamp, "\n\n")
-
-##         for(gci in 1:gcnum) print(gc())
-        
-##         if(mpi == "None") {
-##             return(do.call(paste("f", method, sep = ""),
-##                            list(ind = dataind, samples = nsamp)))
-##         } else {
-##             return(do.call(paste("f", method, ".mpi", sep = ""),
-##                            list(ind = dataind, samples = nsamp)))
-            
-##         }
-##     }      
-
-##     out <- mapply(f1, designm$NumberArrays, designm$Method,
-##                   designm$MPI, designm$number)
-##     out <- cbind(designm, out)
-    
-## }
 

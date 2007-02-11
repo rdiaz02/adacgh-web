@@ -50,6 +50,16 @@
 ## dataList[[2]]$Chrom <- posdat2$chrom
 ## dataList[[2]]$Pos <- start2
 
+
+## selected <- sort(sample(1:42325, 10000))
+
+## dataList[[3]] <- list()
+## dataList[[3]]$acgh <- dataList[[2]]$acgh[selected,]
+## dataList[[3]]$nr <- 10000
+## dataList[[3]]$nc <- 11
+## dataList[[3]]$Chrom <- dataList[[2]]$Chrom[selected]
+## dataList[[3]]$Pos <- dataList[[2]]$Pos[selected]
+
 ## save(file = "dataList.RData", dataList)
 
 
@@ -530,7 +540,7 @@ save(file = "largeTimingNoSeq10.RData", largeTimingNoSeq10)
 
 
 
-
+##### To do: zz: FIXME: increase to 100 arrays!!!
 
 
 

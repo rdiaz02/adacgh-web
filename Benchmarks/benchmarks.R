@@ -406,39 +406,39 @@ getTimesB <- function(dataind,
 
 numberArrays <- c(5, 10, 20, 50, 100, 150)
 mpiSizes     <- c(10, 30, 60, 120)
-reps <- 3
+reps <- 10
 Methods <- c("GLAD", "HMM", "CBS")
 
 smallTiming120 <- getTimesB(1, nsamps = numberArrays,
                             reps = reps,
                             MPI = 120, Methods = Methods)
-save(file = "smallTiming120.RData", smallTiming120)
+save(file = "smallTiming120_10reps.RData", smallTiming120)
 
 
 smallTiming60 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
                         MPI = 60, Methods = Methods)
-save(file = "smallTiming60.RData", smallTiming60)
+save(file = "smallTiming60_10reps.RData", smallTiming60)
 
 
 smallTiming30 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
                         MPI = 30, Methods = Methods)
-save(file = "smallTiming30.RData", smallTiming30)
+save(file = "smallTiming30_10reps.RData", smallTiming30)
 
 
 
 smallTimingNone <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
                         MPI = "None", Methods = Methods)
-save(file = "smallTimingNone.RData", smallTimingNone)
+save(file = "smallTimingNone_10reps.RData", smallTimingNone)
 
 
 
 smallTiming10 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
                         MPI = 10, Methods = Methods)
-save(file = "smallTiming10.RData", smallTiming10)
+save(file = "smallTiming10_10reps.RData", smallTiming10)
 
 
 
@@ -446,64 +446,35 @@ save(file = "smallTiming10.RData", smallTiming10)
 mediumTiming120 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 120, Methods = Methods)
-save(file = "mediumTiming120.RData", mediumTiming120)
+save(file = "mediumTiming120_10reps.RData", mediumTiming120)
 
 
 mediumTiming60 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 60, Methods = Methods)
-save(file = "mediumTiming60.RData", mediumTiming60)
+save(file = "mediumTiming60_10reps.RData", mediumTiming60)
 
 
 mediumTiming30 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 30, Methods = Methods)
-save(file = "mediumTiming30.RData", mediumTiming30)
+save(file = "mediumTiming30_10reps.RData", mediumTiming30)
 
 
 mediumTimingNone <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = "None", Methods = Methods)
-save(file = "mediumTimingNone.RData", mediumTimingNone)
+save(file = "mediumTimingNone_10reps.RData", mediumTimingNone)
 
 mediumTiming10 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 10, Methods = Methods)
-save(file = "mediumTiming10.RData", mediumTiming10)
+save(file = "mediumTiming10_10reps.RData", mediumTiming10)
 
 
 
 
 
-
-
-largeTiming120 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 120, Methods = Methods)
-save(file = "largeTiming120.RData", largeTiming120)
-
-
-largeTiming60 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = Methods)
-save(file = "largeTiming60.RData", largeTiming60)
-
-
-largeTiming30 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = Methods)
-save(file = "largeTiming30.RData", largeTiming30)
-
-
-largeTimingNone <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = "None", Methods = Methods)
-save(file = "largeTimingNone.RData", largeTimingNone)
-
-largeTiming10 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = Methods)
-save(file = "largeTiming10.RData", largeTiming10)
 
 
 
@@ -532,52 +503,100 @@ MethodsP <- c("ACE", "CGHseg", "PSW", "Wave")
 smallTimingNoSeq120 <- getTimesB(1, nsamps = numberArrays,
                             reps = reps,
                             MPI = 120, Methods = MethodsP)
-save(file = "smallTimingNoSeq120.RData", smallTimingNoSeq120)
+save(file = "smallTimingNoSeq120_10reps.RData", smallTimingNoSeq120)
 
 
 smallTimingNoSeq60 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
                         MPI = 60, Methods = MethodsP)
-save(file = "smallTimingNoSeq60.RData", smallTimingNoSeq60)
+save(file = "smallTimingNoSeq60_10reps.RData", smallTimingNoSeq60)
 
 
 smallTimingNoSeq30 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
                         MPI = 30, Methods = MethodsP)
-save(file = "smallTimingNoSeq30.RData", smallTimingNoSeq30)
+save(file = "smallTimingNoSeq30_10reps.RData", smallTimingNoSeq30)
 
 
 
 smallTimingNoSeq10 <- getTimesB(1, nsamps = numberArrays,
                         reps = reps,
                         MPI = 10, Methods = MethodsP)
-save(file = "smallTimingNoSeq10.RData", smallTimingNoSeq10)
+save(file = "smallTimingNoSeq10_10reps.RData", smallTimingNoSeq10)
 
 
 
 mediumTimingNoSeq120 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 120, Methods = MethodsP)
-save(file = "mediumTimingNoSeq120.RData", mediumTimingNoSeq120)
+save(file = "mediumTimingNoSeq120_10reps.RData", mediumTimingNoSeq120)
 
 
 mediumTimingNoSeq60 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 60, Methods = MethodsP)
-save(file = "mediumTimingNoSeq60.RData", mediumTimingNoSeq60)
+save(file = "mediumTimingNoSeq60_10reps.RData", mediumTimingNoSeq60)
 
 
 mediumTimingNoSeq30 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 30, Methods = MethodsP)
-save(file = "mediumTimingNoSeq30.RData", mediumTimingNoSeq30)
+save(file = "mediumTimingNoSeq30_10reps.RData", mediumTimingNoSeq30)
 
 
 
 mediumTimingNoSeq10 <- getTimesB(3, nsamps = numberArrays,
                         reps = reps,
                         MPI = 10, Methods = MethodsP)
-save(file = "mediumTimingNoSeq10.RData", mediumTimingNoSeq10)
+save(file = "mediumTimingNoSeq10_10reps.RData", mediumTimingNoSeq10)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+largeTiming120 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 120, Methods = Methods)
+save(file = "largeTiming120_10reps.RData", largeTiming120)
+
+
+largeTiming60 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 60, Methods = Methods)
+save(file = "largeTiming60_10reps.RData", largeTiming60)
+
+
+largeTiming30 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 30, Methods = Methods)
+save(file = "largeTiming30_10reps.RData", largeTiming30)
+
+
+largeTimingNone <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = "None", Methods = Methods)
+save(file = "largeTimingNone_10reps.RData", largeTimingNone)
+
+largeTiming10 <- getTimesB(2, nsamps = numberArrays,
+                        reps = reps,
+                        MPI = 10, Methods = Methods)
+save(file = "largeTiming10_10reps.RData", largeTiming10)
+
+
+
+
+
 
 
 
@@ -585,26 +604,26 @@ save(file = "mediumTimingNoSeq10.RData", mediumTimingNoSeq10)
 largeTimingNoSeq120 <- getTimesB(2, nsamps = numberArrays,
                         reps = reps,
                         MPI = 120, Methods = MethodsP)
-save(file = "largeTimingNoSeq120.RData", largeTimingNoSeq120)
+save(file = "largeTimingNoSeq120_10reps.RData", largeTimingNoSeq120)
 
 
 largeTimingNoSeq60 <- getTimesB(2, nsamps = numberArrays,
                         reps = reps,
                         MPI = 60, Methods = MethodsP)
-save(file = "largeTimingNoSeq60.RData", largeTimingNoSeq60)
+save(file = "largeTimingNoSeq60_10reps.RData", largeTimingNoSeq60)
 
 
 largeTimingNoSeq30 <- getTimesB(2, nsamps = numberArrays,
                         reps = reps,
                         MPI = 30, Methods = MethodsP)
-save(file = "largeTimingNoSeq30.RData", largeTimingNoSeq30)
+save(file = "largeTimingNoSeq30_10reps.RData", largeTimingNoSeq30)
 
 
 
 largeTimingNoSeq10 <- getTimesB(2, nsamps = numberArrays,
                         reps = reps,
                         MPI = 10, Methods = MethodsP)
-save(file = "largeTimingNoSeq10.RData", largeTimingNoSeq10)
+save(file = "largeTimingNoSeq10_10reps.RData", largeTimingNoSeq10)
 
 
 

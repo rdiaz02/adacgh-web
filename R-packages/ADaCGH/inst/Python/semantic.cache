@@ -1,0 +1,21 @@
+;; Object Python/
+;; SEMANTICDB Tags save file
+(semanticdb-project-database-file "Python/"
+  :tables (list 
+   (semanticdb-table "toMap.py"
+    :major-mode 'python-mode
+    :tags '(("sys" include nil nil [19 29]) ("os" include nil nil [30 39]) ("toMapMod" include nil nil [40 62]) ("nameMap" variable nil nil [64 86]) ("idtype" variable nil nil [87 109]) ("organism" variable nil nil [110 132]) ("print" code nil nil [134 147]) ("nameSrc" code nil nil [175 201]) ("nameHTML" code nil nil [202 230]) ("gene_F" variable nil nil [255 307]) ("gene_Names" variable nil nil [308 353]) ("gene_F" code nil nil [354 368]) ("map_F" variable nil nil [369 419]) ("map_coord" variable nil nil [420 463]) ("map_F" code nil nil [464 477]) ("if" code nil nil [479 972]) ("outList" variable nil nil [973 985]) ("outList" code nil nil [986 1016]) ("outList" code nil nil [1017 1055]) ("outList" code nil nil [1056 1086]) ("outList" code nil nil [1088 1339]) ("if" code nil nil [1346 1544]) ("outList" code nil nil [1545 1587]) ("fileout" variable nil nil [1590 1608]) ("fout" variable nil nil [1609 1641]) ("for" code nil nil [1642 1706]) ("fout" code nil nil [1706 1718]))
+    :file "toMap.py"
+    :pointmax 1720
+    )
+   (semanticdb-table "toMapMod.py"
+    :major-mode 'python-mode
+    :tags '(("create_map" function (:arguments (("gene_Names" variable nil (reparse-symbol function_parameters) [16 26]) ("map_coord" variable nil (reparse-symbol function_parameters) [28 37]) ("idtype" variable nil (reparse-symbol function_parameters) [39 45]) ("organism" variable nil (reparse-symbol function_parameters) [47 55]))) nil [1 992]) ("create_map_none" function (:arguments (("gene_Names" variable nil (reparse-symbol function_parameters) [1013 1023]) ("map_coord" variable nil (reparse-symbol function_parameters) [1025 1034]) ("idtype" variable nil (reparse-symbol function_parameters) [1036 1042]) ("organism" variable nil (reparse-symbol function_parameters) [1044 1052]))) nil [993 1925]) ("create_div" function (:arguments (("gene_Names" variable nil (reparse-symbol function_parameters) [2243 2253]))) nil [2228 2571]) ("out_squeleton1" variable nil nil [2573 4583]) ("out_squeleton2" variable nil nil [4585 7188]))
+    :file "toMapMod.py"
+    :pointmax 7190
+    )
+   )
+  :file "semantic.cache"
+  :semantic-tag-version "2.0pre3"
+  :semanticdb-version "2.0pre3"
+  )

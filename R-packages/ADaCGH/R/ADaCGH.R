@@ -38,7 +38,8 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15) {
     if(mpi.universe.size() < minUniverseSize) {
         stop("MPI problem: universe size < minUniverseSize")
     }
-    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
+##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
+    mpi.spawn.Rslaves(hosts = sample(lamhosts()))
     ## mpi.setup.rngstream() ## or 
     mpi.setup.sprng()
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))

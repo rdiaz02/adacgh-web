@@ -477,21 +477,15 @@ try:
 except:
     None
 
-##if os.path.exists(tmpDir + "/pid.txt"): zzz: alterar en los demás también. Refactor!!
 if (not finishedOK) and (not errorRun) and (os.path.exists(tmpDir + "/pid.txt")):
-    ## do we need to kill an R process?
     if (time.time() - os.path.getmtime(tmpDir + "/pid.txt")) > R_MAX_time:
-	lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
-        try:
-            os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv +
-                      '; lamhalt -H; lamwipe -H')
-        except:
-            None
-#        try:
-#            os.kill(int(open(tmpDir + "/pid.txt", mode = "r").readline()),
-#        	             signal.SIGINT) ## maybe sigint is better than sigkill??  
-#        finally:
-	printRKilled()
+# 	lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+#         try:
+#             os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv +
+#                       '; lamhalt -H; lamwipe -H')
+#         except:
+#             None
+# 	printRKilled()
 	os.rename(tmpDir + '/pid.txt', tmpDir + '/killed.pid.txt')
 	try: os.remove(tmpDir + '/f1.R')
 	except: None
@@ -510,25 +504,25 @@ if errorRun > 0:
         os.remove("/http/adacgh2/www/R.running.procs/R." + newDir)
     except:
 	None
-    try:
-        lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
-    except:
-        None
-    try:
-        lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
-    except:
-        None
+#     try:
+#         lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+#     except:
+#         None
+#     try:
+#         lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
+#     except:
+#         None
     print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
 
 elif finishedOK > 0:
-    try:
-        lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
-    except:
-        None
-    try:
-        lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
-    except:
-        None
+#     try:
+#         lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+#     except:
+#         None
+#     try:
+#         lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
+#     except:
+#         None
     printOKRun()
     try: os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
     except: None

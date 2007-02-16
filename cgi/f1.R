@@ -42,7 +42,7 @@ rm(list = ls()) ## Just in case.
     cat("\n\n Normal termination\n")
     ## In case the CGI is not called (user kills browser)
     ## have a way to stop lam
-    try(system(paste("/http/mpi.log/killLAM.py", lamSESSION, "&")))
+##    try(system(paste("/http/mpi.log/killLAM.py", lamSESSION, "&")))
     try(mpi.quit(save = "yes"), silent = TRUE)
 }
  

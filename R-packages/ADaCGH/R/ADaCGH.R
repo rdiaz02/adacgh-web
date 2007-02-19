@@ -770,11 +770,16 @@ print.adacgh.generic.results <- function(res, xcenter,
                                  send_to_pals = TRUE){
 
     out <- data.frame(commondata)
-##     out <- data.frame(ID = commondata$name,
-##                       Chromosome = commondata$chromosome,
-##                       Start = commondata$start,
-##                       End = commondata$end,
-##                       MidPoint = commondata$MidPoint)
+    if(ncol(out) > 5) {
+        stop("This sucks, but if your commondata has more than 5 columns, this function will blow up.")
+    }
+
+
+    ##     out <- data.frame(ID = commondata$name,
+    ##                       Chromosome = commondata$chromosome,
+    ##                       Start = commondata$start,
+    ##                       End = commondata$end,
+    ##                       MidPoint = commondata$MidPoint)
 
     for(i in 1:ncol(xcenter)) {
             out <- cbind(out, res$segm[[i]])

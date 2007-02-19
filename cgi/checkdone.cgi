@@ -485,7 +485,7 @@ if (not finishedOK) and (not errorRun) and (os.path.exists(tmpDir + "/pid.txt"))
 #                       '; lamhalt -H; lamwipe -H')
 #         except:
 #             None
-# 	printRKilled()
+ 	printRKilled()
 	os.rename(tmpDir + '/pid.txt', tmpDir + '/killed.pid.txt')
 	try: os.remove(tmpDir + '/f1.R')
 	except: None

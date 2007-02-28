@@ -23,6 +23,22 @@ sys.stderr = sys.stdout ## eliminar?
 
 R_MAX_time = 12 * 3600 ## 12 hours is max duration allowd for any process
 
+
+def issue_echo(fecho, tmpDir):
+    """Silly function to output small tracking files"""
+    timeHuman = '##########   ' + \
+                str(time.strftime('%d %b %Y %H:%M:%S')) 
+    os.system('echo "' + timeHuman + \
+              '" >> ' + tmpDir + '/checkdone.echo')
+    os.system('echo "' + fecho + \
+              '" >> ' + tmpDir + '/checkdone.echo')
+    os.system('echo "    " >> ' + tmpDir + '/checkdone.echo')
+
+
+def kill_lamcheck(pid, machine):
+    'as it says: to kill lamcheck; actually, anything'
+    os.system('ssh ' + machine + ' "kill -s 9 ' + pid + '"')
+
 ## For redirections, from Python Cookbook
 
 def results_print_general(outf, tmpDir, newDir, Rresults):
@@ -468,29 +484,20 @@ errorRun = soFar.endswith("Execution halted\n")
 if os.path.exists(tmpDir + '/RterminatedOK'):
     finishedOK = True
 
-## zz: refactor. alterar. Aquí solo entrar si no OK?
-    ## Probably the next should be deleted: does not play well
-    ## with the error recovery code FIXME
-try:
-    Rerrorrout = open(tmpDir + "/error.msg")
-    soFar = Rerrorrout.read()
-    Rerrorrout.close()
-    errorRun = soFar.endswith("Execution halted\n")
-except:
-    None
+issue_echo('right after checking Rterminated', tmpDir)
 
 if (not finishedOK) and (not errorRun) and (os.path.exists(tmpDir + "/pid.txt")):
+    issue_echo('did we run out of time?', tmpDir)
     if (time.time() - os.path.getmtime(tmpDir + "/pid.txt")) > R_MAX_time:
-# 	lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
-#         try:
-#             os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv +
-#                       '; lamhalt -H; lamwipe -H')
-#         except:
-#             None
+	lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+        try:
+            os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv +
+                      '; lamhalt -H; lamwipe -H')
+        except:
+            None
+        kill_lamcheck(lam_check_pid, lam_check_machine)
  	printRKilled()
 	os.rename(tmpDir + '/pid.txt', tmpDir + '/killed.pid.txt')
-	try: os.remove(tmpDir + '/f1.R')
-	except: None
 	try:
 	    os.system("rm /http/adacgh2/www/R.running.procs/R." + newDir + "*")
 	except:
@@ -499,48 +506,51 @@ if (not finishedOK) and (not errorRun) and (os.path.exists(tmpDir + "/pid.txt"))
 	sys.exit()
 
 if errorRun > 0:
+    issue_echo('errorRun is 1', tmpDir)
+    kill_lamcheck(lam_check_pid, lam_check_machine)
     printErrorRun()
     os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
-    os.remove(tmpDir + '/f1.R')
     try:
-        os.remove("/http/adacgh2/www/R.running.procs/R." + newDir)
+        lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+    except:
+        None
+    try:
+        lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
+    except:
+        None
+    try:
+        os.remove("/http/adacgh2/www/R.running.procs/R." + newDir + "*")
     except:
 	None
-#     try:
-#         lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
-#     except:
-#         None
-#     try:
-#         lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
-#     except:
-#         None
     print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
 
+
 elif finishedOK > 0:
-#     try:
-#         lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
-#     except:
-#         None
-#     try:
-#         lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
-#     except:
-#         None
+    issue_echo('finishedOK is 1', tmpDir)
+
+    try:
+        lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+    except:
+        None
+    try:
+        lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
+    except:
+        None
     printOKRun()
     try: os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
     except: None
-#     try: os.remove(tmpDir + '/f1.R')
-#     except: None
+    try: os.remove(tmpDir + '/f1.R')
+    except: None
     try:
         os.system("rm /http/adacgh2/www/R.running.procs/R." + newDir + "*")
-    except:
-        None
-    print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
+    finally:
+        print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
     
 else:
     ## we only end up here if: we were not done in a previous run AND no process was overtime 
     ## AND we did not just finish. So we must continue.
     relaunchCGI()
     
-
+issue_echo('END of checkdone.cgi', tmpDir)
 
 

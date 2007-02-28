@@ -255,6 +255,34 @@ def radioUpload(fieldName, acceptedValues):
 
 
 
+def restart_tryRrun(tmpDir, tsleep = 5, ntries = 5):
+    """Verify if left track in ApplicationCounter log. Otherwise
+    call tryRrun again and leave a file in the tmpDir. """
+    
+    for i in range(ntries + 1):
+        time.sleep(tsleep)
+        in_log = int(os.popen('grep "' + \
+                              tmpDir + \
+                              '" /http/mpi.log/ApplicationCounter | wc').readline().split()[0])
+        if in_log == 0:
+            leave_track = os.system('/bin/touch ' + tmpDir + \
+                                    '/had_to_restart_' + str(i + 1))
+            if i == ntries :
+                commonOutput()
+                print "<h1> ADaCGH problem: Can't start the application. </h1>"
+                print "<p> Please try again later and let us know.</p>"
+                print "<p> We apologize for the inconvenience.</p>"    
+                print "</body></html>"
+                sys.exit()
+            else:
+                tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
+                
+        else:
+            break
+
+
+
+
 #########################################################
 #########################################################
 
@@ -546,8 +574,18 @@ shutil.copy("/http/adacgh2/cgi/f1.R", tmpDir)
 ##os.system('cp /http/js/js.adacgh.squeleton2.html ' + tmpDir + '/.')
 ##os.system('cp /http/js/final.adacgh.squeleton.html ' + tmpDir + '/.')
 
-tryrrun = os.system('/http/mpi.log/tryRrun4.py ' + tmpDir + ' ADaCGH &')
+tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
+
+## Launch the lam checking program 
+lam_check = os.spawnv(os.P_NOWAIT, '/http/mpi.log/recoverFromLAMCrash.py',
+                      ['', tmpDir])
+os.system('echo "' + str(lam_check) + ' ' + socket.gethostname() +\
+           '"> ' + tmpDir + '/lamCheckPID')
+
+
 createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
+checkpoint = os.system("echo 0 > " + tmpDir + "/checkpoint.num")
+restart_tryRrun(tmpDir)
 
 
 

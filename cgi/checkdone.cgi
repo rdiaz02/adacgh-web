@@ -468,7 +468,9 @@ errorRun = soFar.endswith("Execution halted\n")
 if os.path.exists(tmpDir + '/RterminatedOK'):
     finishedOK = True
 
-## zz: refactor. alterar. Aquí solo entrar si no OK?    
+## zz: refactor. alterar. Aquí solo entrar si no OK?
+    ## Probably the next should be deleted: does not play well
+    ## with the error recovery code FIXME
 try:
     Rerrorrout = open(tmpDir + "/error.msg")
     soFar = Rerrorrout.read()
@@ -526,12 +528,13 @@ elif finishedOK > 0:
     printOKRun()
     try: os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
     except: None
-    try: os.remove(tmpDir + '/f1.R')
-    except: None
+#     try: os.remove(tmpDir + '/f1.R')
+#     except: None
     try:
         os.system("rm /http/adacgh2/www/R.running.procs/R." + newDir + "*")
-    finally:
-        print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
+    except:
+        None
+    print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
     
 else:
     ## we only end up here if: we were not done in a previous run AND no process was overtime 

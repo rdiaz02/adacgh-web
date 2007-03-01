@@ -12,7 +12,8 @@ export("mpiInit",
        "segmentPlot",
        "plateauPlot",
        "writeResults",
-       "SegmentPlotWrite")
+       "SegmentPlotWrite",
+       "doMCR")
 
 
 

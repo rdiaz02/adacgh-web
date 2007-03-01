@@ -19,7 +19,12 @@
 #### For easier debugging: we go saving results as things go along.
 
 
-rm(list = ls()) ## Just in case.
+## rm(list = ls()) ## Just in case.
+
+
+checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)
+
+
 
 .Last <- function(){
     ## the next four lines are a way to ensure that the OS writes
@@ -45,7 +50,14 @@ rm(list = ls()) ## Just in case.
 ##    try(system(paste("/http/mpi.log/killLAM.py", lamSESSION, "&")))
     try(mpi.quit(save = "yes"), silent = TRUE)
 }
- 
+
+doCheckpoint <- function(num) {
+    save.image()
+    sink("checkpoint.num")
+    cat(num)
+    sink()
+}
+
 
 ##startExecTime <- format(Sys.time())
 
@@ -70,6 +82,16 @@ cat(hostn)
 sink()
 
 
+### The above is no longer really needed. What follows is what buryThem2.py
+##  uses
+sink(file = "current_R_proc_info")
+cat(hostn)
+cat("   ")
+cat(pid)
+sink()
+
+
+
 ########################################################
 
 ########   Start MPI here to check if everything OK
@@ -85,6 +107,20 @@ library("waveslim") ## we will have to load ADaCGH soon,
 ## but we must mask certain defs. in waveslim. So load
 ## waveslim here
 library(ADaCGH)
+
+
+
+## I am not sure this is really needed, since we do check this things elsewhere too,
+## when we start the MPI universe from Python.
+
+library(Rmpi)
+
+MPI_MIN_UNIVERSE_SIZE <- 15
+
+if (mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE) {
+    cat("\n\n mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE \n\n")
+    quit(save = "no", status = 11, runLast = TRUE)
+}
 
 try({
     mpiInit()
@@ -207,6 +243,7 @@ warningsForUsers <- vector()
 ## zz: future: allow merging by clone.then map clones, then merge by
 ## name and pos.
 
+if(checkpoint.num < 1) {
 
 idtype <- try(scan("idtype", what = "", n = 1))
 organism <- try(scan("organism", what = "", n = 1))
@@ -695,6 +732,9 @@ cat("*********************************************************************\n\n")
     sink()
 }
 
+doCheckpoint(1)
+
+}
 #####################################################################
 #####################################################################
 options(warn = -1)
@@ -705,31 +745,41 @@ options(warn = -1)
 
 if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
-    if(!(exists("mergeRes"))) mergeRes <- TRUE
-    
-    common.data <- data.frame(ID = positions.merge1$name,
-                              Chromosome = positions.merge1$chromosome,
-                              Start = positions.merge1$start,
-                              End = positions.merge1$end,
-                              MidPoint = positions.merge1$MidPoint)
-    save.image()
-    SegmentPlotWrite(as.matrix(xcenter),
-                     chrom = positions.merge1$chrom.numeric,
-                     mergeSegs = mergeRes,
-                     Pos = positions.merge1$MidPoint,
-                     idtype = idtype,
-                     organism = organism,
-                     method = methodaCGH,
-                     geneNames = positions.merge1$name,
-                     commondata = common.data, ## zz?
-                     MCR.gapAllowed = MCR.gapAllowed,
-                     MCR.alteredLow = MCR.alteredLow,
-                     MCR.alteredHigh = MCR.alteredHigh,
-                     MCR.recurrence = MCR.recurrence)
 
-    save.image()
-    quit()
-    
+
+
+    if(checkpoint.num < 2) {
+        if(!(exists("mergeRes"))) mergeRes <- TRUE
+        
+        common.data <- data.frame(ID = positions.merge1$name,
+                                  Chromosome = positions.merge1$chromosome,
+                                  Start = positions.merge1$start,
+                                  End = positions.merge1$end,
+                                  MidPoint = positions.merge1$MidPoint)
+        ##save.image()
+        doCheckpoint(2)
+
+    }
+    if(checkpoint.num < 3) {
+
+        SegmentPlotWrite(as.matrix(xcenter),
+                         chrom = positions.merge1$chrom.numeric,
+                         mergeSegs = mergeRes,
+                         Pos = positions.merge1$MidPoint,
+                         idtype = idtype,
+                         organism = organism,
+                         method = methodaCGH,
+                         geneNames = positions.merge1$name,
+                         commondata = common.data, ## zz?
+                         MCR.gapAllowed = MCR.gapAllowed,
+                         MCR.alteredLow = MCR.alteredLow,
+                         MCR.alteredHigh = MCR.alteredHigh,
+                         MCR.recurrence = MCR.recurrence)
+        
+##        save.image()
+        doCheckpoint(3)
+        quit()
+    }
 } else if(methodaCGH == "PSW") {
 #######################################################
 #######################################################
@@ -741,150 +791,175 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
 #######################################################
 #######################################################
 #######################################################
-    
-    out.gains <- data.frame(ID = positions.merge1$name,
-                            Chromosome = positions.merge1$chromosome,
-                            Start = positions.merge1$start,
-                            End = positions.merge1$end,
-                            MidPoint = positions.merge1$MidPoint)
-    
-    out.losses <- data.frame(ID = positions.merge1$name,
-                             Chromosome = positions.merge1$chromosome,
-                             Start = positions.merge1$start,
-                             End = positions.merge1$end,
-                             MidPoint = positions.merge1$MidPoint)
-    print("testing existence of indicator before gains")
-    print(exists(".__ADaCGH_WEB_APPL"))
 
-    save.image()
-
-    ## Gains
-    trythis <- try({
-        out.gains <-
-            pSegmentPSW(out.gains,
-                        xcenter,
-                        chrom.numeric =  positions.merge1$chrom.numeric,
-                        sign = +1, p.crit = PSW.p.crit,
-                        nIter = PSW.nIter,
-                        prec = 100,
-                        name = "Gains.")
-        save.image()
+    if(checkpoint.num < 2) {
         
-        segmentPlot(out.gains, geneNames = positions.merge1$name,
-                    cghdata = xcenter,
-                    idtype = idtype, organism = organism)
-        save.image()
-
-    })
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
-    writeResults(out.gains, file = "Gains.Price.Smith.Waterman.results.txt")
-
-    print("testing existence of indicator before losses")
-    print(exists(".__ADaCGH_WEB_APPL"))
-
-    ## Losses
-    trythis <- try({
-        out.losses <-
-            pSegmentPSW(out.losses,
-                        xcenter,
-                        chrom.numeric =  positions.merge1$chrom.numeric,
-                        sign = -1, p.crit = PSW.p.crit,
-                        nIter = PSW.nIter,
-                        prec = 100,
-                        name = "Losses.")
-        save.image()
+        out.gains <- data.frame(ID = positions.merge1$name,
+                                Chromosome = positions.merge1$chromosome,
+                                Start = positions.merge1$start,
+                                End = positions.merge1$end,
+                                MidPoint = positions.merge1$MidPoint)
         
-        segmentPlot(out.losses, geneNames = positions.merge1$name,
-                    cghdata = xcenter,
-                    idtype = idtype, organism = organism)
-        save.image()
+        out.losses <- data.frame(ID = positions.merge1$name,
+                                 Chromosome = positions.merge1$chromosome,
+                                 Start = positions.merge1$start,
+                                 End = positions.merge1$end,
+                                 MidPoint = positions.merge1$MidPoint)
+        print("testing existence of indicator before gains")
+        print(exists(".__ADaCGH_WEB_APPL"))
+        
+        ## ave.image()
+        doCheckpoint(2)
+    }
 
-    })
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
-    writeResults(out.losses, file = "Losses.Price.Smith.Waterman.results.txt")
-    
-    save(file = "PSW.RData", list = ls(all.names = TRUE))
-    PSWtoPaLS()
-    quit()
-    
+    if(checkpoint.num < 3) {
+        
+        ## Gains
+        trythis <- try({
+            out.gains <-
+                pSegmentPSW(out.gains,
+                            xcenter,
+                            chrom.numeric =  positions.merge1$chrom.numeric,
+                            sign = +1, p.crit = PSW.p.crit,
+                            nIter = PSW.nIter,
+                            prec = 100,
+                            name = "Gains.")
+            save.image()
+            
+            segmentPlot(out.gains, geneNames = positions.merge1$name,
+                        cghdata = xcenter,
+                        idtype = idtype, organism = organism)
+            save.image()
+            
+        })
+        if(class(trythis) == "try-error")
+            caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
+                                 trythis, ". \n Please let us know so we can fix the code."))
+        writeResults(out.gains, file = "Gains.Price.Smith.Waterman.results.txt")
+
+        doCheckpoint(3)
+    }
+    if(checkpoint.num < 4) {
+        
+        print("testing existence of indicator before losses")
+        print(exists(".__ADaCGH_WEB_APPL"))
+        
+        ## Losses
+        trythis <- try({
+            out.losses <-
+                pSegmentPSW(out.losses,
+                            xcenter,
+                            chrom.numeric =  positions.merge1$chrom.numeric,
+                            sign = -1, p.crit = PSW.p.crit,
+                            nIter = PSW.nIter,
+                            prec = 100,
+                            name = "Losses.")
+            save.image()
+            
+            segmentPlot(out.losses, geneNames = positions.merge1$name,
+                        cghdata = xcenter,
+                        idtype = idtype, organism = organism)
+            save.image()
+            
+        })
+        if(class(trythis) == "try-error")
+            caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
+                                 trythis, ". \n Please let us know so we can fix the code."))
+        writeResults(out.losses, file = "Losses.Price.Smith.Waterman.results.txt")
+        
+        save(file = "PSW.RData", list = ls(all.names = TRUE))
+        PSWtoPaLS()
+        doCheckpoint(4)
+        quit()
+    }
     
 } else if(methodaCGH == "ACE") {
-    
-    ## zz: ugly hack: it it is a 1 dimension array, make it a vector
-    ## so that the correct methods are used.
 
-    if(dim(xcenter)[2] == 1) {
-        one.name <- colnames(xcenter)[1]
-        xcenter <- xcenter[, 1]
-    }
-    
-    trythis <- try(
-                   ACE.object <- pSegmentACE(as.matrix(xcenter),
-                                             chrom.numeric = positions.merge1$chrom.numeric)
-                   )
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
+    if(checkpoint.num < 2) {
+
+        ## zz: ugly hack: it it is a 1 dimension array, make it a vector
+        ## so that the correct methods are used.
         
-    save.image()
-
-    trythis <- try(
-                   ACE.summ <- summary(ACE.object, fdr = ACE.fdr)
-                   )
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Function summary.ACE bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
-
-    save(file = "ace.RData", list = ls())
-
-  
-    trythis <- try(
-                   writeResults(ACE.summ,
-                                acghdata = as.matrix(xcenter),
-                                commondata = positions.merge1,
-                                file = NULL)
-                   )
-    if(class(trythis) == "try-error")
-            caughtOurError(paste("Function writeResults.CGH.ACE.summary bombed unexpectedly with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
-
-
-    ## re-hack. or re-do the kuldge:
-    if(is.null(dim(xcenter))) {
-        xcenter <- matrix(xcenter, ncol = 1)
-        colnames(xcenter) <- one.name
+        if(dim(xcenter)[2] == 1) {
+            one.name <- colnames(xcenter)[1]
+            xcenter <- xcenter[, 1]
+        }
+        
+        trythis <- try(
+                       ACE.object <- pSegmentACE(as.matrix(xcenter),
+                                                 chrom.numeric = positions.merge1$chrom.numeric)
+                       )
+        if(class(trythis) == "try-error")
+            caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
+                                 trythis, ". \n Please let us know so we can fix the code."))
+        
+        ##save.image()
+        doCheckpoint(2)
     }
 
-    save(file = "ace.RData", list = ls())
+    if(checkpoint.num < 3) {
+        
+        trythis <- try(
+                       ACE.summ <- summary(ACE.object, fdr = ACE.fdr)
+                       )
+        if(class(trythis) == "try-error")
+            caughtOurError(paste("Function summary.ACE bombed unexpectedly with error",
+                                 trythis, ". \n Please let us know so we can fix the code."))
+        
+        save(file = "ace.RData", list = ls())
 
-    trythis <- try(doMCR(ACE.summ,
-                         chrom.numeric = positions.merge1$chrom.numeric,
-                         data = xcenter,
-                         MCR.gapAllowed = MCR.gapAllowed,
-                         MCR.alteredLow = MCR.alteredLow,
-                         MCR.alteredHigh = MCR.alteredHigh,
-                         MCR.recurrence = MCR.recurrence)
-                   )
-    if(class(trythis) == "try-error")
-        caughtOurError(trythis)
-
-    save.image()
-    
-    trythis <- try({
-        ## The segmented plots, one per array
-        segmentPlot(ACE.summ,
-                    chrom.numeric = positions.merge1$chrom.numeric,
-                    geneNames = positions.merge1$name,
-                    cghdata = xcenter,
-                    idtype = idtype, organism = organism)
-    })
-    if(class(trythis) == "try-error")
-        caughtOurError(paste("Error in ACE plots  with error",
-                             trythis, ". \n Please let us know so we can fix the code."))
-    save(file = "ace.RData", list = ls())
-    quit()
+        common.data <- data.frame(ID = positions.merge1$name,
+                                  Chromosome = positions.merge1$chromosome,
+                                  Start = positions.merge1$start,
+                                  End = positions.merge1$end,
+                                  MidPoint = positions.merge1$MidPoint)
+       
+        trythis <- try(
+                       writeResults(ACE.summ,
+                                    acghdata = as.matrix(xcenter),
+                                    commondata = common.data,
+                                    file = NULL)
+                       )
+        if(class(trythis) == "try-error")
+            caughtOurError(paste("Function writeResults.CGH.ACE.summary bombed unexpectedly with error",
+                                 trythis, ". \n Please let us know so we can fix the code."))
+        
+        
+        ## re-hack. or re-do the kuldge:
+        if(is.null(dim(xcenter))) {
+            xcenter <- matrix(xcenter, ncol = 1)
+            colnames(xcenter) <- one.name
+        }
+        
+        save(file = "ace.RData", list = ls())
+        
+        trythis <- try(doMCR(ACE.summ,
+                             chrom.numeric = positions.merge1$chrom.numeric,
+                             data = xcenter,
+                             MCR.gapAllowed = MCR.gapAllowed,
+                             MCR.alteredLow = MCR.alteredLow,
+                             MCR.alteredHigh = MCR.alteredHigh,
+                             MCR.recurrence = MCR.recurrence,
+                             Pos = positions.merge1$MidPoint)
+                       )
+        if(class(trythis) == "try-error")
+            caughtOurError(trythis)
+        
+        save.image()
+        
+        trythis <- try({
+            ## The segmented plots, one per array
+            segmentPlot(ACE.summ,
+                        chrom.numeric = positions.merge1$chrom.numeric,
+                        geneNames = positions.merge1$name,
+                        cghdata = xcenter,
+                        idtype = idtype, organism = organism)
+        })
+        if(class(trythis) == "try-error")
+            caughtOurError(paste("Error in ACE plots  with error",
+                                 trythis, ". \n Please let us know so we can fix the code."))
+        save(file = "ace.RData", list = ls())
+        doCheckpoint(3)
+        quit()
+    }
 }

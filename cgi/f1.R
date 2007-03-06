@@ -824,11 +824,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             cat("\n ************ done segmentation positive \n")
             save.image()
             
-            segmentPlot(out.gains, geneNames = positions.merge1$name,
-                        cghdata = xcenter,
-                        idtype = idtype, organism = organism)
-            save.image()
-            
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
@@ -856,9 +851,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             save.image()
             cat("\n ************ done segmentation positive \n")
             
-            segmentPlot(out.losses, geneNames = positions.merge1$name,
-                        cghdata = xcenter,
-                        idtype = idtype, organism = organism)
             save.image()
             
         })
@@ -871,6 +863,18 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         save(file = "PSW.RData", list = ls(all.names = TRUE))
         PSWtoPaLS()
         doCheckpoint(4)
+
+        save.image()
+        
+        segmentPlot(out.gains, geneNames = positions.merge1$name,
+                    cghdata = xcenter,
+                    idtype = idtype, organism = organism)
+        
+        segmentPlot(out.losses, geneNames = positions.merge1$name,
+                    cghdata = xcenter,
+                    idtype = idtype, organism = organism)
+        
+        
         quit()
     }
     

@@ -828,6 +828,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                             nIter = PSW.nIter,
                             prec = 100,
                             name = "Gains.")
+            save.image()
+            save(file = "in.out.gains.RData", list = ls())
             cat("\n ************ done segmentation positive \n")
             save.image()
             
@@ -857,7 +859,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                             name = "Losses.")
             save.image()
             cat("\n ************ done segmentation negative \n")
-            
+            save(file = "in.out.losses.RData", list = ls())
             save.image()
             
         })

@@ -98,6 +98,8 @@ sink()
 
 #########################################################
 
+methodaCGH <- scan("methodaCGH", what = "", n = 1)
+
 
 assign(".__ADaCGH_WEB_APPL", TRUE)
 print("testing existence of indicator")
@@ -113,24 +115,30 @@ library(ADaCGH)
 ## I am not sure this is really needed, since we do check this things elsewhere too,
 ## when we start the MPI universe from Python.
 
-library(Rmpi)
-
-MPI_MIN_UNIVERSE_SIZE <- 15
-
-if (mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE) {
-    cat("\n\n mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE \n\n")
-    quit(save = "no", status = 11, runLast = TRUE)
-}
-
-try({
-    mpiInit()
-    cat("\n\nAbout to print mpiOK file\n")
+if (! ((methodaCGH == "PSW") & (checkpoint.num >= 4))) {
+## we don't use MPI with PSW at the end
+    library(Rmpi)
+    
+    MPI_MIN_UNIVERSE_SIZE <- 15
+    
+    if (mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE) {
+        cat("\n\n mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE \n\n")
+        quit(save = "no", status = 11, runLast = TRUE)
+    }
+    
+    try({
+        mpiInit()
+        cat("\n\nAbout to print mpiOK file\n")
+        sink(file = "mpiOK")
+        cat("MPI started OK\n")
+        sink()
+    }
+        )
+} else { ## just because we need this for the controlling code
     sink(file = "mpiOK")
     cat("MPI started OK\n")
     sink()
 }
-)
-
 
 
 
@@ -255,7 +263,6 @@ MCR.recurrence <- try(scan("MCR.recurrence", what = double(0), n = 1))
 
 
 
-methodaCGH <- scan("methodaCGH", what = "", n = 1)
 if (methodaCGH == "WS") {
     Wave.minDiff <-  scan("Wave.minDiff", what = double(0), n = 1)
     mergeRes <- Wave.merge            <- scan("Wave.merge", what = "", n = 1)          
@@ -865,9 +872,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         doCheckpoint(4)
     }
     if(checkpoint.num < 5) {
-        save.image()
-
-        mpi.exit() ## now papply0 is called inside segmentPlot
+        try(mpi.exit()) ## now papply0 is called inside segmentPlot
         segmentPlot(out.gains, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)

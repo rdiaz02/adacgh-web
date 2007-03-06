@@ -91,7 +91,7 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
                   slave_chrom = chrom.numeric,
                   slave_kb    = Pos))
 
-    te <- unlist(lapply(out, function(x) inherits(x, "try-error")))
+    te <- unlist(unlist(lapply(out, function(x) inherits(x, "try-error"))))
     if(any(te)) {
         m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
         m2 <- "You can try rerunning it a few times."
@@ -141,7 +141,8 @@ pSegmentCGHseg <- function(x, chrom.numeric, ...) {
 }
 
 
-pSegmentPSW <- function(x, chrom.numeric, sign = -1,
+pSegmentPSW <- function(x, chrom.numeric, common.data,
+                        sign = -1,
                         nIter = 1000, prec = 100,  p.crit = 0.10,
                         name = NULL, ...) {
     numarrays <- ncol(x)
@@ -179,7 +180,7 @@ pSegmentPSW <- function(x, chrom.numeric, sign = -1,
                   sl.name = name,
                   sl.p.crit = p.crit,
                   colnamesdata = colnames(x)))
-    if(any(lapply(papout, function(z) z == "swt.perm.try-error"))) {
+    if(any(unlist(lapply(papout, function(z) z == "swt.perm.try-error")))) {
         m1 <- "There was a problem in the PSW routine; this is "
         m2 <- "probably related to the global thresholding + within "
         m3 <- "chromosome perm test with your data."
@@ -187,6 +188,7 @@ pSegmentPSW <- function(x, chrom.numeric, sign = -1,
         m5 <- " (thresholding within chromosome) PSW "
         mm <- c(m1, m2, m3, m4, m5)
         caughtOtherError(mm)
+        return(NULL) ## but should not get here
     }    
     for(i in 1:ncol(x)) {
         out$Data <- cbind(out$Data, papout[[i]]$out)
@@ -373,9 +375,6 @@ pSegmentDNAcopy <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
 
 
 
-
-
-
 segmentPlot <- function(x, geneNames,
                         chrom.numeric = NULL,
                         cghdata = NULL,
@@ -450,8 +449,13 @@ segmentPlot <- function(x, geneNames,
         } else {
             main <- "Gains."
         }
+        ## For reasons I don't understand, I keep getting
+        ## crashes of LAM/MPI (the call stack) when running over
+        ## more than one node. Might be the shitty switch or
+        ## large amount of traffic. Whatever, I am now running
+        ## this sequentially.
         tmp_papout <-
-            papply(as.list(1:numarrays),
+            papply0(as.list(1:numarrays),
                    function(z) {
                        cat("\n Doing sample ", z, "\n")
                        sw.plot3(logratio = data_slave[[z]]$logratio,
@@ -567,7 +571,8 @@ SegmentPlotWrite <- function(data, chrom,
     save.image()
     save(segmres, file = "segmres.RData")
 
-    trythis <- try(doMCR(segmres$segm, chrom = chrom, data = data,
+    trythis <- try(doMCR(segmres$segm, chrom.numeric = chrom,
+                         data = data,
                          Pos = Pos, ...))
     if(inherits(trythis, "try-error"))
         caughtOurError(trythis)
@@ -1752,6 +1757,117 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
 }
 
           
+
+
+
+
+
+sw.plot2 <- function (logratio, location = seq(length(logratio)),
+                                            threshold.func = function(x) median(x) +
+                                            0.2 * mad(x), sign = -1, highest = TRUE, expected = NULL,
+                                            rob = NULL, legend = TRUE, xlab = "Chromosomal location",
+                                            ylab = "log ratio", detail = FALSE, ...)
+{
+        my.line <- function(x, y, ...) {
+                    len <- length(x)
+                            run <- rle(y)[[1]]
+                            run.len <- length(run)
+                            j <- 1
+                            m <- 2 * x[1] - x[2]
+                            if (run.len == 1)
+                                            lines(x = c(3/2 * x[1] - 1/2 * x[2], 3/2 * x[len] -
+                                                                  1/2 * x[len - 1]), y = c(y[1], y[len]), ...)
+                            else {
+                                            for (i in 1:(run.len - 1)) {
+                                                                k <- run[i]
+                                                                                lines(x = c((x[j] + m)/2, (x[j + k - 1] + x[j +
+                                                                                                        k])/2), y = c(y[j], y[j]), ...)
+                                                                                lines(x = rep((x[j + k - 1] + x[j + k])/2, 2),
+                                                                                                        y = c(y[j], y[j + k]), ...)
+                                                                                m <- x[j + k - 1]
+                                                                                j <- j + k
+                                                            }
+                                                        lines(x = c((m + x[j])/2, 3/2 * x[len] - 1/2 * x[len -
+                                                                              1]), y = c(y[j], y[j]), ...)
+                                        }
+                }
+            island.line <- function(x, y, start = 1, len = length(x),
+                                            edge = 0, ...) {
+                        if (is.null(start) || is.null(len) || length(start) ==
+                                        0 || length(len) == 0 || len <= 0)
+                                        return
+                                lenx <- length(x)
+                                x1 <- c(2 * x[1] - x[2], x, 2 * x[lenx] - x[lenx - 1])
+                                x2 <- x1[1:(lenx + 1)] + diff(x1)/2
+                                lines(x = c(rep(x2[start], 2), rep(x2[start + len], 2)),
+                                                  y = c(y - edge, y, y, y - edge), ...)
+                    }
+            log2 <- log(2)
+            len <- length(logratio)
+            par <- par()
+
+            if(detail) {
+                        par(xaxs = "i")
+                                par(mar = c(5, 5, 5, 5), yaxs = "r")
+                                par(oma = c(0, 0, 0, 0))
+                    }
+
+            threshold <- threshold.func(sign * logratio)
+            plot(y = logratio, x = location, type = "n", xlab = "Chromosomal location", ylab = "",
+                         ..., axes = FALSE)
+
+            rug(location, ticksize = 0.01)
+            maxlr <- max(logratio)
+            minlr <- min(logratio)
+            axis(side = 4, at = seq(minlr, maxlr, length = 5), labels = c("0",
+                                                                       ".25", " .50", ".75", "1"))
+            box()
+            axis(2)
+        ##    mtext(xlab, side = 1, line = 3, cex = 0.8)
+            mtext(ylab, side = 2, line = 3, cex = 0.8)
+        ##    abline(h = maxlr, lty = 2)
+        ##    abline(h = minlr, lty = 2)
+            if (!is.null(rob)) {
+                        mtext("Robustness", side = 4, line = 3, cex = 0.8)
+                                my.line(y = (maxlr - minlr) * rob + minlr, x = location,
+                                                    col = "#99ffff", lwd = 2)
+                    }
+            if (highest) {
+                        x <- sign * logratio - threshold
+                                swx <- sw(x)
+                                if (length(swx$score)) {
+                                                island.line(x = location, y = maxlr + (maxlr - minlr) *
+                                                                            0.02, start = swx$start[1], len = swx$length[1],
+                                                                            edge = (maxlr - minlr) * 0.01, col = "green")
+                                            }
+                    }
+        ##    my.line(y = rep(sign * threshold, len), x = location, col = "#00ff00")
+            if (!is.null(expected)) {
+                        my.line(y = log2(expected) - 1, x = location, col = "#ff0000")
+                    }
+        ##    points(y = logratio, x = location, pch = 20, col = "orange", cex = 0.5)
+            if(detail) cexp <- 1
+            else cexp <- 0.5
+            points(y = logratio, x = location, pch = 20, col = "orange", cex = cexp)
+            if (legend) { ## I make changes here; essentially, I break a few things!
+                ##         legend.str <- c("highest-scoring island", "robustness", "signif.")
+                ##         legend.col <- c("green", "#99ffff", "red")
+                ##         legend(location[1], minlr + (maxlr - minlr) * 0.25, legend.str,
+                ##             lty = rep(1, 3), col = legend.col, cex = 0.8)
+                        legend.str <- c("robustness", "signif.")
+                                legend.col <- c("#99ffff", "red")
+                                legend(location[1], minlr + (maxlr - minlr) * 0.25, legend.str,
+                                                   lty = rep(1, 2), col = legend.col, cex = 0.8)
+
+                    }
+            abline(h = 0, lty = 2, col = "blue")
+            par(mar = par$mar, yaxs = par$yaxs)
+    }
+
+
+
+
+
 
 
 #######################################################
@@ -2989,3 +3105,33 @@ old.doMCR <- function(x, chrom.numeric, data,
     
 
 
+papply0 <- function (arg_sets, papply_action, papply_commondata = list(), 
+    show_errors = TRUE, do_trace = FALSE, also_trace = c()) 
+{
+### this is a crippled version of papply, for running sequentially.
+    ### I'm getting lots of mpi problems in a few cases.
+    ### instead of rewriting calls, I close mpi, and use papply0.
+    ### If these issues ever get fixed, then use papply.
+    
+    if (!is.list(arg_sets)) {
+        print("1st argument to papply must be a list")
+        return(NULL)
+    }
+    if (!is.function(papply_action)) {
+        print("2nd argument to papply must be a function")
+        return(NULL)
+    }
+    if (!is.list(papply_commondata)) {
+        print("3rd argument to papply must be a list")
+        return(NULL)
+    }
+    papply_also_trace <- also_trace
+    run_parallel <- 0
+    if (run_parallel != 1) {
+        print("Running serial version of papply\n")
+        attach(papply_commondata)
+        results <- lapply(arg_sets, papply_action)
+        detach(papply_commondata)
+        return(results)
+    }
+}

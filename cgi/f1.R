@@ -794,36 +794,34 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
     if(checkpoint.num < 2) {
         
-        out.gains <- data.frame(ID = positions.merge1$name,
+        common.data <- data.frame(ID = positions.merge1$name,
                                 Chromosome = positions.merge1$chromosome,
                                 Start = positions.merge1$start,
                                 End = positions.merge1$end,
                                 MidPoint = positions.merge1$MidPoint)
-        
-        out.losses <- data.frame(ID = positions.merge1$name,
-                                 Chromosome = positions.merge1$chromosome,
-                                 Start = positions.merge1$start,
-                                 End = positions.merge1$end,
-                                 MidPoint = positions.merge1$MidPoint)
         print("testing existence of indicator before gains")
         print(exists(".__ADaCGH_WEB_APPL"))
         
-        ## ave.image()
+        ## save.image()
         doCheckpoint(2)
     }
 
     if(checkpoint.num < 3) {
+
+## change order: first segmentation of both. then plotting after a "mpi.exit()
+
         
         ## Gains
         trythis <- try({
             out.gains <-
-                pSegmentPSW(out.gains,
-                            xcenter,
+                pSegmentPSW(xcenter,
                             chrom.numeric =  positions.merge1$chrom.numeric,
+                            common.data = common.data,
                             sign = +1, p.crit = PSW.p.crit,
                             nIter = PSW.nIter,
                             prec = 100,
                             name = "Gains.")
+            cat("\n ************ done segmentation positive \n")
             save.image()
             
             segmentPlot(out.gains, geneNames = positions.merge1$name,
@@ -835,7 +833,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        writeResults(out.gains, file = "Gains.Price.Smith.Waterman.results.txt")
+        writeResults(out.gains, acghdata = xcenter, commondata = common.data,
+                     file = "Gains.Price.Smith.Waterman.results.txt")
 
         doCheckpoint(3)
     }
@@ -847,14 +846,15 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         ## Losses
         trythis <- try({
             out.losses <-
-                pSegmentPSW(out.losses,
-                            xcenter,
+                pSegmentPSW(xcenter,
                             chrom.numeric =  positions.merge1$chrom.numeric,
+                            common.data = common.data,
                             sign = -1, p.crit = PSW.p.crit,
                             nIter = PSW.nIter,
                             prec = 100,
                             name = "Losses.")
             save.image()
+            cat("\n ************ done segmentation positive \n")
             
             segmentPlot(out.losses, geneNames = positions.merge1$name,
                         cghdata = xcenter,
@@ -865,7 +865,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        writeResults(out.losses, file = "Losses.Price.Smith.Waterman.results.txt")
+        writeResults(out.losses, acghdata = xcenter, commondata = common.data,
+                     file = "Losses.Price.Smith.Waterman.results.txt")
         
         save(file = "PSW.RData", list = ls(all.names = TRUE))
         PSWtoPaLS()
@@ -933,7 +934,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         
         save(file = "ace.RData", list = ls())
         
-        trythis <- try(doMCR(ACE.summ,
+        trythis <- try(doMCR(ACE.summ$segm,
                              chrom.numeric = positions.merge1$chrom.numeric,
                              data = xcenter,
                              MCR.gapAllowed = MCR.gapAllowed,
@@ -944,7 +945,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                        )
         if(class(trythis) == "try-error")
             caughtOurError(trythis)
-        
+
         save.image()
         
         trythis <- try({

@@ -475,6 +475,14 @@ if os.path.exists(tmpDir + "/natural.death.pid.txt") or os.path.exists(tmpDir + 
     sys.exit()
 
 ## No, we were not done. Need to examine R output
+issue_echo('before lam_check', tmpDir)
+
+lam_check = open(tmpDir + '/lamCheckPID', mode = 'r'). readline().split()
+lam_check_machine = lam_check[1]
+lam_check_pid = lam_check[0]
+
+issue_echo('right after lam_check', tmpDir)
+   
 Rrout = open(tmpDir + "/f1.Rout")
 soFar = Rrout.read()
 Rrout.close()

@@ -849,7 +849,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                             prec = 100,
                             name = "Losses.")
             save.image()
-            cat("\n ************ done segmentation positive \n")
+            cat("\n ************ done segmentation negative \n")
             
             save.image()
             
@@ -863,9 +863,11 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         save(file = "PSW.RData", list = ls(all.names = TRUE))
         PSWtoPaLS()
         doCheckpoint(4)
-
+    }
+    if(checkpoint.num < 5) {
         save.image()
-        
+
+        mpi.exit() ## now papply0 is called inside segmentPlot
         segmentPlot(out.gains, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
@@ -874,7 +876,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
         
-        
+        doCheckpoint(5)
         quit()
     }
     

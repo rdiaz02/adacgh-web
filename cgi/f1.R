@@ -846,7 +846,9 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         
         print("testing existence of indicator before losses")
         print(exists(".__ADaCGH_WEB_APPL"))
-        
+
+        save(file = "pre.out.losses.RData", list = ls())
+
         ## Losses
         trythis <- try({
             out.losses <-

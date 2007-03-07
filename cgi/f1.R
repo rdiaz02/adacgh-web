@@ -1,3 +1,16 @@
+## step through this.
+
+## FIXME: algo con el recoverFromLAMCrash???
+#   y xq con PSW y no con los otros???
+
+# y xq casca si lam entre varios nados? Alternativa: crear un MPI en un solo nodo! 
+
+
+## FIXME: xq cojones se casca el MPI entre checkpoints 3 y 4?
+
+
+
+
 ####  Copyright (C) 2005, 2006, 2007, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 
 #### This program is free software; you can redistribute it and/or
@@ -114,6 +127,11 @@ library(ADaCGH)
 
 ## I am not sure this is really needed, since we do check this things elsewhere too,
 ## when we start the MPI universe from Python.
+
+## FIXME: esto es una puta chapuza!!!! No hay razón para no paralelizar
+##        las figuras de PSW!!!
+
+
 
 if (! ((methodaCGH == "PSW") & (checkpoint.num >= 4))) {
 ## we don't use MPI with PSW at the end
@@ -815,9 +833,10 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
     if(checkpoint.num < 3) {
 
-## change order: first segmentation of both. then plotting after a "mpi.exit()
 
-        
+        Sys.time()
+        Sys.sleep(5)
+
         ## Gains
         trythis <- try({
             out.gains <-
@@ -828,21 +847,32 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                             nIter = PSW.nIter,
                             prec = 100,
                             name = "Gains.")
+            ## FIXME: what is the global workspace here like?? zzz
             save.image()
             save(file = "in.out.gains.RData", list = ls())
             cat("\n ************ done segmentation positive \n")
             save.image()
-            
+
+            Sys.time()
+            Sys.sleep(5)
+
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        writeResults(out.gains, acghdata = xcenter, commondata = common.data,
+        writeResults(out.gains, commondata = common.data,
                      file = "Gains.Price.Smith.Waterman.results.txt")
+
+## algún problema aquí de permisos?? o directorios q no existen?? zz
+### FIXME: how is it possible that this checkpoint does not save a shit?zz
+        Sys.time()
+        Sys.sleep(5)
 
         doCheckpoint(3)
     }
     if(checkpoint.num < 4) {
+        Sys.time()
+        Sys.sleep(5)
         
         print("testing existence of indicator before losses")
         print(exists(".__ADaCGH_WEB_APPL"))
@@ -864,27 +894,41 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             save(file = "in.out.losses.RData", list = ls())
             save.image()
             
+        Sys.time()
+        Sys.sleep(5)
+
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        writeResults(out.losses, acghdata = xcenter, commondata = common.data,
+        writeResults(out.losses, commondata = common.data,
                      file = "Losses.Price.Smith.Waterman.results.txt")
         
         save(file = "PSW.RData", list = ls(all.names = TRUE))
         PSWtoPaLS()
+        Sys.time()
+        Sys.sleep(5)
+
         doCheckpoint(4)
     }
     if(checkpoint.num < 5) {
+        Sys.time()
+        Sys.sleep(5)
+
         try(mpi.exit()) ## now papply0 is called inside segmentPlot
         segmentPlot(out.gains, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
-        
+
+        Sys.time()
+        Sys.sleep(5)
+
         segmentPlot(out.losses, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
-        
+        Sys.time()
+        Sys.sleep(5)
+
         doCheckpoint(5)
         quit()
     }

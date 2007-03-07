@@ -33,13 +33,20 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 
 ###  Visible stuff
 
-mpiInit <- function(wdir = getwd(), minUniverseSize = 15) {
+mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
+                    universeSize = NULL) {
+    if(! is.null(universeSize))
+        minUniverseSize <- universeSize
     library(Rmpi)
     if(mpi.universe.size() < minUniverseSize) {
         stop("MPI problem: universe size < minUniverseSize")
     }
 ##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
-    mpi.spawn.Rslaves(hosts = sample(lamhosts()))
+    if(! is.null(universeSize)) {
+        mpi.spawn.Rslaves(nslaves = nsl)
+    } else {
+        mpi.spawn.Rslaves(hosts = sample(lamhosts()))
+    }
     ## mpi.setup.rngstream() ## or 
     mpi.setup.sprng()
     mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
@@ -712,7 +719,8 @@ writeResults <- function(obj, ...) {
     UseMethod("writeResults")
 }
 
-writeResults.CGH.PSW <- function(obj, acghdata, commondata, file = "PSW.output.txt", ...) {
+## writeResults.CGH.PSW <- function(obj, acghdata, commondata, file = "PSW.output.txt", ...) {
+writeResults.CGH.PSW <- function(obj, commondata, file = "PSW.output.txt", ...) {    
     write.table(cbind(commondata, obj$Data), file = file,
                 sep = "\t", col.names = NA,
                 row.names = TRUE, quote = FALSE)

@@ -43,9 +43,9 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
     }
 ##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
     if(! is.null(universeSize)) {
-        mpi.spawn.Rslaves(nslaves = nsl)
+        mpi.spawn.Rslaves(nslaves = universeSize)
     } else {
-        mpi.spawn.Rslaves(hosts = sample(lamhosts()))
+        mpi.spawn.Rslaves(nslaves = mpi.universe.size())
     }
     ## mpi.setup.rngstream() ## or 
     mpi.setup.sprng()
@@ -188,11 +188,11 @@ pSegmentPSW <- function(x, chrom.numeric, common.data,
                   sl.p.crit = p.crit,
                   colnamesdata = colnames(x)))
     if(any(unlist(lapply(papout, function(z) z == "swt.perm.try-error")))) {
-        m1 <- "There was a problem in the PSW routine; this is "
-        m2 <- "probably related to the global thresholding + within "
-        m3 <- "chromosome perm test with your data."
-        m4 <- "You might want to try another method, or the original "
-        m5 <- " (thresholding within chromosome) PSW "
+        m1 <- "There was a problem in the PSW routine; this is \n"
+        m2 <- "probably related to the global thresholding + within \n"
+        m3 <- "chromosome perm test with your data.\n"
+        m4 <- "You might want to try another method, or the original \n"
+        m5 <- " (thresholding within chromosome) PSW. \n "
         mm <- c(m1, m2, m3, m4, m5)
         caughtOtherError(mm)
         return(NULL) ## but should not get here
@@ -462,7 +462,7 @@ segmentPlot <- function(x, geneNames,
         ## large amount of traffic. Whatever, I am now running
         ## this sequentially.
         tmp_papout <-
-            papply0(as.list(1:numarrays),
+            papply(as.list(1:numarrays),
                    function(z) {
                        cat("\n Doing sample ", z, "\n")
                        sw.plot3(logratio = data_slave[[z]]$logratio,
@@ -2998,8 +2998,9 @@ doMCR <- function(x, chrom.numeric, data,
                              alteredHigh = MCR.alteredHigh,
                              recurrence = MCR.recurrence)
             mcrs <- MCR(cghmcr)
+            if(dim(mcrs)[1] == 0) mcrs <- NA
         })
-        if(class(tryms) == "try-error") {
+        if((class(tryms) == "try-error") || is.na(mcrs)) {
             sink(file = hsink)
             cat("\n<p> No common minimal regions found.</p>\n")
             sink()

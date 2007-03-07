@@ -332,9 +332,9 @@ def printOKRun():
                        '<a href="./Gains.Price.Smith.Waterman.results.txt">"Gains.Price.Smith.Waterman.results.txt"</a>' +
                        ' <a href="./Losses.Price.Smith.Waterman.results.txt">"Losses.Price.Smith.Waterman.results.txt."</a></p>')
 
-            if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
+            ##if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
             if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')
-            if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
+            ##if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
             #if os.path.exists(tmpDir + '/.RData'): os.remove(tmpDir + '/.RData')
             allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
             os.chdir(tmpDir)
@@ -374,9 +374,9 @@ def printOKRun():
                        '<a href="./ACE.results.FDR=' + currentfdr + '.txt">' +
                        '"ACE.results.FDR=' + currentfdr + '.txt"</a></p>')
             if os.path.exists(tmpDir + '/rerunACE.Rout'): os.remove(tmpDir + '/rerunACE.Rout')
-            if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
+            ##if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
             if os.path.exists(tmpDir + '/rerunACE.R'): os.remove(tmpDir + '/rerunACE.R')
-            if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
+            ##if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
             #if os.path.exists(tmpDir + '/.RData'): os.remove(tmpDir + '/.RData')
             allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
             os.chdir(tmpDir)
@@ -535,7 +535,7 @@ if errorRun > 0:
 
 elif finishedOK > 0:
     issue_echo('finishedOK is 1', tmpDir)
-
+    kill_lamcheck(lam_check_pid, lam_check_machine)
     try:
         lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
     except:

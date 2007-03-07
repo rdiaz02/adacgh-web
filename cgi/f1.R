@@ -133,30 +133,30 @@ library(ADaCGH)
 
 
 
-if (! ((methodaCGH == "PSW") & (checkpoint.num >= 4))) {
+## if (! ((methodaCGH == "PSW") & (checkpoint.num >= 4))) {
 ## we don't use MPI with PSW at the end
-    library(Rmpi)
-    
-    MPI_MIN_UNIVERSE_SIZE <- 15
-    
-    if (mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE) {
-        cat("\n\n mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE \n\n")
-        quit(save = "no", status = 11, runLast = TRUE)
-    }
-    
-    try({
-        mpiInit()
-        cat("\n\nAbout to print mpiOK file\n")
-        sink(file = "mpiOK")
-        cat("MPI started OK\n")
-        sink()
-    }
-        )
-} else { ## just because we need this for the controlling code
-    sink(file = "mpiOK")
-    cat("MPI started OK\n")
-    sink()
+library(Rmpi)
+
+MPI_MIN_UNIVERSE_SIZE <- 15
+
+if (mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE) {
+  cat("\n\n mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE \n\n")
+  quit(save = "no", status = 11, runLast = TRUE)
 }
+
+try({
+  mpiInit()
+  cat("\n\nAbout to print mpiOK file\n")
+  sink(file = "mpiOK")
+  cat("MPI started OK\n")
+  sink()
+}
+    )
+## } else { ## just because we need this for the controlling code
+##     sink(file = "mpiOK")
+##     cat("MPI started OK\n")
+##     sink()
+## }
 
 
 
@@ -281,9 +281,9 @@ MCR.recurrence <- try(scan("MCR.recurrence", what = double(0), n = 1))
 
 
 
-if (methodaCGH == "WS") {
+if (methodaCGH == "Wavelets") {
     Wave.minDiff <-  scan("Wave.minDiff", what = double(0), n = 1)
-    mergeRes <- Wave.merge            <- scan("Wave.merge", what = "", n = 1)          
+    mergeRes <- Wave.merge <- scan("Wave.merge", what = "", n = 1)          
 } else if (methodaCGH == "PSW") {
     PSW.nIter <- scan("PSW.nIter", what = double(0), n = 1)
     PSW.p.crit <- scan("PSW.p.crit", what = double(0), n = 1)
@@ -505,7 +505,7 @@ cat("<h4>Method:              ", methodaCGH,"</h4>\n")
 
 cat("<h4>Methods parameters </h4>\n")
 
-if (methodaCGH == "WS") {
+if (methodaCGH == "Wavelets") {
     cat("<p>        Wave.minDiff\t\t:          ",         Wave.minDiff,"</p>\n")
     cat("<p>        Wave.merge\t\t:            ",         Wave.merge,"</p>\n")
 } else if (methodaCGH == "PSW") {
@@ -542,7 +542,7 @@ cat("\n\n Method:              ", methodaCGH)
 cat("\n\n Parameters:")
 
 
-if (methodaCGH == "WS") {
+if (methodaCGH == "Wavelets") {
     cat("\n\nWave.minDiff\t\t:          ",         Wave.minDiff)
     cat("\n\nWave.merge\t\t:             ",       Wave.merge)        
 } else if (methodaCGH == "PSW") {
@@ -905,7 +905,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                      file = "Losses.Price.Smith.Waterman.results.txt")
         
         save(file = "PSW.RData", list = ls(all.names = TRUE))
-        PSWtoPaLS()
+        ADaCGH:::PSWtoPaLS()
         Sys.time()
         Sys.sleep(5)
 
@@ -915,7 +915,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         Sys.time()
         Sys.sleep(5)
 
-        try(mpi.exit()) ## now papply0 is called inside segmentPlot
+##         try(mpi.exit()) ## now papply0 is called inside segmentPlot
         segmentPlot(out.gains, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)

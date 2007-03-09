@@ -794,12 +794,8 @@ print.adacgh.generic.results <- function(res, xcenter,
     ##                       End = commondata$end,
     ##                       MidPoint = commondata$MidPoint)
 
-    if((ncol(xcenter) == 1)) {
-      if (is.matrix(res$segm)) out <- cbind(out, res$segm)
-    } else {
-      for(i in 1:ncol(xcenter)) {
-        out <- cbind(out, res$segm[[i]])
-      }
+    for(i in 1:ncol(xcenter)) {
+      out <- cbind(out, res$segm[[i]])
     }
     colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
         paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
@@ -2288,7 +2284,8 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
         medians.state[res$Gain.Loss == -1] <- medians.gl[1]
 
         out <- list()
-        out$segm <- cbind(Observed = res$x, Smoothed = medians.state,
+    out$segm <- list()
+        out$segm[[1]] <- cbind(Observed = res$x, Smoothed = medians.state,
                           State = res$Gain.Loss)
         out$chrom.numeric <- chrom.numeric
         class(out) <- c("adacgh.generic.out", "summaryACE")

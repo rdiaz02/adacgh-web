@@ -775,7 +775,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
     if(checkpoint.num < 2) {
         if(!(exists("mergeRes"))) mergeRes <- TRUE
-        
+        if(mergeRes == "Yes") mergeRes <- TRUE
+        if(mergeRes == "No") mergeRes <- FALSE
         common.data <- data.frame(ID = positions.merge1$name,
                                   Chromosome = positions.merge1$chromosome,
                                   Start = positions.merge1$start,
@@ -800,6 +801,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                          MCR.alteredLow = MCR.alteredLow,
                          MCR.alteredHigh = MCR.alteredHigh,
                          MCR.recurrence = MCR.recurrence)
+
         
 ##        save.image()
         doCheckpoint(3)
@@ -981,7 +983,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                     file = NULL)
                        )
         if(class(trythis) == "try-error")
-            caughtOurError(paste("Function writeResults.CGH.ACE.summary bombed unexpectedly with error",
+            caughtOurError(paste("Function writeResults.summary.ACE.summary bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
         
         

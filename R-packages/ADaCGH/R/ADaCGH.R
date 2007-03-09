@@ -794,8 +794,12 @@ print.adacgh.generic.results <- function(res, xcenter,
     ##                       End = commondata$end,
     ##                       MidPoint = commondata$MidPoint)
 
-    for(i in 1:ncol(xcenter)) {
-            out <- cbind(out, res$segm[[i]])
+    if((ncol(xcenter) == 1)) {
+      if (is.matrix(res$segm)) out <- cbind(out, res$segm)
+    } else {
+      for(i in 1:ncol(xcenter)) {
+        out <- cbind(out, res$segm[[i]])
+      }
     }
     colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
         paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),

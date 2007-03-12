@@ -4,28 +4,22 @@ import os
 import sys
 import time
 
-NUM_USERS = (1, 1, 1, 1, 1,
-             2, 2, 2,
-             5)
+NUM_USERS = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+             5, 5,
+             10,
+             20,
+             50)
+
 
 TESTS = (
     'CBS_small',
     'HMM_small',
-##    'BioHMM_small',
-##    'CGHseg_small',
     'GLAD_small',
     'Wavelets_small',
-##    'ACE_small',
-##    'PSW_small',
     'CBS_large',
     'HMM_large',
-##    'BioHMM_large',
-##    'CGHseg_large',
     'GLAD_large',
     'Wavelets_large')
-##    'ACE_large',
-##    'PSW_large')
-         
 
 def launchUTests(test, users):
     t = [-99999 for i in range(users)]
@@ -57,8 +51,27 @@ def writeFile(testout, name):
     
 
 
-SUFFIX = (1, 2, 3, 4, 5, 1, 2, 3, 1)
+SUFFIX = (1, 2, 3, 4, 5, 1, 2, 1, 1, 1)
 kwd = zip(NUM_USERS, SUFFIX)
+
+TESTS = (
+    'CBS_small',
+    'HMM_small',
+    'GLAD_small',
+    'Wavelets_small')
+
+for test in TESTS:
+    for ks in kwd:
+        nu = ks[0]
+        timings = -99
+        try:
+            timings = launchUTests(test, nu)
+        except:
+            None
+        writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+                  str(nu) + '.' + str(ks[1]) + '.txt')
+
+
 
 
 
@@ -86,12 +99,12 @@ kwd = zip(NUM_USERS, SUFFIX)
 #     None
 # writeFile(timings, 'web.bnchmk2.GLAD_medium_5.1.txt')
 
-timings = -99
-try:
-    timings = launchUTests('CGHseg_medium', 5)
-except:
-    None
-writeFile(timings, 'web.bnchmk2.CGHseg_medium_5.1.txt')
+# timings = -99
+# try:
+#     timings = launchUTests('CGHseg_medium', 5)
+# except:
+#     None
+# writeFile(timings, 'web.bnchmk2.CGHseg_medium_5.1.txt')
 
 
 # TESTS = (
@@ -115,15 +128,6 @@ writeFile(timings, 'web.bnchmk2.CGHseg_medium_5.1.txt')
 #             None
 #         writeFile(timings, 'web.bnchmk2.' + test + '_' + \
 #                   str(nu) + '.' + str(ks[1]) + '.txt')
-
-
-
-
-
-
-
-
-    
 
 # NUM_USERS = (1, 1, 1, 1, 1,
 #              2, 2, 2, 5)

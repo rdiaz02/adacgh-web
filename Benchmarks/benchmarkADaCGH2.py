@@ -11,10 +11,8 @@ from webunit.utility import Upload
 
 
 auto_refresh_string = 'This is an autorefreshing page'
-MAX_running_time = 3600 * 1 
 
 def common_part_bench(self,                 
-                      MAX_running_time = 3600,
                       auto_refresh_string = auto_refresh_string):    
     """ like above, but does not check anything. simply benchmarking"""
     server_url = self.server_url
@@ -23,7 +21,7 @@ def common_part_bench(self,
         final_body = self.getBody()
         if final_body.find(auto_refresh_string) < 0:
             break
-        time.sleep(5)
+        time.sleep(13.2)
         self.get(server_url + self.getLastUrl(),
                  description="Get /cgi-bin/checkdone.cgi")
     print 'OK'
@@ -42,7 +40,7 @@ class ADaCGH(FunkLoadTestCase):
         ##self.server_url = self.conf_get('main', 'url')
 
 
-    def testCBS_large(self):
+    def testCBS_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -51,7 +49,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'DNAcopy'],
             ['Wave.minDiff', '0.25'],
@@ -73,7 +71,7 @@ class ADaCGH(FunkLoadTestCase):
         print duration
 
 
-    def testHMM_large(self):
+    def testHMM_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -82,7 +80,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'HMM'],
             ['Wave.minDiff', '0.25'],
@@ -103,7 +101,7 @@ class ADaCGH(FunkLoadTestCase):
         print duration
 
 
-    def testBioHMM_large(self):
+    def testBioHMM_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -112,7 +110,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'BioHMM'],
             ['Wave.minDiff', '0.25'],
@@ -132,7 +130,7 @@ class ADaCGH(FunkLoadTestCase):
         duration = end_time - start_time
         print duration
 
-    def testCGHseg_large(self):
+    def testCGHseg_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -141,7 +139,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'CGHseg'],
             ['Wave.minDiff', '0.25'],
@@ -162,7 +160,7 @@ class ADaCGH(FunkLoadTestCase):
         print duration
 
 
-    def testGLAD_large(self):
+    def testGLAD_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -171,7 +169,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'GLAD'],
             ['Wave.minDiff', '0.25'],
@@ -191,7 +189,7 @@ class ADaCGH(FunkLoadTestCase):
         duration = end_time - start_time
         print duration
 
-    def testWavelets_large(self):
+    def testWavelets_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -200,7 +198,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'Wavelets'],
             ['Wave.minDiff', '0.25'],
@@ -220,7 +218,7 @@ class ADaCGH(FunkLoadTestCase):
         duration = end_time - start_time
         print duration
 
-    def testACE_large(self):
+    def testACE_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -229,7 +227,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'ACE'],
             ['Wave.minDiff', '0.25'],
@@ -249,7 +247,7 @@ class ADaCGH(FunkLoadTestCase):
         duration = end_time - start_time
         print duration
 
-    def testPSW_large(self):
+    def testPSW_medium(self):
         server_url = self.server_url
         self.get(server_url + "/",
             description="Get /")
@@ -258,7 +256,7 @@ class ADaCGH(FunkLoadTestCase):
             ['acghData', Upload("empty.txt")],
             ['positionInfo', Upload("empty.txt")],
             ['twofiles', 'One.file'],
-            ['acghAndPosition', Upload("large.sample")],
+            ['acghAndPosition', Upload("medium.sample")],
             ['centering', 'None'],
             ['methodaCGH', 'PSW'],
             ['Wave.minDiff', '0.25'],

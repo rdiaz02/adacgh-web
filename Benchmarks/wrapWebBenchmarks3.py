@@ -51,7 +51,7 @@ def writeFile(testout, name):
     
 
 
-SUFFIX = (1, 2, 3, 4, 5, 1, 2, 1, 1, 1)
+SUFFIX = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 1, 1, 1)
 kwd = zip(NUM_USERS, SUFFIX)
 
 TESTS = (
@@ -71,6 +71,37 @@ for test in TESTS:
         writeFile(timings, 'web.bnchmk3.' + test + '_' + \
                   str(nu) + '.' + str(ks[1]) + '.txt')
 
+
+
+TESTS = (
+    'CBS_large',
+    'HMM_large',
+    'GLAD_large',
+    'Wavelets_large')
+
+for test in TESTS:
+    for ks in kwd:
+        nu = ks[0]
+        timings = -99
+        try:
+            timings = launchUTests(test, nu)
+        except:
+            None
+        writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+                  str(nu) + '.' + str(ks[1]) + '.txt')
+
+
+
+test = 'Wavelets_small'
+for ks in kwd:
+    nu = ks[0]
+    timings = -99
+    try:
+        timings = launchUTests(test, nu)
+    except:
+        None
+    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+              str(nu) + '.' + str(ks[1]) + '.txt')
 
 
 

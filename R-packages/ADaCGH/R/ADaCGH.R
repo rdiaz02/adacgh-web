@@ -2999,7 +2999,11 @@ doMCR <- function(x, chrom.numeric, data,
                              alteredHigh = MCR.alteredHigh,
                              recurrence = MCR.recurrence)
             mcrs <- MCR(cghmcr)
-            if(dim(mcrs)[1] == 0) mcrs <- NA
+            if(is.null(dim(mcrs))) {
+                mcrs <- NA
+            } else {
+                if(dim(mcrs)[1] == 0) mcrs <- NA
+            }
         })
         if((class(tryms) == "try-error") || is.na(mcrs)) {
             sink(file = hsink)

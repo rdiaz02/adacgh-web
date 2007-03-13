@@ -467,21 +467,23 @@ if not os.path.isdir(tmpDir):
     sys.exit()
     
 
-## Were we already done in a previous execution?
-## No need to reopen files or check anything else. Return url with results
-## and bail out.
-if os.path.exists(tmpDir + "/natural.death.pid.txt") or os.path.exists(tmpDir + "/killed.pid.txt"):
-    print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
-    sys.exit()
-
-## No, we were not done. Need to examine R output
-issue_echo('before lam_check', tmpDir)
 
 lam_check = open(tmpDir + '/lamCheckPID', mode = 'r'). readline().split()
 lam_check_machine = lam_check[1]
 lam_check_pid = lam_check[0]
 
-issue_echo('right after lam_check', tmpDir)
+## Were we already done in a previous execution?
+## No need to reopen files or check anything else. Return url with results
+## and bail out.
+if os.path.exists(tmpDir + "/natural.death.pid.txt") or os.path.exists(tmpDir + "/killed.pid.txt"):
+    print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
+    try:
+        kill_lamcheck(lam_check_pid, lam_check_machine)
+    except:
+        None
+    sys.exit()
+
+## No, we were not done. Need to examine R output
    
 Rrout = open(tmpDir + "/f1.Rout")
 soFar = Rrout.read()

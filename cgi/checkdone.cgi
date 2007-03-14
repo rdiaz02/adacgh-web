@@ -46,7 +46,7 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
     thumb(tmpDir, open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t'),
           outf, maxsthumb = 350)
     thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
-
+    outf.flush()
     output_name = glob.glob(tmpDir + '/*.output.txt')[0].split('/')[-1]
     outf.write('<p>Smoothed values for all genes/clones are available from file' +
                ' <a href="./' + output_name + '">"' + output_name + '".</a></p>')
@@ -55,18 +55,17 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
         outf.write('<h2>Minimal common regions</h2>\n')
         outf.write(open(tmpDir + "/mcr.results.html").read())
     outf.write('<br />')
-#     if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')
-#     if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
-    allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
+#     allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
     os.chdir(tmpDir)
     ll1 = glob.glob('*.log')
     for dname in ll1:
         os.remove(dname)
-    lll = glob.glob('*')
-    for flname in lll:
-        try: allResults.add(flname)
-        except: None
-    allResults.close()
+#     lll = glob.glob('*')
+#     for flname in lll:
+#         try: allResults.add(flname)
+#         except: None
+    allResults.close() ## this is done externally
+    os.system('tar -czvf all.results.tar.gz * &')
     outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
                newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
    
@@ -76,6 +75,7 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
         None
          
     outf.write("</body></html>")
+    outf.flush()
     outf.close()
     Rresults.close()
     shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
@@ -100,11 +100,11 @@ def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.bioinfo.cnio.es
     gl1 = gl_base + 'Lost_for_PaLS.txt'
     gl2 = gl_base + 'Gained_for_PaLS.txt'
     gl3 = gl_base + 'Gained_or_Lost_for_PaLS.txt'
-
+   
     outstr0 = '<br /> <hr> ' + \
               '<h3> Send results to <a href = "http://pals.bioinfo.cnio.es">' + \
               '<IMG BORDER="0" SRC="../../palsfavicon40.png" align="middle"></a></h3>'
-
+   
     outstr = outstr0 + \
              '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
              url_org_id + 'datafile=' + gl1 + '"> genes with copy number LOSS to PaLS</a></p>' + \
@@ -311,7 +311,7 @@ def printOKRun():
         ## The following is common to all
         allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
         allResults.add(tmpDir + '/results.txt', 'summary.statistics.txt')
-
+        outf.flush()
 
         methodUsed = open(tmpDir + '/methodaCGH').read()
         if (methodUsed == 'PSW') or (methodUsed == 'PSW\n'):
@@ -546,11 +546,11 @@ elif finishedOK > 0:
         lamkill = os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv + '; lamhalt -H; lamwipe -H')
     except:
         None
-    printOKRun()
     try: os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
     except: None
-    try: os.remove(tmpDir + '/f1.R')
-    except: None
+    printOKRun()
+#     try: os.remove(tmpDir + '/f1.R')
+#     except: None
     try:
         os.system("rm /http/adacgh2/www/R.running.procs/R." + newDir + "*")
     finally:

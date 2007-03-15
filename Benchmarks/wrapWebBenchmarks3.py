@@ -7,8 +7,8 @@ import time
 NUM_USERS = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
              5, 5,
              10,
-             20,
-             50)
+             20)
+##             50)
 
 
 TESTS = (
@@ -50,15 +50,42 @@ def writeFile(testout, name):
     fout.close()
     
 
-
 SUFFIX = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 1, 1, 1)
+SUFFIX = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 1, 1)
 kwd = zip(NUM_USERS, SUFFIX)
 
-TESTS = (
-    'CBS_small',
-    'HMM_small',
-    'GLAD_small',
-    'Wavelets_small')
+# TESTS = (
+#     'CBS_small',
+#     'HMM_small',
+#     'GLAD_small',
+#     'Wavelets_small')
+
+# for test in TESTS:
+#     for ks in kwd:
+#         nu = ks[0]
+#         timings = -99
+#         try:
+#             timings = launchUTests(test, nu)
+#         except:
+#             None
+#         writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+#                   str(nu) + '.' + str(ks[1]) + '.txt')
+
+# test = 'CGHseg_small'
+# for ks in kwd:
+#     nu = ks[0]
+#     timings = -99
+#     try:
+#         timings = launchUTests(test, nu)
+#     except:
+#         None
+#     writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+#               str(nu) + '.' + str(ks[1]) + '.txt')
+
+####### MEDIUM
+TESTS = ('GLAD_medium',
+         'Wavelets_medium',
+         'CGHseg_medium')
 
 for test in TESTS:
     for ks in kwd:
@@ -71,38 +98,10 @@ for test in TESTS:
         writeFile(timings, 'web.bnchmk3.' + test + '_' + \
                   str(nu) + '.' + str(ks[1]) + '.txt')
 
-
-
-TESTS = (
-    'CBS_large',
-    'HMM_large',
-    'GLAD_large',
-    'Wavelets_large')
-
-for test in TESTS:
-    for ks in kwd:
-        nu = ks[0]
-        timings = -99
-        try:
-            timings = launchUTests(test, nu)
-        except:
-            None
-        writeFile(timings, 'web.bnchmk3.' + test + '_' + \
-                  str(nu) + '.' + str(ks[1]) + '.txt')
-
-
-
-test = 'Wavelets_small'
-for ks in kwd:
-    nu = ks[0]
-    timings = -99
-    try:
-        timings = launchUTests(test, nu)
-    except:
-        None
-    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
-              str(nu) + '.' + str(ks[1]) + '.txt')
-
+###########Sizes:
+#         small: 2270 x 10 arrays
+#         medium: 15000 genes x 40 subjects
+#         large:  42325 genes x 40 subjects
 
 
 

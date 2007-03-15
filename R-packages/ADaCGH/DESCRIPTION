@@ -1,14 +1,14 @@
 Package: ADaCGH
-Version: 0.99-9
+Version: 1.0-1
 Date: 2007-01-15
 Title: Analysis of data from aCGH experiments
-Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <omrueda@cnio.es>
+Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <omrueda@cnio.es>. Imagemap code from Barry Rowlingson <B.Rowlingson@lancaster.ac.uk>
 Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>
-Depends: R (>= 2.2.1), cgh, tilingArray, aCGH, cghMCR, GLAD, papply, GDD, imagemap, waveslim, cluster, snapCGH, DNAcopy
+Depends: R (>= 2.2.1), cgh, tilingArray, aCGH, cghMCR, GLAD, papply, GDD, waveslim, cluster, snapCGH, DNAcopy
 Suggests: Rmpi
 Description: Analysis and plotting of array CGH data. Allows usage of
 	     Circular Binary Segementation, wavelet-based smoothing, ACE
-	     method (CGH Explorer) and  Price's modification of  Smith &
+	     method (CGH Explorer), HMM, BioHMM, GLAD, CGHseg, and  Price's modification of  Smith &
 	     Waterman's algorith. Most computations are
 	     parallelized. Figures are imagemaps with links to IDClight
 	     (http://idclight.bioinfo.cnio.es). 

@@ -375,7 +375,7 @@ pSegmentDNAcopy <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
     outl <- list()
     outl$segm <- papout
     outl$chrom.numeric <- chrom.numeric
-    class(outl) <- "DNAcopy"
+##    class(outl) <- "DNAcopy"
     if(mergeSegs) class(outl) <- c(class(outl), "adacgh.generic.out")
     return(outl)
 }

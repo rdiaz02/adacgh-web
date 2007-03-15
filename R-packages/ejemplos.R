@@ -89,6 +89,7 @@ chrom.numeric <- as.numeric(as.character(tmpchr))
 chrom.numeric[tmpchr == "X"] <- 23
 chrom.numeric[tmpchr == "Y"] <- 24
 rm(tmpchr)
+### we need the data ordered
 reorder <- order(chrom.numeric,
                  cghE1$UG.Start,
                  cghE1$UG.End,
@@ -165,13 +166,6 @@ segmentPlot(cbs.out,
             idtype = "ug",
             organism = "Hs")
 
-### Te following will fail, because it is now deprecated
-## segmentPlot(cbs.nm.out,
-##             geneNames = cghE1[, 1],
-##             chrom.numeric = chrom.numeric,
-##             cghdata = cghE1[, 5:7],
-##             idtype = "ug",
-##             organism = "Hs")
 
 segmentPlot(psw.pos.out,
             geneNames = cghE1[, 1],

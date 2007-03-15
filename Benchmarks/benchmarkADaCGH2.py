@@ -21,7 +21,7 @@ def common_part_bench(self,
         final_body = self.getBody()
         if final_body.find(auto_refresh_string) < 0:
             break
-        time.sleep(13.2)
+        time.sleep(23.7)
         self.get(server_url + self.getLastUrl(),
                  description="Get /cgi-bin/checkdone.cgi")
     print 'OK'

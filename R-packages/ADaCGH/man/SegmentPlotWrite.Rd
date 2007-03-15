@@ -29,7 +29,7 @@ SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
     corresponding, respectively, to None, Homo sapiens, Mus musculus
     (mouse) and Rattus norvegicus (rat). }
   \item{method}{The segmentation method. One of "ACE", "HMM", "BioHMM",
-    "GLAD", "DNAcopy", "CGHseg", "PSW", "Wavelets".
+    "GLAD", "DNAcopy", "CGHseg", "PSW", "Wavelets".}
   \item{geneNames}{A vector with the names of the genes or probes, as
     you want to use them to label figures and output.}
   \item{commondata}{A data frame with columns that contain the common
@@ -52,17 +52,21 @@ Just a convenience wrapper.
   out results to a file.  See \code{\link{writeResults}} and \code{\link{segmentPlot}}.
 }
 
+
+
 \references{
   Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
   web-based application for the analysis of aCGH data. Tech. report.
   \url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
   \url{http://adacgh.bioinfo.cnio.es}.
 }
-\author{ Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}}
-\seealso{
-\code{\link{writeResults}}, \code{\link{segmentPlot}, \code{\link{pSegment}}
 
+\author{ Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}}
+
+\seealso{
+\code{\link{writeResults}}, \code{\link{segmentPlot}}, \code{\link{pSegment}}
 }
+
 \examples{
 \dontrun{
 ## This will not work unless you have a working Python installation
@@ -110,6 +114,7 @@ for(mm in c("Wavelets", "DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg")) {
 }
 
 }
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{hplot}

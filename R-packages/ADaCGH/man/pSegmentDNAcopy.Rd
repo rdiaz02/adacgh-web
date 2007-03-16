@@ -43,7 +43,7 @@ pSegmentPSW(x, chrom.numeric, common.data,
             nIter = 1000, prec = 100,  p.crit = 0.10,
             name = NULL, ...)
 
-pSegmentWavelet(x, chrom.numeric, mergeSegs = TRUE,
+pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
                 minDiff = 0.25,
                 minMergeDiff = 0.05,
                 thrLvl = 3, initClusterLevels = 10, ...)
@@ -75,6 +75,15 @@ pSegmentWavelet(x, chrom.numeric, mergeSegs = TRUE,
   \item{merge.ansari.sign}{See \code{\link[aCGH]{mergeLevels}}}
   \item{merge.thresMin}{See \code{\link[aCGH]{mergeLevels}}}
   \item{merge.thresMax}{See \code{\link[aCGH]{mergeLevels}}}
+  \item{common.data}{A data frame with columns that contain the common
+    information about the clones/genes. We do nothing with this, except
+    it is part of the output. It is common practice that this data frame
+    contains columns ID, Chrosome (need not be
+    numeric, can be a factor), Start (the initial position of a clone or
+    gene), End (the final position of a clone or gene) and MidPoint
+    (often, the mid point or whatever you regard as appropriate
+    representative of the "center" of the clone). But you can use
+    something else.}
   \item{sign}{See \code{\link[cgh]{sw.threshold}}}
   \item{nIter}{See \code{\link[cgh]{sw.perm.test}}}
   \item{prec}{See \code{\link[cgh]{sw.rob}}}
@@ -85,6 +94,11 @@ pSegmentWavelet(x, chrom.numeric, mergeSegs = TRUE,
     two adjacent clusters for them to be considered truly different.
     Clusters "closer" together than this are collapsed together to form
     a single cluster. }
+\item{minMergeDiff}{Used only when doing merging in the wavelet method.
+  The finall call as to which segments go together is done by a
+  \code{mergeLevels}  approach, but an initial collapsing of very close
+  values is performed (otherwise, we could end up passing to mergeLevels
+  as many initial levels as there are points). }
   \item{thrLvl}{ The level used for the wavelet thresholding.}
   \item{initClusterLevels}{The initial number of clusters to form. }
   \item{...}{Additional arguments; not used.}
@@ -272,9 +286,10 @@ Parallelization and other modifications and additions are by Ramon Diaz-Uriarte 
  }
 
 
-\examples{
+ \examples{
+\dontrun{
 setwd("/tmp/o3") ## all slaves need a common dir to read and write.
-\dontrun{mpiInit()}
+mpiInit()}
 
 data(cghE1)
 tmpchr <- sub("chr", "", cghE1$Chromosome)

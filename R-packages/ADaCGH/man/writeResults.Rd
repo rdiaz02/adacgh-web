@@ -8,7 +8,7 @@
 \alias{writeResults.mergedHMM}
 \alias{writeResults.adacghGLAD}
 \alias{writeResults.mergedBioHMM}
-
+\alias{writeResults.summaryACE}
 
 
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -47,14 +47,6 @@ writeResults.mergedBioHMM(obj, acghdata, commondata,
   \item{acghdata}{The aCGH data set; see \code{\link{pSegmentWavelets}}.}
   \item{commondata}{The common data; see \code{common.data} in 
     \code{\link{pSegmentPSW}}.}
-  \item{merged}{If you want to use the merged output (see
-    \code{\link{mergeDNAcopy}}) provide the name of the object.}
-  \item{\dots}{ Optionally, the file name. For the wavelet-based method,
-    you need to provide the commondata (see commondata in, e.g.,
-    \code{\link{pSegmentPSW}}) and the acghdata; for DNAcopy you also
-    need, in addition to the commondata and acghdata, the output from
-    \code{\link{mergeDNAcopy}} if you want the output to reflect the
-    merging. }
   \item{...}{Other arguments passed to the underlying functions.}
 }
 
@@ -72,7 +64,7 @@ writeResults.mergedBioHMM(obj, acghdata, commondata,
 \seealso{
 \code{\link{pSegmentACE}}, \code{\link{pSegmentWavelets}},
 \code{\link{pSegmentPSW}},  \code{\link{pSegmentDNAcopy}},
-\code{\link{mergeDNAcopy}}, \code{\link{summary.ACE}}, 
+\code{\link{summary.ACE}}, 
  }
  \examples{
 setwd("/tmp/o3") ## all slaves need a common dir to read and write.

@@ -89,9 +89,9 @@ chrom.numeric <- chrom.numeric[reorder]
 
 
 
-
+## one example
 SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
-                 merge = FALSE, pos = cghE1$UG.Start,
+                 merge = FALSE, Pos = cghE1$UG.Start,
                  idtype = "ug", organism = "Hs",
                  method = "Wavelets",
                  geneNames = cghE1[, 1],
@@ -99,7 +99,8 @@ SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
 
 
 
-for(mm in c("Wavelets", "DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg")) {
+## all other methods except PSW and ACE
+for(mm in c("DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg")) {
 
     cat("\n\n mm is ", mm, "\n\n")
     SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,

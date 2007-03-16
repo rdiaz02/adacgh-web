@@ -76,7 +76,8 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
   \item{merge.thresMin}{See \code{\link[aCGH]{mergeLevels}}}
   \item{merge.thresMax}{See \code{\link[aCGH]{mergeLevels}}}
   \item{common.data}{A data frame with columns that contain the common
-    information about the clones/genes. We do nothing with this, except
+    information about the clones/genes. For now, this is limited to five
+    columns of data.   We do nothing with this, except
     it is part of the output. It is common practice that this data frame
     contains columns ID, Chrosome (need not be
     numeric, can be a factor), Start (the initial position of a clone or
@@ -312,10 +313,10 @@ glad.out <- pSegmentGLAD(cghE1[, 5:7], chrom.numeric)
 cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric)
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
-wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, merge = FALSE)
+wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
 cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
-cbs.nm.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE)
-cbs.nm.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, merge = FALSE,
+cbs.nm.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
+cbs.nm.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE,
                                  smooth = FALSE)
 psw.pos.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = 1)
 psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1)
@@ -324,11 +325,11 @@ psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1)
 ## it is the slowest, so do only two
 biohmm.out <- pSegmentBioHMM(cghE1[, 5:6], chrom.numeric, cghE1$UG.Start)
 
-## need to choose fdr
+## With ACE we need to choose fdr
 ace.out.sum <- summary(ace.out)
 
 #### Writing
-common <- cghE1[, -c(5:7)]
+common <- cghE1[, 1:4]
 writeResults(hmm.out, cghE1[, 5:7], common)
 writeResults(glad.out, cghE1[, 5:7], common)        
 writeResults(cghseg.out, cghE1[, 5:7], common)   
@@ -336,13 +337,98 @@ writeResults(ace.out.sum, cghE1[, 5:7], common)
 writeResults(wave.out, cghE1[, 5:7], common)
 writeResults(wave.nm.out, cghE1[, 5:7], common)
 writeResults(cbs.out, cghE1[, 5:7], common)
-writeResults(psw.pos.out, cghE1[, 5:7], common)
-writeResults(psw.neg.out, cghE1[, 5:7], common)
+writeResults(psw.pos.out, common)
+writeResults(psw.neg.out, common)
 writeResults(biohmm.out, cghE1[, 5:6], common)
 
 
 
+
+
+### plot all
+
+\dontrun{
+
+## This will not work unless you have a working Python installation
+
+segmentPlot(hmm.out, 
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(glad.out,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(cghseg.out,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(wave.out, 
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(wave.nm.out,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(cbs.out, 
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(psw.pos.out,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(psw.neg.out,
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(biohmm.out, 
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:6],
+            idtype = "ug",
+            organism = "Hs")
+segmentPlot(ace.out.sum, 
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+}
+
+
+##############################################################################
+###########
 ########### Comparing our parallel output with original sequential in DNAcopy
+###########
+##############################################################################
+
 
 data(cghMCRe)
 common <- cghMCRe[, -c(5:7)]
@@ -365,17 +451,18 @@ CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
                   data.type = "logratio",
                   sampleid = colnames(cghMCRe[, 5:7]))
 smoothed.CNA.object <- smooth.CNA(CNA.object)
-
-out.merge <- pSegmentDNAcopy(smoothed.CNA.object)
-
-out1 <- pSegmentDNAcopy(smoothed.CNA.object, merge = FALSE,
-                        nperm = 10000)
-
 ## Yes, tilingArray has an identically named function, but DNAcopy does
 ## not have a namespace. Problems would be caught by different params.
-
 out.original <- segment(smoothed.CNA.object, nperm = 10000,
                         undo.splits = "prune")
+
+
+
+out.merge <- pSegmentDNAcopy(as.matrix(cghMCRe[, 5:7]),
+                  chrom = chrom.numeric, nperm = 10000)
+out1 <- pSegmentDNAcopy(as.matrix(cghMCRe[, 5:7]),
+                  chrom = chrom.numeric, mergeSegs = FALSE, nperm = 10000)
+
 
 
 ## We need to stretch the output of the original function
@@ -409,9 +496,8 @@ stretchCNAoutput <- function(object) {
 verifCNA <- mapply(function(x, y) all.equal(x[, 2], round(y[, 2], 4)),
                     stretchCNAoutput(out.original), out1$segm) 
 
+all(verifCNA) ## should see TRUE
 if(! all(verifCNA)) stop("Differences in original and parallelized DNAcopy.\n Rerun test")
-
-
 
 
 ## verify reconstruction
@@ -429,8 +515,6 @@ reconstructed <- ADaCGH:::constructSegmObj(out1$segm,  chrom.numeric, cghMCRe[, 
                                   Pos = 1:nrow(cghMCRe))
 
 rec.verif(out.original, reconstructed)
-
-
 
 
 }

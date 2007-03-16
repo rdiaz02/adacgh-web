@@ -60,6 +60,7 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
   \code{\link{pSegmentPSW}},
 }
 \examples{
+
 \dontrun{
 
 ## This will not work unless you have a working Python installation

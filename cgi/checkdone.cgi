@@ -55,20 +55,12 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
         outf.write('<h2>Minimal common regions</h2>\n')
         outf.write(open(tmpDir + "/mcr.results.html").read())
     outf.write('<br />')
-#     allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
     os.chdir(tmpDir)
     ll1 = glob.glob('*.log')
     for dname in ll1:
         os.remove(dname)
-#     lll = glob.glob('*')
-#     for flname in lll:
-#         try: allResults.add(flname)
-#         except: None
-    allResults.close() ## this is done externally
-    os.system('tar -czvf all.results.tar.gz * &')
     outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
                newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
-   
     try:
         outf.write(printPalsURLADaCGH(newDir))
     except:
@@ -79,8 +71,7 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
     outf.close()
     Rresults.close()
     shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
-
-
+    os.system('tar -czf all.results.tar.gz * &')
 
 
 
@@ -309,8 +300,6 @@ def printOKRun():
         outf.write(open(tmpDir + "/stats.subj.by.chrom.mad.AFTER.html").read())
         outf.write('<br />')
         ## The following is common to all
-        allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
-        allResults.add(tmpDir + '/results.txt', 'summary.statistics.txt')
         outf.flush()
 
         methodUsed = open(tmpDir + '/methodaCGH').read()
@@ -336,15 +325,11 @@ def printOKRun():
             if os.path.exists(tmpDir + '/ace-figs.R'): os.remove(tmpDir + '/ace-figs.R')
             ##if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
             #if os.path.exists(tmpDir + '/.RData'): os.remove(tmpDir + '/.RData')
-            allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
+            ## allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
             os.chdir(tmpDir)
             ll1 = glob.glob('*.log')
             for dname in ll1:
                 os.remove(dname)
-            lll = glob.glob('*')
-            for flname in lll:
-                allResults.add(flname)
-            allResults.close()
             outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
 
@@ -354,7 +339,7 @@ def printOKRun():
             outf.close()
             Rresults.close()
             shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
-
+            os.system('tar -czf all.results.tar.gz * &')
         elif (methodUsed == 'ACE') or (methodUsed == 'ACE\n'):
             outf.write('<h2>FDR table</h2>')
             acefdrtable = open(tmpDir + "/ace.fdrtable.html")
@@ -378,15 +363,11 @@ def printOKRun():
             if os.path.exists(tmpDir + '/rerunACE.R'): os.remove(tmpDir + '/rerunACE.R')
             ##if os.path.exists(tmpDir + '/f1.Rout'): os.remove(tmpDir + '/f1.Rout')
             #if os.path.exists(tmpDir + '/.RData'): os.remove(tmpDir + '/.RData')
-            allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
+            ## allResults = tarfile.open(tmpDir + '/all.results.tar.gz', 'w:gz')
             os.chdir(tmpDir)
             ll1 = glob.glob('*.log')
             for dname in ll1:
                 os.remove(dname)
-            lll = glob.glob('*')
-            for flname in lll:
-                allResults.add(flname)
-            allResults.close()
             outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
 
@@ -396,6 +377,7 @@ def printOKRun():
             outf.close()
             Rresults.close()
             shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
+            os.system('tar -czf all.results.tar.gz * &')
         else:
             results_print_general(outf, tmpDir, newDir, Rresults)
 

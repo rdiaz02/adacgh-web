@@ -456,11 +456,6 @@ segmentPlot <- function(x, geneNames,
         } else {
             main <- "Gains."
         }
-        ## For reasons I don't understand, I keep getting
-        ## crashes of LAM/MPI (the call stack) when running over
-        ## more than one node. Might be the shitty switch or
-        ## large amount of traffic. Whatever, I am now running
-        ## this sequentially.
         tmp_papout <-
             papply(as.list(1:numarrays),
                    function(z) {
@@ -487,40 +482,6 @@ segmentPlot <- function(x, geneNames,
     } else {
         stop("No plotting for this class of objects")
     }
-
-##     }  else if (inherits(x, "DNAcopy")) {
-##         ## FIXME: this is really obsolete stuff
-##         ## should not be used in the web-based app
-##         ## we leave it commented out; should be functional
-##         ## but we ain't using it anymore.
-##         tmp_papout <- papply(as.list(1:numarrays),
-##                              function(z) {
-##                                  cat("\n Doing sample ", z, "\n")
-##                                  plot.olshen2(res = res,
-##                                               arraynum = z,
-##                                               main = arraynames[z],
-##                                               html = TRUE,
-##                                               geneNames = geneNames,
-##                                               idtype = idtype,
-##                                               organism = organism)
-##                              },
-##                              papply_commondata = list(res = x,
-##                              arraynames = arraynames,
-##                              geneNames = geneNames,
-##                              idtype = idtype,
-##                              organism = organism))
-##         plot.olshen3(x, geneNames = geneNames,
-##                      main = "All_arrays", ylim = yminmax,
-##                      html = html,
-##                      arraynums = 1:numarrays,
-##                      idtype = idtype, organism = organism) ## all genome
-        
-##         plot.olshen4(x,  geneNames = geneNames,
-##                      main = "All_arrays", ylim = yminmax,
-##                      html = html,
-##                      arraynums = 1:numarrays,
-##                      idtype = idtype, organism = organism) ## by chromosome
-##         }
 }
 
 

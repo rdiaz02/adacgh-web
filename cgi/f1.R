@@ -1,15 +1,3 @@
-## step through this.
-
-## FIXME: algo con el recoverFromLAMCrash???
-#   y xq con PSW y no con los otros???
-
-# y xq casca si lam entre varios nados? Alternativa: crear un MPI en un solo nodo! 
-
-
-## FIXME: xq cojones se casca el MPI entre checkpoints 3 y 4?
-
-
-
 
 ####  Copyright (C) 2005, 2006, 2007, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 
@@ -412,6 +400,10 @@ xdata <- xdata[reorder, , drop = FALSE]
 ### make more sophisticated later: return X and Y in plots. zz
 
 
+cat("\n gc after reading xdata \n")
+gc()
+
+
 
 #######################################################
 #######################################################
@@ -759,6 +751,9 @@ cat("*********************************************************************\n\n")
 
 doCheckpoint(1)
 
+cat("\n gc right after checkpoint 1 \n")
+gc()
+
 }
 #####################################################################
 #####################################################################
@@ -784,10 +779,90 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                   MidPoint = positions.merge1$MidPoint)
         ##save.image()
         doCheckpoint(2)
+        cat("\n gc right after checkpoint 2 \n")
+        gc()
 
     }
     if(checkpoint.num < 3) {
+        ymax <- max(data)
+        ymin <- min(data)
+        numarrays <- ncol(data)
+        fseg <- get(paste("pSegment", method, sep = ""))
+        trythis <- try(
+                       segmres <- fseg(data, chrom,
+                                       Pos = Pos,
+                                       mergeSegs = mergeSegs, ...)
+                       )
+        if(inherits(trythis, "try-error"))
+            caughtOurError(trythis)
+        cat("\n\n Segmentation done \n\n")
+        save(segmres, file = "segmres.RData")
+        doCheckpoint(3)
+        cat("\n gc right after checkpoint 3 \n")
+        gc()
+    }
+    if(checkpoint.num < 4) {
+        trythis <- try(doMCR(segmres$segm, chrom.numeric = chrom,
+                             data = data,
+                             Pos = Pos, ...))
+        if(inherits(trythis, "try-error"))
+            caughtOurError(trythis)
+        doCheckpoint(4)
+        cat("\n gc right after checkpoint 4 \n")
+        gc()
+    }
+    if(checkpoint.num < 5) {
+### to minimize recomputing stuff if a crash, and to minimize copying of objects
+        ## we break down segmentPlot.
+        yminmax <- c(ymin, ymax)
+        geneLoc <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
+        original.pos <- 1
+        segment.pos <- 2
+        if (inherits(x, "CGHseg") |
+            (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged")))){
+            colors <- c(rep("orange", 3), "blue")
+        } else {
+            colors <- c("orange", "red", "green", "blue")
+        }
+        tmp_papout <-
+            papply(as.list(1:numarrays),
+                   function(z) {
+                       cat("\n Doing sample ", z, "\n")
+                       plot.adacgh.nonsuperimpose(res = res,
+                                                  chrom = cnum_slave,
+                                                  arraynum = z,
+                                                  main = arraynames[z],
+                                                  colors = colors,
+                                                  ylim = yminmax,
+                                                  geneNames = geneNames,
+                                                  idtype = idtype,
+                                                  organism = organism,
+                                                  geneLoc = pos_slave)
+                   },
+                   papply_commondata =
+                   list(res = segmres$segm,
+                        cnum_slave= segmres$chrom.numeric,
+                        arraynames = arrayNames,
+                        geneNames = geneNames,
+                        idtype = idtype,
+                        organism = organism,
+                        colors = colors,
+                        pos_slave = geneLoc))
+        ### I think the memory hole is here. passing x$segm!
+        ###  use mpi.bdcast to send only the needed object
+        ### can be used with papply. change the plot.adacgh.nosuperimpose
+        ### so it uses only the needed data
+        ### if passing arraynum assumes all data, otherwise
+        ### assumes only the given array
+        
+        doCheckpoint(5)
+        cat("\n gc right after checkpoint 5 \n")
+        gc()
+    }
 
+        
+
+        
         SegmentPlotWrite(as.matrix(xcenter),
                          chrom = positions.merge1$chrom.numeric,
                          mergeSegs = mergeRes,

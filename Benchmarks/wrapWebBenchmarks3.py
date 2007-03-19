@@ -99,6 +99,24 @@ kwd = zip(NUM_USERS, SUFFIX)
 #                   str(nu) + '.' + str(ks[1]) + '.txt')
 
 
+test = 'CGHseg_medium'
+SUFFIX = (1, 2, 1, 1)
+NUM_USERS = (5, 5, 10, 20)
+kwd = zip(NUM_USERS, SUFFIX)
+
+for ks in kwd:
+    nu = ks[0]
+    timings = -99
+    try:
+        timings = launchUTests(test, nu)
+    except:
+        None
+    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+              str(nu) + '.' + str(ks[1]) + '.txt')
+
+
+
+
 SUFFIX = (1, 2, 1, 1)
 NUM_USERS = (5, 5, 10, 20)
 kwd = zip(NUM_USERS, SUFFIX)
@@ -116,21 +134,6 @@ for ks in kwd:
 
 
 
-
-test = 'CGHseg_medium'
-SUFFIX = (1, 2, 1, 1)
-NUM_USERS = (5, 5, 10, 20)
-kwd = zip(NUM_USERS, SUFFIX)
-
-for ks in kwd:
-    nu = ks[0]
-    timings = -99
-    try:
-        timings = launchUTests(test, nu)
-    except:
-        None
-    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
-              str(nu) + '.' + str(ks[1]) + '.txt')
 
 
 

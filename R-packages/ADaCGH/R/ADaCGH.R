@@ -420,14 +420,20 @@ segmentPlot <- function(x, geneNames,
         } else {
             colors <- c("orange", "red", "green", "blue")
         }
+        l1 <- list()
+        for (i in 1:length(x$segm)) {
+            l1[[i]] <- list()
+            l1[[i]]$res <- x$segm[[i]]$res
+            l1[[i]]$mainname <- arraynames[i]
+        }
+        
         tmp_papout <-
-            papply(as.list(1:numarrays),
+            papply(l1,
                    function(z) {
-                       cat("\n Doing sample ", z, "\n")
-                       plot.adacgh.nonsuperimpose(res = res,
+                       cat("\n Doing sample ", z$mainname, "\n")
+                       plot.adacgh.nonsuperimpose(res = z$res,
                                                   chrom = cnum_slave,
-                                                  arraynum = z,
-                                                  main = arraynames[z],
+                                                  main = z$mainname,
                                                   colors = colors,
                                                   ylim = yminmax,
                                                   geneNames = geneNames,
@@ -436,44 +442,60 @@ segmentPlot <- function(x, geneNames,
                                                   geneLoc = pos_slave)
                    },
                    papply_commondata =
-                   list(res = x$segm,
-                        cnum_slave= x$chrom.numeric,
+                   list(cnum_slave= x$chrom.numeric,
                         arraynames = arraynames,
                         geneNames = geneNames,
                         idtype = idtype,
                         organism = organism,
                         colors = colors,
                         pos_slave = geneLoc))
+        cat("\n gc after plot.adacgh.nonsuperimpose \n")
+        print(gc())
         plot.adacgh.superimp(x$segm, x$chrom.numeric,  geneNames = geneNames,
                              main = "All_arrays",
                              colors = colors,
                              ylim= yminmax,
                              idtype = idtype, organism = organism,
                              geneLoc = geneLoc)
+        cat("\n gc after plot.adacgh.superimp \n")
+        print(gc())
+
     }  else if(inherits(x, "CGH.PSW")) {
         if(x$plotData[[1]]$sign < 0) {
             main <- "Losses."
         } else {
             main <- "Gains."
         }
+        l1 <- list()
+        for (i in 1:length(x$plotData)) {
+            l1[[i]] <- list()
+            l1[[i]]$lratio <- x$plotData[[i]]$logratio
+            l1[[i]]$sign <- x$plotData[[i]]$sign
+            l1[[i]]$swt.perm <- x$plotData[[i]]$swt.perm
+            l1[[i]]$rob <- x$plotData[[i]]$rob
+            l1[[i]]$swt.run <- x$plotData[[i]]$swt.run
+            l1[[i]]$p.crit <- x$plotData[[i]]$p.crit.bonferroni
+            l1[[i]]$chrom <- x$plotData[[i]]$chrom
+            l1[[i]]$arrayname <- arraynames[i]
+        }
+
         tmp_papout <-
-            papply(as.list(1:numarrays),
+            papply(l1,
                    function(z) {
-                       cat("\n Doing sample ", z, "\n")
-                       sw.plot3(logratio = data_slave[[z]]$logratio,
-                                         sign = data_slave[[z]]$sign,
-                                         swt.perm = data_slave[[z]]$swt.perm,
-                                         rob = data_slave[[z]]$rob,
-                                         swt.run = data_slave[[z]]$swt.run,
-                                         p.crit = data_slave[[z]]$p.crit.bonferroni,
-                                         chrom = data_slave[[z]]$chrom,
-                                         main = paste(main_slave, arraynames[z], sep=""),
+                       cat("\n Doing sample ", z$arrayname, "\n")
+                       sw.plot3(logratio = z$lratio,
+                                         sign = z$sign,
+                                         swt.perm = z$swt.perm,
+                                         rob = z$rob,
+                                         swt.run = z$swt.run,
+                                         p.crit = z$p.crit,
+                                         chrom = z$chrom,
+                                         main = paste(main_slave, z$arrayname, sep=""),
                                          geneNames = geneNames,
                                          idtype = idtype,
                                          organism = organism)
                    },
                    papply_commondata = list(
-                   data_slave = x$plotData,
                    main_slave = main,
                    arraynames = arraynames,
                    geneNames = geneNames,
@@ -2400,6 +2422,7 @@ caughtOtherError <- function(message) {
         sink()
         quit(save = "no", status = 11, runLast = TRUE)
     } else {
+        message <- paste(message, " ", collapse = " ")
         message <- paste("There is a possible problem: ", message)
         stop(message)
     }
@@ -2580,12 +2603,12 @@ createIM2 <- function(im, file = "", imgTags = list(),
 ### There is a lot of repetition in the plotting code. Could place a lot
 ##  into a function
 
-plot.adacgh.nonsuperimpose <- function(res, chrom,  arraynum, main, colors,
+plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        ylim, geneNames, idtype, organism,
                                        geneLoc) {
-    plot.adacgh.genomewide(res, chrom,  arraynum, main, colors,
+    plot.adacgh.genomewide(res, chrom,  main, colors,
                            ylim, geneNames, geneLoc)
-    plot.adacgh.chromosomewide(res, chrom,  arraynum, main, colors,
+    plot.adacgh.chromosomewide(res, chrom,  main, colors,
                                ylim, geneNames, idtype, organism, geneLoc)
 }
 
@@ -2595,24 +2618,25 @@ plot.adacgh.genomewide <- function(res, chrom,
                                    ylim = NULL,
                                    geneNames = positions.merge1$name,
                                    geneLoc = NULL) {
+    
     pch <- 20
     im1 <- mapGenomeWideOpen(main)
     nameIm <- main
-    logr <- res[[arraynum]][, 1]
-    smoothdat <- res[[arraynum]][, 2]
+    logr <- res[, 1]
+    smoothdat <- res[, 2]
     if(is.null(geneLoc)) {
         simplepos <- (1:length(logr))
     } else {
         ## geneLoc is withing chromosome,
         ## thus, we need some absolute, increasing pos.
         lchr <- tapply(geneLoc, chrom, length)
-        mchr <- cumsum(tapply(geneLoc, chrom, max)) ## not very efficient
+        mchr <- cumsum(as.numeric(tapply(geneLoc, chrom, max))) ## not very efficient
         sumpos <- rep(c(0, mchr[-length(mchr)]),
                       lchr)
         simplepos <- geneLoc + sumpos
     }
                         
-    res.dat <- res[[arraynum]][, 3]
+    res.dat <- res[, 3]
     col <- rep(colors[1],length(res.dat))
     col[which(res.dat == -1)] <- colors[3]
     col[which(res.dat == 1)] <- colors[2]
@@ -2630,7 +2654,7 @@ plot.adacgh.genomewide <- function(res, chrom,
 
 
 plot.adacgh.chromosomewide <- function(res, chrom,
-                                    arraynum, main = NULL,
+                                    main = NULL,
                                     colors = c("orange", "red", "green", "blue"),
                                     ylim = NULL,
                                     geneNames = positions.merge1$name,
@@ -2639,9 +2663,9 @@ plot.adacgh.chromosomewide <- function(res, chrom,
                                     geneLoc = NULL) {
 
     pch <- 20
-    logr <- res[[arraynum]][, 1]
-    smoothdat <- res[[arraynum]][, 2]
-    res.dat <- res[[arraynum]][, 3]
+    logr <- res[, 1]
+    smoothdat <- res[, 2]
+    res.dat <- res[, 3]
     simplepos <- if(is.null(geneLoc)) (1:length(logr)) else geneLoc
    
     col <- rep(colors[1],length(res.dat))
@@ -2690,7 +2714,7 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
             ## geneLoc is withing chromosome,
             ## thus, we need some absolute, increasing pos.
             lchr <- tapply(geneLoc, chrom, length)
-            mchr <- cumsum(tapply(geneLoc, chrom, max)) ## not very efficient
+            mchr <- cumsum(as.numeric(tapply(geneLoc, chrom, max))) ## not very efficient
             sumpos <- rep(c(0, mchr[-length(mchr)]),
                           lchr)
             simplepos <- geneLoc + sumpos
@@ -3326,3 +3350,6 @@ combine.funcB <- function(diff,vecObs, vecPredNow, mnNow, mn1, mn2, pv.thres=0.0
 ##         T used instead of TRUE
 ## Error in matrix(nrow = K, ncol = n, b = T) : 
 ##         recursive default argument reference
+
+
+## Error in max(-1e+05, log(BFGS.output$prior[i]), na.rm = T) :

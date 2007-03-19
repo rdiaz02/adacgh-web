@@ -83,20 +83,63 @@ kwd = zip(NUM_USERS, SUFFIX)
 #               str(nu) + '.' + str(ks[1]) + '.txt')
 
 ####### MEDIUM
-TESTS = ('GLAD_medium',
-         'Wavelets_medium',
-         'CGHseg_medium')
+# TESTS = ('GLAD_medium',
+#          'Wavelets_medium',
+#          'CGHseg_medium')
 
-for test in TESTS:
-    for ks in kwd:
-        nu = ks[0]
-        timings = -99
-        try:
-            timings = launchUTests(test, nu)
-        except:
-            None
-        writeFile(timings, 'web.bnchmk3.' + test + '_' + \
-                  str(nu) + '.' + str(ks[1]) + '.txt')
+# for test in TESTS:
+#     for ks in kwd:
+#         nu = ks[0]
+#         timings = -99
+#         try:
+#             timings = launchUTests(test, nu)
+#         except:
+#             None
+#         writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+#                   str(nu) + '.' + str(ks[1]) + '.txt')
+
+
+SUFFIX = (1, 2, 1, 1)
+NUM_USERS = (5, 5, 10, 20)
+kwd = zip(NUM_USERS, SUFFIX)
+
+test = 'Wavelets_medium'
+for ks in kwd:
+    nu = ks[0]
+    timings = -99
+    try:
+        timings = launchUTests(test, nu)
+    except:
+        None
+    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+              str(nu) + '.' + str(ks[1]) + '.txt')
+
+
+
+
+test = 'CGHseg_medium'
+SUFFIX = (1, 2, 1, 1)
+NUM_USERS = (5, 5, 10, 20)
+kwd = zip(NUM_USERS, SUFFIX)
+
+for ks in kwd:
+    nu = ks[0]
+    timings = -99
+    try:
+        timings = launchUTests(test, nu)
+    except:
+        None
+    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+              str(nu) + '.' + str(ks[1]) + '.txt')
+
+
+
+
+
+
+
+
+
 
 ###########Sizes:
 #         small: 2270 x 10 arrays

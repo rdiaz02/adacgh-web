@@ -784,13 +784,14 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
     }
     if(checkpoint.num < 3) {
-        ymax <- max(data)
-        ymin <- min(data)
+        ymax <- max(as.matrix(xcenter))
+        ymin <- min(as.matrix(xcenter))
         numarrays <- ncol(data)
         fseg <- get(paste("pSegment", method, sep = ""))
         trythis <- try(
-                       segmres <- fseg(data, chrom,
-                                       Pos = Pos,
+                       segmres <- fseg(as.matrix(xcenter),
+                                       chrom = positions.merge1$chrom.numeric,
+                                       Pos = positions.merge1$MidPoint,
                                        mergeSegs = mergeSegs, ...)
                        )
         if(inherits(trythis, "try-error"))
@@ -802,9 +803,10 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         gc()
     }
     if(checkpoint.num < 4) {
-        trythis <- try(doMCR(segmres$segm, chrom.numeric = chrom,
-                             data = data,
-                             Pos = Pos, ...))
+        trythis <- try(doMCR(segmres$segm,
+                             chrom.numeric = positions.merge1$chrom.numeric,
+                             data = as.matrix(xcenter),
+                             Pos = positions.merge1$MidPoint, ...))
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         doCheckpoint(4)
@@ -812,76 +814,92 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         gc()
     }
     if(checkpoint.num < 5) {
+        trythis <- try(
+                       segmentPlot(segmres, geneNames = positions.merge1$name,
+                                   chrom.numeric = positions.merge1$chrom.numeric,
+                                   cghdata = NULL,
+                                   yminmax = c(ymin, ymax),
+                                   idtype = idtype,
+                                   organism = organism,
+                                   numarrays = numarrays))
+     
 ### to minimize recomputing stuff if a crash, and to minimize copying of objects
         ## we break down segmentPlot.
-        yminmax <- c(ymin, ymax)
-        geneLoc <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
-        original.pos <- 1
-        segment.pos <- 2
-        if (inherits(x, "CGHseg") |
-            (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged")))){
-            colors <- c(rep("orange", 3), "blue")
-        } else {
-            colors <- c("orange", "red", "green", "blue")
-        }
-        tmp_papout <-
-            papply(as.list(1:numarrays),
-                   function(z) {
-                       cat("\n Doing sample ", z, "\n")
-                       plot.adacgh.nonsuperimpose(res = res,
-                                                  chrom = cnum_slave,
-                                                  arraynum = z,
-                                                  main = arraynames[z],
-                                                  colors = colors,
-                                                  ylim = yminmax,
-                                                  geneNames = geneNames,
-                                                  idtype = idtype,
-                                                  organism = organism,
-                                                  geneLoc = pos_slave)
-                   },
-                   papply_commondata =
-                   list(res = segmres$segm,
-                        cnum_slave= segmres$chrom.numeric,
-                        arraynames = arrayNames,
-                        geneNames = geneNames,
-                        idtype = idtype,
-                        organism = organism,
-                        colors = colors,
-                        pos_slave = geneLoc))
-        ### I think the memory hole is here. passing x$segm!
-        ###  use mpi.bdcast to send only the needed object
-        ### can be used with papply. change the plot.adacgh.nosuperimpose
-        ### so it uses only the needed data
-        ### if passing arraynum assumes all data, otherwise
-        ### assumes only the given array
-        
-        doCheckpoint(5)
-        cat("\n gc right after checkpoint 5 \n")
+#####         yminmax <- c(ymin, ymax)
+#####         geneLoc <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
+#####         original.pos <- 1
+#####         segment.pos <- 2
+#####         if (inherits(x, "CGHseg") |
+#####             (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged")))){
+#####             colors <- c(rep("orange", 3), "blue")
+#####         } else {
+#####             colors <- c("orange", "red", "green", "blue")
+#####         }
+#####         tmp_papout <-
+#####             papply(as.list(1:numarrays),
+#####                    function(z) {
+#####                        cat("\n Doing sample ", z, "\n")
+#####                        plot.adacgh.nonsuperimpose(res = res,
+#####                                                   chrom = cnum_slave,
+#####                                                   arraynum = z,
+#####                                                   main = arraynames[z],
+#####                                                   colors = colors,
+#####                                                   ylim = yminmax,
+#####                                                   geneNames = geneNames,
+#####                                                   idtype = idtype,
+#####                                                   organism = organism,
+#####                                                   geneLoc = pos_slave)
+#####                    },
+#####                    papply_commondata =
+#####                    list(res = segmres$segm,
+#####                         cnum_slave= segmres$chrom.numeric,
+#####                         arraynames = arrayNames,
+#####                         geneNames = geneNames,
+#####                         idtype = idtype,
+#####                         organism = organism,
+#####                         colors = colors,
+#####                         pos_slave = geneLoc))
+#####         ### I think the memory hole is here. passing x$segm!
+#####         ###  use mpi.bdcast to send only the needed object
+#####         ### can be used with papply. change the plot.adacgh.nosuperimpose
+#####         ### so it uses only the needed data
+#####         ### if passing arraynum assumes all data, otherwise
+#####         ### assumes only the given array
+
+        if(inherits(trythis, "try-error"))
+            caughtOurError(trythis)
+        cat("\n\n Plotting done \n\n")
+
+        cat("\n gc right after plotting \n")
         gc()
+        
+        trythis <- try(writeResults(segmres,
+                                    data, commondata))
+        if(inherits(trythis, "try-error"))
+            caughtOurError(trythis)
+        doCheckpoint(5)
+        
     }
+    
+##         SegmentPlotWrite(as.matrix(xcenter),
+##                          chrom = positions.merge1$chrom.numeric,
+##                          mergeSegs = mergeRes,
+##                          Pos = positions.merge1$MidPoint,
+##                          idtype = idtype,
+##                          organism = organism,
+##                          method = methodaCGH,
+##                          geneNames = positions.merge1$name,
+##                          commondata = common.data, ## zz?
+##                          MCR.gapAllowed = MCR.gapAllowed,
+##                          MCR.alteredLow = MCR.alteredLow,
+##                          MCR.alteredHigh = MCR.alteredHigh,
+##                          MCR.recurrence = MCR.recurrence)
 
         
-
-        
-        SegmentPlotWrite(as.matrix(xcenter),
-                         chrom = positions.merge1$chrom.numeric,
-                         mergeSegs = mergeRes,
-                         Pos = positions.merge1$MidPoint,
-                         idtype = idtype,
-                         organism = organism,
-                         method = methodaCGH,
-                         geneNames = positions.merge1$name,
-                         commondata = common.data, ## zz?
-                         MCR.gapAllowed = MCR.gapAllowed,
-                         MCR.alteredLow = MCR.alteredLow,
-                         MCR.alteredHigh = MCR.alteredHigh,
-                         MCR.recurrence = MCR.recurrence)
-
-        
-##        save.image()
-        doCheckpoint(3)
-        quit()
-    }
+## ##        save.image()
+##         doCheckpoint(3)
+##         quit()
+##     }
 } else if(methodaCGH == "PSW") {
 #######################################################
 #######################################################

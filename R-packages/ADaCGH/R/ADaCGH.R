@@ -2812,6 +2812,9 @@ plot.cw.superimp <- function(res, chrom,
 
 
 
+
+
+
 mapCloseAndPythonChrom <- function() {
     nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
     write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
@@ -2843,6 +2846,122 @@ plotChromWide <- function() {
     abline(h = 0, lty = 2, col = colors[4])
     rug(simplepos[indexchr], ticksize = 0.01)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+plot.cw.superimpA <- function(res, chrom, 
+                                main = "All_arrays",
+                                colors = c("orange", "red", "green", "blue"),
+                                ylim =NULL, 
+                                geneNames = positions.merge1$name,
+                                idtype = idtype, organism = organism,
+                                geneLoc = NULL) {
+    
+    ## For superimposed: one plot per chr
+    pch <- ""
+    arraynums <- length(res)
+    nameIm <- main
+    pixels.point <- 3
+    chrheight <- 500
+    chrom.nums <- unique(chrom)
+    ## this could be parallelized over chromosomes!! FIXME
+    for(cnum in chrom.nums) {
+        ccircle <- NULL
+        environment(mapChromOpen) <- environment()
+        im2 <- mapChromOpen()
+
+        indexchr <- which(chrom == cnum)
+        
+        nfig <- 1
+        for(arraynum in 1:arraynums) { ## first, plot the points
+##            cat(" ........ for points doing arraynum ", arraynum, "\n")
+
+            logr <- res[[arraynum]][, 1]
+            res.dat <- res[[arraynum]][, 3]
+            smoothdat <- res[[arraynum]][, 2]
+            col <- rep(colors[1],length(res.dat))
+            col[which(res.dat == -1)] <- colors[3]
+            col[which(res.dat == 1)] <- colors[2]
+            simplepos <- if(is.null(geneLoc)) (1:length(logr)) else geneLoc
+            
+            if(nfig == 1) {
+                environment(plotChromWide) <- environment()
+                plotChromWide()
+            }
+            
+            environment(pngCircleRegion) <- environment()
+            ccircle <- pngCircleRegion()
+
+            ## we want all points, but only draw axes once
+            points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
+                   cex = 1, pch = 20)
+            
+##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+            lines(smoothdat[indexchr] ~ simplepos[indexchr],
+                  col = "black", lwd = 2, type = "l")
+    
+            nfig <- nfig + 1
+        }
+        environment(mapCloseAndPythonChrom) <- environment()
+        mapCloseAndPythonChrom()
+    }
+}
+
+
+mapCloseAndPythonChromA <- function() {
+    nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+    write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
+          sep ="\t", ncolumns = 3)
+    calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
+    if(!exists("arraynums")) arraynums <- 1
+    if(calcnarrays != arraynums)
+        stop("Serious problem: number of arrays does not match")
+    
+    write(rep(as.character(geneNames[indexchr]), arraynums), 
+          file = paste("geneNamesChr_", nameChrIm, sep = ""))
+    imClose(im2)
+    system(paste(.python.toMap.py, nameChrIm, 
+                 idtype, organism, sep = " "))
+}
+
+    
+
+plotChromWideA <- function() {
+    par(xaxs = "i")
+    par(mar = c(5, 5, 5, 5))
+    par(oma = c(0, 0, 0, 0))
+    plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
+         xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+         main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+         pch = pch, ylim = ylim)
+    box()
+    axis(2)
+    abline(h = 0, lty = 2, col = colors[4])
+    rug(simplepos[indexchr], ticksize = 0.01)
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 pngCircleRegion <- function() {
     usr2pngCircle <- function(x, y, rr = 2, rmin = 4) {

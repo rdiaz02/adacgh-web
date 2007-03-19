@@ -1,0 +1,24 @@
+0.99	2007-01-15
+	- Major changes in some existing code:
+	  - parallelize PSW over arrays
+	  - parallelize plotting code (chromosomes)
+	- Added BioHMM, CGHseg (Piccard's), GLAD, HMM
+
+0.9-5	2006-12-19
+	- Some changes in interfaces
+	- Further testing incorporated
+
+0.9-3	2006-12-11
+	- Bug fixes and improvements from extensive testing with the
+	ADaCGH web-based application.
+	
+0.9	2006-12-02
+	- Major changes to move a lot of dispersed code inside functions,
+	such as plotting, etc.
+	
+0.8-3.	2006-10-03
+	- Minor changes to accommodate merge levels and cghMCR.
+	
+0.8-2.	2006-03-08
+	- Fixed bug in ACE that, with large numbers of genes,
+	led to problems in output for figures.

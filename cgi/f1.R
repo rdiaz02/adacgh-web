@@ -60,6 +60,16 @@ doCheckpoint <- function(num) {
 }
 
 
+mpiSlaveMemClean <- function() {
+  cat("\n gc in slaves before delete \n")
+  mpi.remote.exec(gc())
+  mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+  cat("\n gc in slaves after delete \n")
+  mpi.remote.exec(gc())
+  
+}
+
+
 ##startExecTime <- format(Sys.time())
 
 pid <- Sys.getpid()
@@ -780,38 +790,47 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         ##save.image()
         doCheckpoint(2)
         cat("\n gc right after checkpoint 2 \n")
-        gc()
+        print(gc())
 
     }
     if(checkpoint.num < 3) {
         ymax <- max(as.matrix(xcenter))
         ymin <- min(as.matrix(xcenter))
-        numarrays <- ncol(data)
-        fseg <- get(paste("pSegment", method, sep = ""))
+        numarrays <- ncol(xcenter)
+        fseg <- get(paste("pSegment", methodaCGH, sep = ""))
         trythis <- try(
                        segmres <- fseg(as.matrix(xcenter),
-                                       chrom = positions.merge1$chrom.numeric,
+                                       chrom.numeric = positions.merge1$chrom.numeric,
                                        Pos = positions.merge1$MidPoint,
-                                       mergeSegs = mergeSegs, ...)
+                                       mergeSegs = mergeSegs,
+                                       minDiff = Wave.minDiff)
                        )
+        
+        mpiSlaveMemClean()
+        
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         cat("\n\n Segmentation done \n\n")
         save(segmres, file = "segmres.RData")
         doCheckpoint(3)
         cat("\n gc right after checkpoint 3 \n")
-        gc()
+        print(gc())
     }
     if(checkpoint.num < 4) {
         trythis <- try(doMCR(segmres$segm,
                              chrom.numeric = positions.merge1$chrom.numeric,
                              data = as.matrix(xcenter),
-                             Pos = positions.merge1$MidPoint, ...))
+                             Pos = positions.merge1$MidPoint,
+                             MCR.gapAllowed = MCR.gapAllowed,
+                             MCR.alteredLow = MCR.alteredLow,
+                             MCR.alteredHigh = MCR.alteredHigh,
+                             MCR.recurrence = MCR.recurrence))
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
+        mpiSlaveMemClean()
         doCheckpoint(4)
         cat("\n gc right after checkpoint 4 \n")
-        gc()
+        print(gc())
     }
     if(checkpoint.num < 5) {
         trythis <- try(
@@ -870,11 +889,14 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             caughtOurError(trythis)
         cat("\n\n Plotting done \n\n")
 
+        mpiSlaveMemClean()
+        
         cat("\n gc right after plotting \n")
-        gc()
+        print(gc())
         
         trythis <- try(writeResults(segmres,
-                                    data, commondata))
+                                    acghdata = as.matrix(xcenter),
+                                    commondata = common.data))
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         doCheckpoint(5)
@@ -955,6 +977,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
+        mpiSlaveMemClean()
         writeResults(out.gains, commondata = common.data,
                      file = "Gains.Price.Smith.Waterman.results.txt")
 
@@ -996,6 +1019,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
+        mpiSlaveMemClean()
         writeResults(out.losses, commondata = common.data,
                      file = "Losses.Price.Smith.Waterman.results.txt")
         
@@ -1017,13 +1041,13 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
         Sys.time()
         Sys.sleep(5)
-
+        mpiSlaveMemClean()
         segmentPlot(out.losses, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
         Sys.time()
         Sys.sleep(5)
-
+        mpiSlaveMemClean()
         doCheckpoint(5)
         quit()
     }
@@ -1047,7 +1071,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        
+        mpiSlaveMemClean()
         ##save.image()
         doCheckpoint(2)
     }
@@ -1079,7 +1103,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             caughtOurError(paste("Function writeResults.summary.ACE.summary bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
         
-        
+        mpiSlaveMemClean()
         ## re-hack. or re-do the kuldge:
         if(is.null(dim(xcenter))) {
             xcenter <- matrix(xcenter, ncol = 1)
@@ -1114,6 +1138,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             caughtOurError(paste("Error in ACE plots  with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
         save(file = "ace.RData", list = ls())
+        mpiSlaveMemClean()
         doCheckpoint(3)
         quit()
     }

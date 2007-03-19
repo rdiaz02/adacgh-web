@@ -423,7 +423,7 @@ segmentPlot <- function(x, geneNames,
         l1 <- list()
         for (i in 1:length(x$segm)) {
             l1[[i]] <- list()
-            l1[[i]]$res <- x$segm[[i]]$res
+            l1[[i]]$res <- x$segm[[i]]
             l1[[i]]$mainname <- arraynames[i]
         }
         
@@ -448,7 +448,8 @@ segmentPlot <- function(x, geneNames,
                         idtype = idtype,
                         organism = organism,
                         colors = colors,
-                        pos_slave = geneLoc))
+                        pos_slave = geneLoc,
+                        yminmax = yminmax))
         cat("\n gc after plot.adacgh.nonsuperimpose \n")
         print(gc())
         plot.adacgh.superimp(x$segm, x$chrom.numeric,  geneNames = geneNames,
@@ -2613,7 +2614,7 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
 }
 
 plot.adacgh.genomewide <- function(res, chrom,
-                                   arraynum, main = NULL,
+                                   main = NULL,
                                    colors = c("orange", "red", "green", "blue"),
                                    ylim = NULL,
                                    geneNames = positions.merge1$name,
@@ -2764,6 +2765,7 @@ plot.cw.superimp <- function(res, chrom,
     pixels.point <- 3
     chrheight <- 500
     chrom.nums <- unique(chrom)
+    ## this could be parallelized over chromosomes!! FIXME
     for(cnum in chrom.nums) {
         ccircle <- NULL
         environment(mapChromOpen) <- environment()

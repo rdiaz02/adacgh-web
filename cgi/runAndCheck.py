@@ -1,14 +1,9 @@
 #!/usr/bin/python
 
 
-## /http/R-custom/bin/R  --no-restore --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
-
-
-
 ## All this code is copyright Ramon Diaz-Uriarte. For security reasons, this is for
 ## now confidential. No license is granted to copy, distribute, or modify it.
 ## Once everything is OK, it will be distributed under the GPL.
-
 
 import sys
 import os
@@ -21,9 +16,11 @@ import signal
 import re
 import glob
 import tarfile
-import counterApplications
 import random
 
+sys.path = sys.path + ['/http/mpi.log']
+
+import counterApplications
 
 # import cgitb
 # cgitb.enable() ## zz: eliminar for real work?
@@ -542,7 +539,7 @@ def lam_crash_log(tmpDir, value):
     os.system('echo "' + value + '  at ' + timeHuman + \
               '" >> ' + tmpDir + '/recoverFromLAMCrash.out')
     
-def recover_from_lam_crash(tmpDir, machine_root = machine_root):
+def recover_from_lam_crash(tmpDir, machine_root = 'karl'):
     """Check if lam crashed during R run. If it did, restart R
     after possibly rebooting the lam universe.
     Leave a trace of what happened."""
@@ -694,11 +691,7 @@ def master_out_of_time(time_start):
         return False
         
 
-def mpi_crash(tmpDir, newDir, machine_root):
-    """ Check if we crashed, and act accordingly."""
-
-
-def my_queue(MAX_SIMUL_RSLAVES = 4,
+def my_queue(MAX_SIMUL_RSLAVES = 6,
              CHECK_QUEUE = 120,
              MAX_DURATION_TRY = 5 * 3600):
     """ Wait here until the number of slaves is smaller than
@@ -708,6 +701,7 @@ def my_queue(MAX_SIMUL_RSLAVES = 4,
     out_value = 'OK'
     startTime = time.time()
     while True:
+        issue_echo('     inside my_queue ', tmpDir)
         if (time.time() - startTime) > MAX_DURATION_TRY:
             out_value = 'Failed'
             break
@@ -732,14 +726,21 @@ def generate_lam_suffix(tmpDir):
 
 ## Starting. First, the very first run.
 
+issue_echo('starting', tmpDir)
+
 try:
     counterApplications.add_to_log(application, tmpDir, socket.gethostname())
 except:
     None
 
+issue_echo('at 2', tmpDir)
+
 lamSuffix = generate_lam_suffix(tmpDir)
 
+issue_echo('at 3', tmpDir)
+
 check_room = my_queue()
+issue_echo('after my_queue', tmpDir)
 if check_room == 'Failed':
     printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
 
@@ -765,13 +766,13 @@ while True:
         cleanups(tmpDir, newDir, 'killed.pid.txt')
         printRKilled()
         break
-    elif did_mpi_crash(tmpDir, machine_root):
+    elif did_mpi_crash(tmpDir, machine_root = 'karl'):
         count_mpi_crash += 1
         if count_mpi_crash > MAX_MPI_CRASHES:
             printMPIerror(tmpDir, MAX_MPI_CRASHES)
             break
         else:
-            recover_from_lam_crash(tmpDir, machine_root)
+            recover_from_lam_crash(tmpDir, machine_root = 'karl')
             
         
     else:

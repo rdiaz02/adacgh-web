@@ -1,22 +1,18 @@
 #!/usr/bin/python
 
 
-## All this code is copyright Ramon Diaz-Uriarte. For security reasons, this is for
-## now confidential. No license is granted to copy, distribute, or modify it.
-## Once everything is OK, it will be distributed under the GPL.
+## All this code is copyright Ramon Diaz-Uriarte.
+## Released under the Affero GPL.
+
 
 import sys
 import os
 import cgi 
-import types
 import time
 import shutil
-import string
-import signal
-import re
 import glob
-import tarfile
 import random
+import socket
 
 sys.path = sys.path + ['/http/mpi.log']
 
@@ -133,7 +129,7 @@ def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.bioinfo.cnio.es
 
 
 
-def pdf2html(rootname, tmpDir, outf, compressedFile, maxsthumb = 350):
+def pdf2html(rootname, tmpDir, outf, maxsthumb = 350):
     """ From a multipage pdf obtain jpegs; the thumbnails are
     inserted in the webpage, the large jpeg viewed on clik.
     rootname is all the stuff before the `pdf',
@@ -160,8 +156,6 @@ def pdf2html(rootname, tmpDir, outf, compressedFile, maxsthumb = 350):
         outf.write('<a href="' + rootname + '.' + str(fignum + 1) +
                    '.jpeg"> <img src="' + 'thumb.' + rootname + '.'
                   + str(fignum + 1) + '.jpeg"></a>\n')
-#         compressedFile.add(rootname + '.' + str(fignum + 1) + '.jpeg',
-#                            rootname + '.' + str(fignum + 1) + '.jpeg')
     os.chdir('/http/adacgh2/cgi')
 
 
@@ -568,7 +562,7 @@ def Rrun(tmpDir, lamSuffix):
     Rcommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
                '"; cd ' + tmpDir + \
                '; sleep 1; /http/R-custom/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
-    Rrun = os.system(Rcommand)
+    Rtorun = os.system(Rcommand)
     
 
 
@@ -590,7 +584,6 @@ def status_run(tmpDir):
 
 def did_lam_crash(tmpDir, machine_root = 'karl'):
     """ Verify whether LAM/MPI crashed by checking logs."""
-    final_value = 'NoCrash'
     OTHER_LAM_MSGS = 'Call stack within LAM:'
     lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
     in_error_msg = int(os.popen('grep MPI_Error_string ' + \
@@ -743,11 +736,15 @@ check_room = my_queue()
 issue_echo('after my_queue', tmpDir)
 if check_room == 'Failed':
     printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
-
+    sys.exit()
+    
+lamboot(lamSuffix)
 Rrun(tmpDir, lamSuffix)
         
 time_start = time.time()
 time.sleep(TIME_BETWEEN_CHECKS)
+
+count_mpi_crash = 0
 
 while True:
     if did_run_out_of_time(tmpDir, R_MAX_time):
@@ -773,10 +770,8 @@ while True:
             break
         else:
             recover_from_lam_crash(tmpDir, machine_root = 'karl')
-            
-        
     else:
-        lam_crash_log(tmpDir, 'NoCrash')
+        lam_crash_log(tmpDir, 'NoCrash') ## if we get here, this much we know
     time.sleep(TIME_BETWEEN_CHECKS)
 
 

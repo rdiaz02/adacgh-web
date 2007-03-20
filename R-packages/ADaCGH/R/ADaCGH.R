@@ -57,8 +57,8 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
         mpi.remote.exec(setwd(wdir))    
     })
     if(inherits(trythis, "try-error")) {
-        write(paste("Rmpi did not start ", Sys.time()),
-              file = "Rmpi_error")
+        cat("\nRmpi error\n", file = "Status.msg")
+        quit(save = TRUE, status = 12, runLast = FALSE)
     }
 }
 

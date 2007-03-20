@@ -566,6 +566,10 @@ touchRout = os.system("/bin/touch " + tmpDir + "/f1.Rout")
 touchRrunning = os.system("/bin/touch /http/adacgh2/www/R.running.procs/R." + newDir +
                           "@" + socket.gethostname())
 shutil.copy("/http/adacgh2/cgi/f1.R", tmpDir)
+checkpoint = os.system("echo 0 > " + tmpDir + "/checkpoint.num")
+createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
+
+
 ## we add the 2> error.msg because o.w. if we kill R we get a server error as standard
 ## error is sent to the server
 # Rcommand = "cd " + tmpDir + "; " + "/usr/bin/R CMD BATCH --no-restore --no-readline --no-save -q f1.R 2> error.msg &"
@@ -574,18 +578,15 @@ shutil.copy("/http/adacgh2/cgi/f1.R", tmpDir)
 ##os.system('cp /http/js/js.adacgh.squeleton2.html ' + tmpDir + '/.')
 ##os.system('cp /http/js/final.adacgh.squeleton.html ' + tmpDir + '/.')
 
-tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
+## tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
 
 ## Launch the lam checking program 
-lam_check = os.spawnv(os.P_NOWAIT, '/http/mpi.log/recoverFromLAMCrash.py',
+run_and_check = os.spawnv(os.P_NOWAIT, '/http/adacgh2/cgi/runAndCheck.py',
                       ['', tmpDir])
-os.system('echo "' + str(lam_check) + ' ' + socket.gethostname() +\
-           '"> ' + tmpDir + '/lamCheckPID')
+os.system('echo "' + str(run_and_check) + ' ' + socket.gethostname() +\
+           '"> ' + tmpDir + '/run_and_checkPID')
 
-
-createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
-checkpoint = os.system("echo 0 > " + tmpDir + "/checkpoint.num")
-restart_tryRrun(tmpDir)
+## restart_tryRrun(tmpDir)
 
 
 
@@ -598,7 +599,10 @@ shutil.copy("/http/adacgh2/cgi/results-pre.html", tmpDir)
 os.system("cd " + tmpDir + "; /bin/sed 's/sustituyeme/" +
           newDir + "/g' results-pre.html > results.html; rm results-pre.html")
 
-##############    Redirect to checkdone.cgi    ##################
-print "Location: "+ getQualifiedURL("/cgi-bin/checkdone.cgi") + "?newDir=" + newDir, "\n\n"
+##############    Redirect to results.html    ##################
+print "Location: "+ getQualifiedURL("/tmp/" + newDir + "/results.html"), "\n\n"
 
+
+# ##############    Redirect to checkdone.cgi    ##################
+# print "Location: "+ getQualifiedURL("/cgi-bin/checkdone.cgi") + "?newDir=" + newDir, "\n\n"
 

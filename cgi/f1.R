@@ -23,6 +23,8 @@
 ## rm(list = ls()) ## Just in case.
 
 
+cat("\nRunning\n", file = "Status.msg")
+
 checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)
 
 
@@ -31,10 +33,10 @@ checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)
     ## the next four lines are a way to ensure that the OS writes
     ## a file that could be immediately read by Python to see
     ## if we are done
-    RterminatedOK <- file("RterminatedOK", "w")
-    cat("\nNormal termination\n", file = RterminatedOK)
-    flush(RterminatedOK)
-    close(RterminatedOK)
+    status <- file("Status.msg", "w")
+    cat("Normal termination\n", file = status)
+    flush(status)
+    close(status)
     ##save.image()
     if (is.loaded("mpi_initialize")){ 
         if (mpi.comm.size(1) > 0){ 

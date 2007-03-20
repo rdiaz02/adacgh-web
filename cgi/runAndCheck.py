@@ -614,7 +614,7 @@ def did_lam_crash(tmpDir, machine_root = 'karl'):
 def did_mpi_crash(tmpDir, machine_root = 'karl'):
     """ Either Rmpi or LAM crashed"""
     if (status_run(tmpDir) == 'Error_mpi') or \
-       lam_crashed(tmpDir, machine_root):
+       did_lam_crash(tmpDir, machine_root):
         return True
     else:
         return False

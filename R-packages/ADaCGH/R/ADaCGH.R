@@ -35,25 +35,31 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 
 mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
                     universeSize = NULL) {
-    if(! is.null(universeSize))
-        minUniverseSize <- universeSize
-    library(Rmpi)
-    if(mpi.universe.size() < minUniverseSize) {
-        stop("MPI problem: universe size < minUniverseSize")
+    trythis <- try({
+        if(! is.null(universeSize))
+            minUniverseSize <- universeSize
+        library(Rmpi)
+        if(mpi.universe.size() < minUniverseSize) {
+            stop("MPI problem: universe size < minUniverseSize")
+        }
+        ##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
+        if(! is.null(universeSize)) {
+            mpi.spawn.Rslaves(nslaves = universeSize)
+        } else {
+            mpi.spawn.Rslaves(nslaves = mpi.universe.size())
+        }
+        ## mpi.setup.rngstream() ## or 
+        mpi.setup.sprng()
+        mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+        library(papply)
+        mpi.remote.exec(library(ADaCGH))
+        mpi.bcast.Robj2slave(wdir)
+        mpi.remote.exec(setwd(wdir))    
+    })
+    if(inherits(trythis, "try-error")) {
+        write(paste("Rmpi did not start ", Sys.time()),
+              file = "Rmpi_error")
     }
-##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
-    if(! is.null(universeSize)) {
-        mpi.spawn.Rslaves(nslaves = universeSize)
-    } else {
-        mpi.spawn.Rslaves(nslaves = mpi.universe.size())
-    }
-    ## mpi.setup.rngstream() ## or 
-    mpi.setup.sprng()
-    mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
-    library(papply)
-    mpi.remote.exec(library(ADaCGH))
-    mpi.bcast.Robj2slave(wdir)
-    mpi.remote.exec(setwd(wdir))    
 }
 
 pSegmentACE <- function(x, chrom.numeric, ...) {
@@ -390,6 +396,7 @@ segmentPlot <- function(x, geneNames,
                         organism = "Hs",
                         yminmax = NULL,
                         numarrays = NULL,
+                        controlMPI = TRUE,
                         ...) {
     if(is.null(numarrays)) {
         if(!is.null(arraynames)) numarrays <- length(arraynames)
@@ -426,7 +433,10 @@ segmentPlot <- function(x, geneNames,
             l1[[i]]$res <- x$segm[[i]]
             l1[[i]]$mainname <- arraynames[i]
         }
-        
+        if(controlMPI) {
+            try(mpi.close.Rslaves())
+            mpiInit(universeSize = numarrays)
+        }
         tmp_papout <-
             papply(l1,
                    function(z) {
@@ -452,12 +462,24 @@ segmentPlot <- function(x, geneNames,
                         yminmax = yminmax))
         cat("\n gc after plot.adacgh.nonsuperimpose \n")
         print(gc())
-        plot.adacgh.superimp(x$segm, x$chrom.numeric,  geneNames = geneNames,
+        if(controlMPI) {
+            mpi.close.Rslaves()
+            mpiInit(universeSize = length(unique(positions.merge1$chromosome)))
+        }
+        plot.cw.superimpA(x$segm, x$chrom.numeric,  geneNames = geneNames,
                              main = "All_arrays",
                              colors = colors,
                              ylim= yminmax,
                              idtype = idtype, organism = organism,
                              geneLoc = geneLoc)
+        if(controlMPI) mpi.close.Rslaves()
+        cat("\n gc after plot.cw.superimpose \n")
+        print(gc())
+
+        plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
+                         main = "All_arrays", colors = colors,
+                         ylim = yminmax, geneNames = geneNames,
+                         geneLoc = geneLoc)
         cat("\n gc after plot.adacgh.superimp \n")
         print(gc())
 
@@ -479,7 +501,10 @@ segmentPlot <- function(x, geneNames,
             l1[[i]]$chrom <- x$plotData[[i]]$chrom
             l1[[i]]$arrayname <- arraynames[i]
         }
-
+        if(controlMPI){
+            try(mpi.close.Rslaves())
+            mpiInit(universeSize = numarrays)
+        }
         tmp_papout <-
             papply(l1,
                    function(z) {
@@ -502,6 +527,7 @@ segmentPlot <- function(x, geneNames,
                    geneNames = geneNames,
                    idtype = idtype,
                    organism = organism))
+        if(controlMPI) mpi.close.Rslaves()
     } else {
         stop("No plotting for this class of objects")
     }
@@ -2851,15 +2877,6 @@ plotChromWide <- function() {
 
 
 
-
-
-
-
-
-
-
-
-
 plot.cw.superimpA <- function(res, chrom, 
                                 main = "All_arrays",
                                 colors = c("orange", "red", "green", "blue"),
@@ -2876,17 +2893,28 @@ plot.cw.superimpA <- function(res, chrom,
     chrheight <- 500
     chrom.nums <- unique(chrom)
     ## this could be parallelized over chromosomes!! FIXME
+    datalist <- list()
     for(cnum in chrom.nums) {
-        ccircle <- NULL
-        environment(mapChromOpen) <- environment()
-        im2 <- mapChromOpen()
-
         indexchr <- which(chrom == cnum)
-        
+        datalist[[cnum]] <- list()
+        datalist[[cnum]]$indexchr <- indexchr
+        datalist[[cnum]]$cnum <- cnum
+        datalist[[cnum]]$thiscn <- chrom.nums[cnum]
+        datalist[[cnum]]$res <- lapply(res, function(w) w[indexchr, ])
+    }
+    pappl_common <- list(arraynums = arraynums, nameImage = main,
+                         geneNames = geneNames)
+    
+    funp <- function(z) {
+        indexchr <- z$indexchr
+        ccircle <- NULL
+        thiscn <- z$thiscn
+        cnum <- z$cnum
+        nameIm <- nameImage
+        environment(mapChromOpenA) <- environment()
+        im2 <- mapChromOpenA()
         nfig <- 1
         for(arraynum in 1:arraynums) { ## first, plot the points
-##            cat(" ........ for points doing arraynum ", arraynum, "\n")
-
             logr <- res[[arraynum]][, 1]
             res.dat <- res[[arraynum]][, 3]
             smoothdat <- res[[arraynum]][, 2]
@@ -2894,33 +2922,47 @@ plot.cw.superimpA <- function(res, chrom,
             col[which(res.dat == -1)] <- colors[3]
             col[which(res.dat == 1)] <- colors[2]
             simplepos <- if(is.null(geneLoc)) (1:length(logr)) else geneLoc
-            
+       
             if(nfig == 1) {
-                environment(plotChromWide) <- environment()
-                plotChromWide()
+                environment(plotChromWideA) <- environment()
+                plotChromWideA()
             }
             
-            environment(pngCircleRegion) <- environment()
-            ccircle <- pngCircleRegion()
+            environment(pngCircleRegionA) <- environment()
+            ccircle <- pngCircleRegionA()
 
             ## we want all points, but only draw axes once
-            points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
+            points(logr ~ simplepos, col=col,
                    cex = 1, pch = 20)
             
-##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
-            lines(smoothdat[indexchr] ~ simplepos[indexchr],
+            lines(smoothdat ~ simplepos,
                   col = "black", lwd = 2, type = "l")
     
             nfig <- nfig + 1
         }
-        environment(mapCloseAndPythonChrom) <- environment()
-        mapCloseAndPythonChrom()
+        environment(mapCloseAndPythonChromA) <- environment()
+        mapCloseAndPythonChromA()
     }
+    out <- papply(datalist, funp, papply_commondata = pappl_common)
+}
+
+
+mapChromOpenA <- function() {
+##    cat(" .... doing chromosome ", cnum, "\n")
+    nameIm <- main
+    pixels.point <- 3
+    chrheight <- 500
+    chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+    chrwidth <- max(chrwidth, 800)
+    im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     height = chrheight, width = chrwidth,
+                     ps = 12)
+    return(im2)
 }
 
 
 mapCloseAndPythonChromA <- function() {
-    nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+    nameChrIm <- paste("Chr", thiscn, "@", nameIm, sep ="")
     write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
           sep ="\t", ncolumns = 3)
     calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
@@ -2941,26 +2983,27 @@ plotChromWideA <- function() {
     par(xaxs = "i")
     par(mar = c(5, 5, 5, 5))
     par(oma = c(0, 0, 0, 0))
-    plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
+    plot(logr ~ simplepos, col=col, cex = 1,
          xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
-         main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+         main = paste("Chr", thiscn, "@", nameIm, sep =""),
          pch = pch, ylim = ylim)
     box()
     axis(2)
     abline(h = 0, lty = 2, col = colors[4])
-    rug(simplepos[indexchr], ticksize = 0.01)
+    rug(simplepos, ticksize = 0.01)
 }
 
-
-
-
-
-
-
-
-
-
-
+pngCircleRegionA <- function() {
+    usr2pngCircle <- function(x, y, rr = 2, rmin = 4) {
+        xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+        r <- min(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
+        return(c(xyrc[1, 1], xyrc[1, 2], r))
+    } 
+    ccircle <- cbind(ccircle,
+                     mapply(usr2pngCircle, simplepos,
+                            logr))
+    return(ccircle)
+}
 
 
 pngCircleRegion <- function() {

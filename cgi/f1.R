@@ -60,14 +60,14 @@ doCheckpoint <- function(num) {
 }
 
 
-mpiSlaveMemClean <- function() {
-  cat("\n gc in slaves before delete \n")
-  mpi.remote.exec(gc())
-  mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
-  cat("\n gc in slaves after delete \n")
-  mpi.remote.exec(gc())
+## mpiSlaveMemClean <- function() {
+##   cat("\n gc in slaves before delete \n")
+##   mpi.remote.exec(gc())
+##   mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+##   cat("\n gc in slaves after delete \n")
+##   mpi.remote.exec(gc())
   
-}
+## }
 
 
 ##startExecTime <- format(Sys.time())
@@ -135,21 +135,21 @@ library(ADaCGH)
 ## we don't use MPI with PSW at the end
 library(Rmpi)
 
-MPI_MIN_UNIVERSE_SIZE <- 15
+## MPI_MIN_UNIVERSE_SIZE <- 15
 
-if (mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE) {
-  cat("\n\n mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE \n\n")
-  quit(save = "no", status = 11, runLast = TRUE)
-}
+## if (mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE) {
+##   cat("\n\n mpi.universe.size () < MPI_MIN_UNIVERSE_SIZE \n\n")
+##   quit(save = "no", status = 11, runLast = TRUE)
+## }
 
-try({
-  mpiInit()
-  cat("\n\nAbout to print mpiOK file\n")
-  sink(file = "mpiOK")
-  cat("MPI started OK\n")
-  sink()
-}
-    )
+## try({
+##   mpiInit()
+##   cat("\n\nAbout to print mpiOK file\n")
+##   sink(file = "mpiOK")
+##   cat("MPI started OK\n")
+##   sink()
+## }
+##    )
 ## } else { ## just because we need this for the controlling code
 ##     sink(file = "mpiOK")
 ##     cat("MPI started OK\n")
@@ -759,6 +759,10 @@ cat("*********************************************************************\n\n")
     sink()
 }
 
+numarrays <- ncol(xcenter)
+chromnum <- length(unique(positions.merge1$chromosome))
+
+
 doCheckpoint(1)
 
 cat("\n gc right after checkpoint 1 \n")
@@ -769,14 +773,20 @@ gc()
 #####################################################################
 options(warn = -1)
 
-### This all there is to execution itself
 
-  
+
+### Launch Rmpi as late as possible with only the minimum possible slaves
+
+
+### usar mecanismo generico que verifica si ese MPI se arranca bien
+### y si los de las gráficas se arrancan bien.
+### y si no, pues lanzar de nuevo el lamboot y el R
+### ese mecanismo en el mpiInit. si no rula, que se escriba algo al error
+### o a un fichero: MPIinitError. Y eso lo lee el recoverFromLAMCrash.py
+
+### meter lo de antes dentro de un checkpoint
 
 if(! (methodaCGH %in% c("PSW", "ACE"))) {
-
-
-
 
     if(checkpoint.num < 2) {
         if(!(exists("mergeRes"))) mergeRes <- TRUE
@@ -787,13 +797,25 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                   Start = positions.merge1$start,
                                   End = positions.merge1$end,
                                   MidPoint = positions.merge1$MidPoint)
-        ##save.image()
         doCheckpoint(2)
         cat("\n gc right after checkpoint 2 \n")
         print(gc())
-
     }
+
     if(checkpoint.num < 3) {
+        try({
+            if(methodaCGH != "CGHseg") {
+                mpiInit(universeSize = numarrays)
+            } else {
+                mpiInit(universeSize =
+                        min(numarrays * chromnum, mpi.universe.size()))
+            }
+            cat("\n\nAbout to print mpiOK file\n")
+            sink(file = "mpiOK")
+            cat("MPI started OK\n")
+            sink()
+        })
+        
         ymax <- max(as.matrix(xcenter))
         ymin <- min(as.matrix(xcenter))
         numarrays <- ncol(xcenter)
@@ -806,7 +828,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                        minDiff = Wave.minDiff)
                        )
         
-        mpiSlaveMemClean()
+        mpi.close.Rslaves()
         
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
@@ -827,7 +849,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                              MCR.recurrence = MCR.recurrence))
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
-        mpiSlaveMemClean()
         doCheckpoint(4)
         cat("\n gc right after checkpoint 4 \n")
         print(gc())
@@ -841,87 +862,18 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                    idtype = idtype,
                                    organism = organism,
                                    numarrays = numarrays))
-     
-### to minimize recomputing stuff if a crash, and to minimize copying of objects
-        ## we break down segmentPlot.
-#####         yminmax <- c(ymin, ymax)
-#####         geneLoc <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
-#####         original.pos <- 1
-#####         segment.pos <- 2
-#####         if (inherits(x, "CGHseg") |
-#####             (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged")))){
-#####             colors <- c(rep("orange", 3), "blue")
-#####         } else {
-#####             colors <- c("orange", "red", "green", "blue")
-#####         }
-#####         tmp_papout <-
-#####             papply(as.list(1:numarrays),
-#####                    function(z) {
-#####                        cat("\n Doing sample ", z, "\n")
-#####                        plot.adacgh.nonsuperimpose(res = res,
-#####                                                   chrom = cnum_slave,
-#####                                                   arraynum = z,
-#####                                                   main = arraynames[z],
-#####                                                   colors = colors,
-#####                                                   ylim = yminmax,
-#####                                                   geneNames = geneNames,
-#####                                                   idtype = idtype,
-#####                                                   organism = organism,
-#####                                                   geneLoc = pos_slave)
-#####                    },
-#####                    papply_commondata =
-#####                    list(res = segmres$segm,
-#####                         cnum_slave= segmres$chrom.numeric,
-#####                         arraynames = arrayNames,
-#####                         geneNames = geneNames,
-#####                         idtype = idtype,
-#####                         organism = organism,
-#####                         colors = colors,
-#####                         pos_slave = geneLoc))
-#####         ### I think the memory hole is here. passing x$segm!
-#####         ###  use mpi.bdcast to send only the needed object
-#####         ### can be used with papply. change the plot.adacgh.nosuperimpose
-#####         ### so it uses only the needed data
-#####         ### if passing arraynum assumes all data, otherwise
-#####         ### assumes only the given array
-
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         cat("\n\n Plotting done \n\n")
-
-        mpiSlaveMemClean()
-        
         cat("\n gc right after plotting \n")
         print(gc())
-        
         trythis <- try(writeResults(segmres,
                                     acghdata = as.matrix(xcenter),
                                     commondata = common.data))
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         doCheckpoint(5)
-        
     }
-    
-##         SegmentPlotWrite(as.matrix(xcenter),
-##                          chrom = positions.merge1$chrom.numeric,
-##                          mergeSegs = mergeRes,
-##                          Pos = positions.merge1$MidPoint,
-##                          idtype = idtype,
-##                          organism = organism,
-##                          method = methodaCGH,
-##                          geneNames = positions.merge1$name,
-##                          commondata = common.data, ## zz?
-##                          MCR.gapAllowed = MCR.gapAllowed,
-##                          MCR.alteredLow = MCR.alteredLow,
-##                          MCR.alteredHigh = MCR.alteredHigh,
-##                          MCR.recurrence = MCR.recurrence)
-
-        
-## ##        save.image()
-##         doCheckpoint(3)
-##         quit()
-##     }
 } else if(methodaCGH == "PSW") {
 #######################################################
 #######################################################
@@ -949,11 +901,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
     }
 
     if(checkpoint.num < 3) {
-
-
-        Sys.time()
-        Sys.sleep(5)
-
+        mpiInit(universeSize = numarrays)
         ## Gains
         trythis <- try({
             out.gains <-
@@ -964,39 +912,21 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                             nIter = PSW.nIter,
                             prec = 100,
                             name = "Gains.")
-            ## FIXME: what is the global workspace here like?? zzz
-            save.image()
             save(file = "in.out.gains.RData", list = ls())
             cat("\n ************ done segmentation positive \n")
-            save.image()
-
-            Sys.time()
-            Sys.sleep(5)
-
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (positive) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        mpiSlaveMemClean()
         writeResults(out.gains, commondata = common.data,
                      file = "Gains.Price.Smith.Waterman.results.txt")
-
-## algún problema aquí de permisos?? o directorios q no existen?? zz
-### FIXME: how is it possible that this checkpoint does not save a shit?zz
-        Sys.time()
-        Sys.sleep(5)
-
         doCheckpoint(3)
     }
     if(checkpoint.num < 4) {
-        Sys.time()
-        Sys.sleep(5)
-        
+
+        mpiInit(universeSize = numarrays) ## zz: ojo: solo si no exites
         print("testing existence of indicator before losses")
         print(exists(".__ADaCGH_WEB_APPL"))
-
-        save(file = "pre.out.losses.RData", list = ls())
-
         ## Losses
         trythis <- try({
             out.losses <-
@@ -1007,47 +937,24 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                             nIter = PSW.nIter,
                             prec = 100,
                             name = "Losses.")
-            save.image()
             cat("\n ************ done segmentation negative \n")
-            save(file = "in.out.losses.RData", list = ls())
-            save.image()
-            
-        Sys.time()
-        Sys.sleep(5)
-
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentPSW (negative) bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        mpiSlaveMemClean()
         writeResults(out.losses, commondata = common.data,
                      file = "Losses.Price.Smith.Waterman.results.txt")
-        
         save(file = "PSW.RData", list = ls(all.names = TRUE))
         ADaCGH:::PSWtoPaLS()
-        Sys.time()
-        Sys.sleep(5)
-
         doCheckpoint(4)
     }
     if(checkpoint.num < 5) {
-        Sys.time()
-        Sys.sleep(5)
-
-##         try(mpi.exit()) ## now papply0 is called inside segmentPlot
         segmentPlot(out.gains, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
-
-        Sys.time()
-        Sys.sleep(5)
-        mpiSlaveMemClean()
         segmentPlot(out.losses, geneNames = positions.merge1$name,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
-        Sys.time()
-        Sys.sleep(5)
-        mpiSlaveMemClean()
         doCheckpoint(5)
         quit()
     }
@@ -1103,7 +1010,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             caughtOurError(paste("Function writeResults.summary.ACE.summary bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
         
-        mpiSlaveMemClean()
         ## re-hack. or re-do the kuldge:
         if(is.null(dim(xcenter))) {
             xcenter <- matrix(xcenter, ncol = 1)
@@ -1138,7 +1044,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             caughtOurError(paste("Error in ACE plots  with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
         save(file = "ace.RData", list = ls())
-        mpiSlaveMemClean()
         doCheckpoint(3)
         quit()
     }

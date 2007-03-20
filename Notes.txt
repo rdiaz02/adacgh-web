@@ -1,0 +1,22 @@
+- checkdone.cgi: a purely browser driven mechanism. It also means that
+  certain actions never done unless trigered by the browser; anoying.
+
+- causes of R stopping:
+  1. done
+  2. undetermined crash
+  3. MPI errors: 
+     3.1 LAM/MPI itself
+     3.2 Rmpi
+
+  In 1. and 2. we want to return. In 3. we want to keep trying.
+
+
+
+- we could alternatively have a refresh that only shows results.html
+
+- another mechanism which handles everything else. It keeps running
+  forever until it is done (1., 2., or enough of 3.). Danger is that it
+  might fail accidentally and no way to recover it? (could use a cgi, that
+  just displays the html and checks the checker is running).
+
+- this other mechanism is the one to launch the very first R process too.

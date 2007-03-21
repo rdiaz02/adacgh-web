@@ -396,7 +396,6 @@ segmentPlot <- function(x, geneNames,
                         organism = "Hs",
                         yminmax = NULL,
                         numarrays = NULL,
-                        controlMPI = TRUE,
                         ...) {
     if(is.null(numarrays)) {
         if(!is.null(arraynames)) numarrays <- length(arraynames)
@@ -433,10 +432,10 @@ segmentPlot <- function(x, geneNames,
             l1[[i]]$res <- x$segm[[i]]
             l1[[i]]$mainname <- arraynames[i]
         }
-        if(controlMPI) {
-            try(mpi.close.Rslaves())
-            mpiInit(universeSize = numarrays)
-        }
+##         if(controlMPI) {
+##             try(mpi.close.Rslaves())
+##             mpiInit(universeSize = numarrays)
+##         }
         tmp_papout <-
             papply(l1,
                    function(z) {
@@ -462,17 +461,17 @@ segmentPlot <- function(x, geneNames,
                         yminmax = yminmax))
         cat("\n gc after plot.adacgh.nonsuperimpose \n")
         print(gc())
-        if(controlMPI) {
-            mpi.close.Rslaves()
-            mpiInit(universeSize = length(unique(positions.merge1$chromosome)))
-        }
+##         if(controlMPI) {
+##             mpi.close.Rslaves()
+##             mpiInit(universeSize = length(unique(positions.merge1$chromosome)))
+##         }
         plot.cw.superimpA(x$segm, x$chrom.numeric,  geneNames = geneNames,
                              main = "All_arrays",
                              colors = colors,
                              ylim= yminmax,
                              idtype = idtype, organism = organism,
                              geneLoc = geneLoc)
-        if(controlMPI) mpi.close.Rslaves()
+##         if(controlMPI) mpi.close.Rslaves()
         cat("\n gc after plot.cw.superimpose \n")
         print(gc())
 
@@ -501,10 +500,10 @@ segmentPlot <- function(x, geneNames,
             l1[[i]]$chrom <- x$plotData[[i]]$chrom
             l1[[i]]$arrayname <- arraynames[i]
         }
-        if(controlMPI){
-            try(mpi.close.Rslaves())
-            mpiInit(universeSize = numarrays)
-        }
+##         if(controlMPI){
+##             try(mpi.close.Rslaves())
+##             mpiInit(universeSize = numarrays)
+##         }
         tmp_papout <-
             papply(l1,
                    function(z) {
@@ -527,7 +526,7 @@ segmentPlot <- function(x, geneNames,
                    geneNames = geneNames,
                    idtype = idtype,
                    organism = organism))
-        if(controlMPI) mpi.close.Rslaves()
+##         if(controlMPI) mpi.close.Rslaves()
     } else {
         stop("No plotting for this class of objects")
     }
@@ -2967,9 +2966,14 @@ mapCloseAndPythonChromA <- function() {
           sep ="\t", ncolumns = 3)
     calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
     if(!exists("arraynums")) arraynums <- 1
-    if(calcnarrays != arraynums)
+    if(calcnarrays != arraynums) {
+        cat("\n calcnarrays ", calcnarrays)
+        cat("\n arraynums ", arraynums)
+        cat("\n ncol(ccircle) ", ncol(ccircle))
+        cat("\n length((geneNames[indexchr]) ", length(geneNames[indexchr]))
+        cat("\n length(indexchr) ", length(indexchr), "\n")
         stop("Serious problem: number of arrays does not match")
-    
+    }
     write(rep(as.character(geneNames[indexchr]), arraynums), 
           file = paste("geneNamesChr_", nameChrIm, sep = ""))
     imClose(im2)

@@ -241,7 +241,7 @@ def relaunchCGI():
 def printErrorRun():
     Rresults = open(tmpDir + "/results.txt")
     resultsFile = Rresults.read()
-    errormsg = open(tmpDir + "/error.msg").read()
+    errormsg = open(tmpDir + "/Status.msg").read()
     outf = open(tmpDir + "/pre-results.html", mode = "w")
     outf.write("<html><head><title>ADaCGH results </title></head><body>\n")
     outf.write("<h1> ERROR: There was a problem with the R code </h1> \n")
@@ -587,7 +587,7 @@ def did_lam_crash(tmpDir, machine_root = 'karl'):
     OTHER_LAM_MSGS = 'Call stack within LAM:'
     lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
     in_error_msg = int(os.popen('grep MPI_Error_string ' + \
-                                tmpDir + '/error.msg | wc').readline().split()[0])
+                                tmpDir + '/Status.msg | wc').readline().split()[0])
     if in_error_msg > 0:
         for lam_log in lam_logs:
             os.system('rm ' + lam_log)
@@ -616,7 +616,7 @@ def del_mpi_logs(tmpDir, machine_root = 'karl'):
     """ Delete logs from LAM/MPI."""
     lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
     try:
-        os.system('rm ' + tmpDir + '/error.msg')
+        os.system('rm ' + tmpDir + '/Status.msg')
     except:
         None
     try:

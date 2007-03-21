@@ -780,13 +780,24 @@ options(warn = -1)
 ### Launch Rmpi as late as possible with only the minimum possible slaves
 
 
-### usar mecanismo generico que verifica si ese MPI se arranca bien
-### y si los de las gráficas se arrancan bien.
-### y si no, pues lanzar de nuevo el lamboot y el R
-### ese mecanismo en el mpiInit. si no rula, que se escriba algo al error
-### o a un fichero: MPIinitError. Y eso lo lee el recoverFromLAMCrash.py
+try({
+    if(methodaCGH != "CGHseg") {
+        mpiInit(universeSize = min(max(numarrays, chromnum),
+                mpi.universe.size()))
+    } else {
+        mpiInit(universeSize =
+                min(numarrays * chromnum, mpi.universe.size()))
+    }
+    cat("\n\nAbout to print mpiOK file\n")
+    sink(file = "mpiOK")
+    cat("MPI started OK\n")
+    sink()
+})
 
-### meter lo de antes dentro de un checkpoint
+
+
+
+
 
 if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
@@ -805,18 +816,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
     }
 
     if(checkpoint.num < 3) {
-        try({
-            if(methodaCGH != "CGHseg") {
-                mpiInit(universeSize = numarrays)
-            } else {
-                mpiInit(universeSize =
-                        min(numarrays * chromnum, mpi.universe.size()))
-            }
-            cat("\n\nAbout to print mpiOK file\n")
-            sink(file = "mpiOK")
-            cat("MPI started OK\n")
-            sink()
-        })
         
         ymax <- max(as.matrix(xcenter))
         ymin <- min(as.matrix(xcenter))
@@ -829,8 +828,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                        mergeSegs = mergeSegs,
                                        minDiff = Wave.minDiff)
                        )
-        
-        mpi.close.Rslaves()
         
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
@@ -903,7 +900,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
     }
 
     if(checkpoint.num < 3) {
-        mpiInit(universeSize = numarrays)
         ## Gains
         trythis <- try({
             out.gains <-
@@ -926,7 +922,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
     }
     if(checkpoint.num < 4) {
 
-        mpiInit(universeSize = numarrays) ## zz: ojo: solo si no exites
         print("testing existence of indicator before losses")
         print(exists(".__ADaCGH_WEB_APPL"))
         ## Losses
@@ -980,7 +975,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
-        mpiSlaveMemClean()
         ##save.image()
         doCheckpoint(2)
     }

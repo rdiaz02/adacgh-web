@@ -129,34 +129,34 @@ def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.bioinfo.cnio.es
 
 
 
-def pdf2html(rootname, tmpDir, outf, maxsthumb = 350):
-    """ From a multipage pdf obtain jpegs; the thumbnails are
-    inserted in the webpage, the large jpeg viewed on clik.
-    rootname is all the stuff before the `pdf',
-    tmpDir is the directory where the files live, maxsthumb
-    max size of thumbnail and outf the html file.
-    We also decrease the size of the jpeg for showing.
-    Finally, we add the generated jpeg to the compressed file"""
+# def pdf2html(rootname, tmpDir, outf, maxsthumb = 350):
+#     """ From a multipage pdf obtain jpegs; the thumbnails are
+#     inserted in the webpage, the large jpeg viewed on clik.
+#     rootname is all the stuff before the `pdf',
+#     tmpDir is the directory where the files live, maxsthumb
+#     max size of thumbnail and outf the html file.
+#     We also decrease the size of the jpeg for showing.
+#     Finally, we add the generated jpeg to the compressed file"""
 
-    mst = str(maxsthumb)
-    mst2 = str(1600)
-    os.chdir(tmpDir)
-    os.system('/usr/bin/pdftoppm ' + rootname + '.pdf tmpppms')
-    tmps = glob.glob('tmpppms*.ppm')
-    for fignum in range(len(tmps)):
-        os.system('/usr/bin/ppmtojpeg ' + tmps[fignum] + ' > ' + rootname + '.'
-                  + str(fignum + 1) + '.jpeg')
-        os.system('/usr/bin/convert -size ' + mst + 'x' +
-                  mst + ' ' + rootname + '.' + str(fignum + 1) + '.jpeg' +
-                  ' -resize ' + mst + 'x' + mst + ' thumb.' + rootname + '.'
-                  + str(fignum + 1) + '.jpeg')
-        os.system('/usr/bin/convert ' + rootname + '.' + str(fignum + 1) + '.jpeg' +
-                  ' -resize ' + mst2 + 'x' + mst2 + ' ' + rootname + '.'
-                  + str(fignum + 1) + '.jpeg')
-        outf.write('<a href="' + rootname + '.' + str(fignum + 1) +
-                   '.jpeg"> <img src="' + 'thumb.' + rootname + '.'
-                  + str(fignum + 1) + '.jpeg"></a>\n')
-    os.chdir('/http/adacgh2/cgi')
+#     mst = str(maxsthumb)
+#     mst2 = str(1600)
+#     os.chdir(tmpDir)
+#     os.system('/usr/bin/pdftoppm ' + rootname + '.pdf tmpppms')
+#     tmps = glob.glob('tmpppms*.ppm')
+#     for fignum in range(len(tmps)):
+#         os.system('/usr/bin/ppmtojpeg ' + tmps[fignum] + ' > ' + rootname + '.'
+#                   + str(fignum + 1) + '.jpeg')
+#         os.system('/usr/bin/convert -size ' + mst + 'x' +
+#                   mst + ' ' + rootname + '.' + str(fignum + 1) + '.jpeg' +
+#                   ' -resize ' + mst + 'x' + mst + ' thumb.' + rootname + '.'
+#                   + str(fignum + 1) + '.jpeg')
+#         os.system('/usr/bin/convert ' + rootname + '.' + str(fignum + 1) + '.jpeg' +
+#                   ' -resize ' + mst2 + 'x' + mst2 + ' ' + rootname + '.'
+#                   + str(fignum + 1) + '.jpeg')
+#         outf.write('<a href="' + rootname + '.' + str(fignum + 1) +
+#                    '.jpeg"> <img src="' + 'thumb.' + rootname + '.'
+#                   + str(fignum + 1) + '.jpeg"></a>\n')
+#     os.chdir('/http/adacgh2/cgi')
 
 
 

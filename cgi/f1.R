@@ -1,4 +1,3 @@
-
 ####  Copyright (C) 2005, 2006, 2007, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 
 #### This program is free software; you can redistribute it and/or
@@ -765,6 +764,11 @@ cat("*********************************************************************\n\n")
 numarrays <- ncol(xcenter)
 chromnum <- length(unique(positions.merge1$chromosome))
 
+if(!(exists("mergeRes"))) mergeRes <- TRUE
+if(mergeRes == "Yes") mergeRes <- TRUE
+if(mergeRes == "No") mergeRes <- FALSE
+
+
 
 doCheckpoint(1)
 
@@ -803,9 +807,6 @@ try({
 if(! (methodaCGH %in% c("PSW", "ACE"))) {
 
     if(checkpoint.num < 2) {
-        if(!(exists("mergeRes"))) mergeRes <- TRUE
-        if(mergeRes == "Yes") mergeRes <- TRUE
-        if(mergeRes == "No") mergeRes <- FALSE
         common.data <- data.frame(ID = positions.merge1$name,
                                   Chromosome = positions.merge1$chromosome,
                                   Start = positions.merge1$start,
@@ -826,7 +827,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                        segmres <- fseg(as.matrix(xcenter),
                                        chrom.numeric = positions.merge1$chrom.numeric,
                                        Pos = positions.merge1$MidPoint,
-                                       mergeSegs = mergeSegs,
+                                       mergeSegs = mergeRes,
                                        minDiff = Wave.minDiff)
                        )
         
@@ -858,6 +859,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                        segmentPlot(segmres, geneNames = positions.merge1$name,
                                    chrom.numeric = positions.merge1$chrom.numeric,
                                    cghdata = NULL,
+                                   arraynames = arrayNames,
                                    yminmax = c(ymin, ymax),
                                    idtype = idtype,
                                    organism = organism,
@@ -949,8 +951,10 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
     if(checkpoint.num < 5) {
         segmentPlot(out.gains, geneNames = positions.merge1$name,
                     cghdata = xcenter,
+                    arraynames = arrayNames,
                     idtype = idtype, organism = organism)
         segmentPlot(out.losses, geneNames = positions.merge1$name,
+                    arraynames = arrayNames,
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
         doCheckpoint(5)
@@ -970,8 +974,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         }
         
         trythis <- try(
-                       ACE.object <- pSegmentACE(as.matrix(xcenter),
-                                                 chrom.numeric = positions.merge1$chrom.numeric)
+                       ACE.object <-  pSegmentACE(as.matrix(xcenter),
+                                                  chrom.numeric = positions.merge1$chrom.numeric)
                        )
         if(class(trythis) == "try-error")
             caughtOurError(paste("Function pSegmentACE bombed unexpectedly with error",
@@ -1035,6 +1039,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                         chrom.numeric = positions.merge1$chrom.numeric,
                         geneNames = positions.merge1$name,
                         cghdata = xcenter,
+                        arraynames = arrayNames,
                         idtype = idtype, organism = organism)
         })
         if(class(trythis) == "try-error")

@@ -570,15 +570,15 @@ def Rrun(tmpDir, lamSuffix):
 def status_run(tmpDir):
     """ Read Status.msg and return status."""
     status_r = open(tmpDir + '/Status.msg').read()
-    if status_r.endswith('Normal termination\n'):
+    if status_r.find('Normal termination\n') > -1:
         return('FinishedOK')
-    if status_r.endswith('Execution halted\n'):
+    if status_r.find('Execution halted\n') > -1:
         return('Halted')
-    if status_r.endswith('Running\n'):
+    if status_r.find('Running\n') > -1:
         return('Running')
-    if status_r.endswith('Rmpi error\n'):
+    if status_r.find('Rmpi error\n') > -1:
         return('Error_mpi')
-    if status_r.endswith('Run out of time; killed\n'):
+    if status_r.find('Run out of time; killed\n') > -1:
         return('Out_of_time')
 
 

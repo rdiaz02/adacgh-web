@@ -2901,9 +2901,9 @@ plot.cw.superimpA <- function(res, chrom,
         datalist[[cnum]]$thiscn <- chrom.nums[cnum]
         datalist[[cnum]]$resl <- lapply(res, function(w) w[indexchr, ])
         if(!is.null(geneLoc))
-            datalist[[cnumm]]$posn <- geneLoc[indexchr]
+            datalist[[cnum]]$posn <- geneLoc[indexchr]
         else
-            datalist[[cnumm]]$posn <- NULL
+            datalist[[cnum]]$posn <- NULL
     }
     pappl_common <- list(arraynums = arraynums, nameImage = main,
                          geneNames = geneNames)
@@ -2918,9 +2918,9 @@ plot.cw.superimpA <- function(res, chrom,
         im2 <- mapChromOpenA()
         nfig <- 1
         for(arraynum in 1:arraynums) { ## first, plot the points
-            logr <- z[[arraynum]]$resl[, 1]
-            res.dat <- z[[arraynum]]$resl[, 3]
-            smoothdat <- z[[arraynum]]$resl[, 2]
+            logr <- z$resl[[arraynum]][, 1]
+            res.dat <- z$resl[[arraynum]][, 3]
+            smoothdat <- z$resl[[arraynum]][, 2]
             col <- rep(colors[1],length(res.dat))
             col[which(res.dat == -1)] <- colors[3]
             col[which(res.dat == 1)] <- colors[2]

@@ -279,6 +279,7 @@ MCR.alteredLow <- try(scan("MCR.alteredLow", what = double(0), n = 1))
 MCR.alteredHigh <- try(scan("MCR.alteredHigh", what = double(0), n = 1))
 MCR.recurrence <- try(scan("MCR.recurrence", what = double(0), n = 1))
 
+Wave.minDiff <- NULL
 
 
 if (methodaCGH == "Wavelets") {
@@ -822,14 +823,14 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         ymax <- max(as.matrix(xcenter))
         ymin <- min(as.matrix(xcenter))
         numarrays <- ncol(xcenter)
-        fseg <- get(paste("pSegment", methodaCGH, sep = ""))
-        trythis <- try(
-                       segmres <- fseg(as.matrix(xcenter),
+        trythis <- try({Wave.minDiff
+                        fseg <- get(paste("pSegment", methodaCGH, sep = ""))
+                        segmres <- fseg(as.matrix(xcenter),
                                        chrom.numeric = positions.merge1$chrom.numeric,
                                        Pos = positions.merge1$MidPoint,
                                        mergeSegs = mergeRes,
-                                       minDiff = Wave.minDiff)
-                       )
+                                       minDiff = force(Wave.minDiff))
+                       })
         
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)

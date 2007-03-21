@@ -254,13 +254,14 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
             klist <- klist + 1
         }
     }
-    
+    thismdiff <- if(mergeSegs) minMergeDiff else minDiff
+    force(thismdiff)
     funwv <- function(ratio) {
         wc   <- modwt(ratio, "haar", n.levels=thrLvl)
         thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
         recH <- imodwt(thH)
         ## cluster levels
-        pred.ij <- segmentW(ratio, recH, minDiff=minDiff,
+        pred.ij <- segmentW(ratio, recH, minDiff=miDiff,
                             n.levels = initClusterLevels)
         labs <- as.character(1:length(unique(pred.ij)))
         state <- as.integer(factor(pred.ij, labels=labs))
@@ -270,7 +271,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
     }
     out0 <- papply(datalist, funwv,
                    papply_commondata =list(thrLvl = thrLvl,
-                   minDiff = if(mergeSegs) minMergeDiff else minDiff))
+                   miDiff = force(thismdiff)))
 
     ## list with one entry per array
     out <- list()

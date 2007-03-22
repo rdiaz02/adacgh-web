@@ -238,10 +238,10 @@ def relaunchCGI():
     
 
 ## Output-generating functions
-def printErrorRun():
+def printErrorRun(errorfile):
     Rresults = open(tmpDir + "/results.txt")
     resultsFile = Rresults.read()
-    errormsg = open(tmpDir + "/Status.msg").read()
+    errormsg = open(errorfile).read()
     outf = open(tmpDir + "/pre-results.html", mode = "w")
     outf.write("<html><head><title>ADaCGH results </title></head><body>\n")
     outf.write("<h1> ERROR: There was a problem with the R code </h1> \n")
@@ -582,6 +582,25 @@ def status_run(tmpDir):
         return('Out_of_time')
 
 
+def did_R_crash_in_slaves(tmpDir, machine_root = 'karl'):
+    """ Verify whether R crashed in any of the slaves by
+    checking lam logs."""
+    R_LAM_MSGS = 'Error:  Error in'
+    lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
+    in_lam_logs = 0
+    for lam_log in lam_logs:
+        tmp1 = int(os.popen('grep "' + R_LAM_MSGS + '" ' + \
+                            lam_log + ' | wc').readline().split()[0])
+        if tmp1 > 0:
+            in_lam_logs = 1
+            break
+    if in_lam_logs > 0:
+        return True, lam_log
+    else:
+        return False, 'NA'
+
+
+
 def did_lam_crash(tmpDir, machine_root = 'karl'):
     """ Verify whether LAM/MPI crashed by checking logs."""
     OTHER_LAM_MSGS = 'Call stack within LAM:'
@@ -638,7 +657,7 @@ def did_run_out_of_time(tmpDir, R_MAX_time):
                            
 
 def cleanups(tmpDir, newDir, newnamepid, appl = 'adacgh2'):
-    """ Clean up actions; kill lam, deleted running.procs files."""
+    """ Clean up actions; kill lam, delete running.procs files."""
     lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
     rinfo = open(tmpDir + '/current_R_proc_info', mode = 'r').readline().split()
     try:
@@ -760,7 +779,12 @@ while True:
     elif halted(tmpDir):
         issue_echo('halted', tmpDir)
         cleanups(tmpDir, newDir, 'natural.death.pid.txt')
-        printErrorRun()
+        printErrorRun(tmpDir + '/Status.msg')
+        break
+    elif did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[0]:
+        issue_echo('R crash in slaves', tmpDir)
+        cleanups(tmpDir, newDir, 'natural.death.pid.txt')
+        printErrorRun(did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[1])
         break
     elif master_out_of_time(time_start):
         issue_echo('master out of time', tmpDir)

@@ -703,7 +703,8 @@ def master_out_of_time(time_start):
         return False
         
 
-def my_queue(MAX_SIMUL_RSLAVES = 6,
+def my_queue(MAX_SIMUL_RSLAVES = 4,
+             MAX_SIMUL_LAMD = 3, 			       
              CHECK_QUEUE = 120,
              MAX_DURATION_TRY = 5 * 3600):
     """ Wait here until the number of slaves is smaller than
@@ -719,9 +720,14 @@ def my_queue(MAX_SIMUL_RSLAVES = 6,
             break
         time.sleep(random.uniform(0, 2)) ## to prevent truly simultaneous from crashing MPI
         num_rslaves = int(os.popen('pgrep Rslaves.sh | wc').readline().split()[0])
-        if num_rslaves < MAX_SIMUL_RSLAVES:
+        num_lamd = int(os.popen('pgrep lamd | wc').readline().split()[0])
+        if (num_rslaves < MAX_SIMUL_RSLAVES) and (num_lamd < MAX_SIMUL_LAMD):
+	    issue_echo('     OK, run:  num_rslaves = ', str(num_rslaves))
+	    issue_echo('     OK, run:  num_lamd = ', str(num_lamd))
             break
         else:
+	    issue_echo('     Wait:  num_rslaves = ', str(num_rslaves))
+	    issue_echo('     Wait:  num_lamd = ', str(num_lamd))
             time.sleep(CHECK_QUEUE)
 
 def generate_lam_suffix(tmpDir):
@@ -758,6 +764,11 @@ if check_room == 'Failed':
     sys.exit()
     
 lamboot(lamSuffix)
+check_room = my_queue()
+issue_echo('after my_queue', tmpDir)
+if check_room == 'Failed':
+    printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
+    sys.exit()
 Rrun(tmpDir, lamSuffix)
         
 time_start = time.time()

@@ -660,6 +660,21 @@ if(is.null(dim(xcenter))) xcenter <- matrix(xcenter, ncol = 1)
 
 
 
+### Checking not weird data
+if(min(xcenter) < -1000)
+    caughtUserError("The minimum value is < -1000; \n there is likely an error with the data (this would mean \n that the log2 ratio is < -1000 !!!)")
+
+if(max(xcenter) > 1000)
+    caughtUserError("The maximum value is > 1000; \n there is likely an error with the data (this would mean \n that the log2 ratio is > 1000 !!!)")
+
+if(quantile(xcenter, 0.25) < -300)
+    caughtUserError("At least 25 % of your vales are below < -300; \n there is likely an error with the data (this would mean \n that you have many values with log2 ratio is < -300 !!!)")
+
+if(quantile(xcenter, 0.75) > 300)
+    caughtUserError("At least 25 % of your vales are larger > 300; \n there is likely an error with the data (this would mean \n that you have many values with log2 ratio >  300 !!!)")
+
+
+
 means <- apply(xcenter, 2, mean)
 medians <- apply(xcenter, 2, median)
 mads <- apply(xcenter, 2, mad)

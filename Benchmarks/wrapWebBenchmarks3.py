@@ -4,22 +4,28 @@ import os
 import sys
 import time
 
-NUM_USERS = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-             5, 5,
-             10,
-             20)
+NUM_USERS = (20, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+             5, 5)
 ##             50)
 
 
 TESTS = (
+    'CGHseg_medium',
+    'Wavelets_medium',
+    'CBS_medium',
+    'HMM_medium',
+    'GLAD_medium',
+    'CGHseg_small',
+    'Wavelets_small',
     'CBS_small',
     'HMM_small',
     'GLAD_small',
-    'Wavelets_small',
+    'CGHseg_large',
+    'Wavelets_large',
     'CBS_large',
     'HMM_large',
-    'GLAD_large',
-    'Wavelets_large')
+    'GLAD_large'
+)
 
 def launchUTests(test, users):
     t = [-99999 for i in range(users)]
@@ -50,8 +56,7 @@ def writeFile(testout, name):
     fout.close()
     
 
-SUFFIX = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 1, 1, 1)
-SUFFIX = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 1, 1)
+SUFFIX = (1, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2)
 kwd = zip(NUM_USERS, SUFFIX)
 
 # TESTS = (
@@ -60,16 +65,17 @@ kwd = zip(NUM_USERS, SUFFIX)
 #     'GLAD_small',
 #     'Wavelets_small')
 
-# for test in TESTS:
-#     for ks in kwd:
-#         nu = ks[0]
-#         timings = -99
-#         try:
-#             timings = launchUTests(test, nu)
-#         except:
-#             None
-#         writeFile(timings, 'web.bnchmk3.' + test + '_' + \
-#                   str(nu) + '.' + str(ks[1]) + '.txt')
+for test in TESTS:
+    for ks in kwd:
+        nu = ks[0]
+        timings = -99
+        try:
+            timings = launchUTests(test, nu)
+        except:
+            None
+        writeFile(timings, 'web.bnchmk5.' + test + '_' + \
+                  str(nu) + '.' + str(ks[1]) + '.txt')
+
 
 # test = 'CGHseg_small'
 # for ks in kwd:
@@ -99,38 +105,38 @@ kwd = zip(NUM_USERS, SUFFIX)
 #                   str(nu) + '.' + str(ks[1]) + '.txt')
 
 
-test = 'CGHseg_medium'
-SUFFIX = (1, 2, 1, 1)
-NUM_USERS = (5, 5, 10, 20)
-kwd = zip(NUM_USERS, SUFFIX)
+# test = 'CGHseg_medium'
+# SUFFIX = (1, 2, 1, 1)
+# NUM_USERS = (5, 5, 10, 20)
+# kwd = zip(NUM_USERS, SUFFIX)
 
-for ks in kwd:
-    nu = ks[0]
-    timings = -99
-    try:
-        timings = launchUTests(test, nu)
-    except:
-        None
-    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
-              str(nu) + '.' + str(ks[1]) + '.txt')
-
-
+# for ks in kwd:
+#     nu = ks[0]
+#     timings = -99
+#     try:
+#         timings = launchUTests(test, nu)
+#     except:
+#         None
+#     writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+#               str(nu) + '.' + str(ks[1]) + '.txt')
 
 
-SUFFIX = (1, 2, 1, 1)
-NUM_USERS = (5, 5, 10, 20)
-kwd = zip(NUM_USERS, SUFFIX)
 
-test = 'Wavelets_medium'
-for ks in kwd:
-    nu = ks[0]
-    timings = -99
-    try:
-        timings = launchUTests(test, nu)
-    except:
-        None
-    writeFile(timings, 'web.bnchmk3.' + test + '_' + \
-              str(nu) + '.' + str(ks[1]) + '.txt')
+
+# SUFFIX = (1, 2, 1, 1)
+# NUM_USERS = (5, 5, 10, 20)
+# kwd = zip(NUM_USERS, SUFFIX)
+
+# test = 'Wavelets_medium'
+# for ks in kwd:
+#     nu = ks[0]
+#     timings = -99
+#     try:
+#         timings = launchUTests(test, nu)
+#     except:
+#         None
+#     writeFile(timings, 'web.bnchmk3.' + test + '_' + \
+#               str(nu) + '.' + str(ks[1]) + '.txt')
 
 
 

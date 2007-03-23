@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
-
 ## All this code is copyright Ramon Diaz-Uriarte.
 ## Released under the Affero GPL.
-
 
 import sys
 import os
@@ -13,6 +11,7 @@ import shutil
 import glob
 import random
 import socket
+import fcntl
 
 sys.path = sys.path + ['/http/mpi.log']
 
@@ -30,8 +29,15 @@ MAX_MPI_CRASHES = 20
 tmpDir = sys.argv[1]
 ROOT_TMP_DIR = "/http/adacgh2/www/tmp/"
 newDir = tmpDir.replace(ROOT_TMP_DIR, "")
+procTable = tmpDir.split('/tmp/')[0] + '/R.running.procs/procTable'
 
-
+## Must ensure the procTable exists and has a valid value
+if not os.path.exists(procTable):
+    fo = open(procTable, mode = 'w')
+    fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
+    fo.write('0')
+    fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
+    fo.close()
 
 
 def collectZombies(k = 10):
@@ -703,8 +709,50 @@ def master_out_of_time(time_start):
         return False
         
 
-def my_queue(MAX_SIMUL_RSLAVES = 4,
-             MAX_SIMUL_LAMD = 3, 			       
+    
+
+import fcntl, cPickle
+# open in update mode
+fo = open('somefile.pickle', 'r+')
+# acquire an exclusive lock; any other process trying to acquire this
+# will block
+fcntl.lockf(fo.fileno(), fcntl.LOCK_EX)
+data = cPickle.load(fo)
+.... do stuff to data ...
+# go back to the beginning
+fo.seek(0)
+# write out the new pickle
+cPickle.dump(data, fo)
+# throw the rest of the (old) pickle away
+fo.truncate()
+# and close. This releases the lock.
+fo.close()
+
+    cf = open('/http/mpi.log/ApplicationCounter', mode = 'a')
+    fcntl.flock(cf.fileno(), fcntl.LOCK_SH)
+    cf.write(outstr)
+    fcntl.flock(cf.fileno(), fcntl.LOCK_UN)
+    cf.close()
+
+
+
+def add_to_proc_table(max_num_procs = 2, add_procs = 1):
+    fo = open(procTable, mode = 'r+')
+    fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
+    currentProcs = int(fo.read())
+    if currentProcs >= max_num_procs:
+        fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
+        fo.close()
+        return 'Failed'
+    else:
+        fo.write(str(currentProcs + add_procs))
+        fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
+        fo.close()
+        return 'OK'
+
+def my_queue(MAX_SIMUL_LAMD = 3,
+             MAX_NUM_PROCS = 2,
+             ADD_PROCS = 1,
              CHECK_QUEUE = 120,
              MAX_DURATION_TRY = 5 * 3600):
     """ Wait here until the number of slaves is smaller than
@@ -718,16 +766,17 @@ def my_queue(MAX_SIMUL_RSLAVES = 4,
         if (time.time() - startTime) > MAX_DURATION_TRY:
             out_value = 'Failed'
             break
-        time.sleep(random.uniform(0, 2)) ## to prevent truly simultaneous from crashing MPI
-        num_rslaves = int(os.popen('pgrep Rslaves.sh | wc').readline().split()[0])
         num_lamd = int(os.popen('pgrep lamd | wc').readline().split()[0])
-        if (num_rslaves < MAX_SIMUL_RSLAVES) and (num_lamd < MAX_SIMUL_LAMD):
-	    issue_echo('     OK, run:  num_rslaves = ', str(num_rslaves))
-	    issue_echo('     OK, run:  num_lamd = ', str(num_lamd))
-            break
+        if num_lamd < MAX_SIMUL_LAMD:
+            procTableAdd = add_to_proc_table(MAX_NUM_PROCS, ADD_PROCS)
+            if procTableAdd == 'OK':
+                issue_echo('     procTable OK; num_lamd = ', str(num_lamd))
+                break
+            else:
+                issue_echo('     procTable wait; num_lamd = ', str(num_lamd))
+                time.sleep(CHECK_QUEUE)
         else:
-	    issue_echo('     Wait:  num_rslaves = ', str(num_rslaves))
-	    issue_echo('     Wait:  num_lamd = ', str(num_lamd))
+	    issue_echo('     num_lamd wait:  num_lamd = ', str(num_lamd))
             time.sleep(CHECK_QUEUE)
 
 def generate_lam_suffix(tmpDir):

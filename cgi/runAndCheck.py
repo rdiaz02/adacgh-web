@@ -11,7 +11,7 @@ import shutil
 import glob
 import random
 import socket
-import fcntl
+##import fcntl
 
 sys.path = sys.path + ['/http/mpi.log']
 import counterApplications
@@ -25,15 +25,16 @@ MAX_MPI_CRASHES = 20
 tmpDir = sys.argv[1]
 ROOT_TMP_DIR = "/http/adacgh2/www/tmp/"
 newDir = tmpDir.replace(ROOT_TMP_DIR, "")
-procTable = tmpDir.split('/tmp/')[0] + '/R.running.procs/procTable'
+runningProcs = tmpDir.split('/tmp/')[0] + '/R.running.procs/'
+
+## procTable = tmpDir.split('/tmp/')[0] + '/R.running.procs/procTable'
 
 ## Must ensure the procTable exists and has a valid value
-if not os.path.exists(procTable):
-    fo = open(procTable, mode = 'w')
-    fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
-    fo.write('0')
-    fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
-    fo.close()
+## No longer used
+# if not os.path.exists(procTable):
+#     fo = open(procTable, mode = 'w')
+#     fo.write('0')
+#     fo.close()
 
 def set_defaults_lam(tmpDir):
     """ Set defaults for lamboot and Rslaves and number procs
@@ -505,8 +506,10 @@ def printMPITooBusy(tmpDir, MAX_DURATION_TRY, application = 'ADaCGH2'):
 
 
 
-def lamboot(lamSuffix, ncpu):
-    'Boot a lam universe'
+def lamboot(lamSuffix, ncpu, runningProcs = runningProcs):
+    'Boot a lam universe and leave a sentinel file behind'
+    sentinel = os.open(''.join([runningProcs, 'sentinel.lam.', newDir, '.', lamSuffix]),
+                       os.O_RDWR | os.O_CREAT | os.O_NDELAY)
     fullCommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
                   '"; /http/mpi.log/tryBootLAM2.py ' + lamSuffix + \
                   ' ' + str(ncpu)
@@ -559,18 +562,20 @@ def lam_crash_log(tmpDir, value):
     os.system('echo "' + value + '  at ' + timeHuman + \
               '" >> ' + tmpDir + '/recoverFromLAMCrash.out')
     
-def recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS, machine_root = 'karl'):
+def recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS, lamSuffix,
+                           runningProcs = runningProcs,
+                           machine_root = 'karl'):
     """Check if lam crashed during R run. If it did, restart R
     after possibly rebooting the lam universe.
     Leave a trace of what happened."""
     
+    os.remove(''.join([runningProcs, 'sentinel.lam.', newDir, '.', lamSuffix]))
     del_mpi_logs(tmpDir, machine_root)
     lam_crash_log(tmpDir, 'Crashed')
     try:
         os.system('mv ' + tmpDir + '/mpiOK ' + tmpDir + '/previous_mpiOK')
     except:
         None
-    lamSuffix = open(tmpDir + "/lamSuffix", mode = "r").readline()
 
     check_room = my_queue(MAX_NUM_PROCS)
     if check_room == 'Failed':
@@ -682,7 +687,10 @@ def did_run_out_of_time(tmpDir, R_MAX_time):
         False
                            
 
-def cleanups(tmpDir, newDir, newnamepid, appl = 'adacgh2'):
+def cleanups(tmpDir, newDir, newnamepid,
+             lamSuffix,
+             runningProcs = runningProcs,
+             appl = 'adacgh2'):
     """ Clean up actions; kill lam, delete running.procs files, clean process table."""
     lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
     rinfo = open(tmpDir + '/current_R_proc_info', mode = 'r').readline().split()
@@ -703,7 +711,10 @@ def cleanups(tmpDir, newDir, newnamepid, appl = 'adacgh2'):
         os.rename(tmpDir + '/pid.txt', tmpDir + '/' + newnamepid)
     except:
         None
-    del_from_proc_table()
+    try:
+        os.remove(''.join([runningProcs, 'sentinel.lam.', newDir, '.', lamSuffix]))
+    except:
+        None
 
 
 def finished_ok(tmpDir):
@@ -729,40 +740,56 @@ def master_out_of_time(time_start):
         return False
         
 
-def add_to_proc_table(max_num_procs, add_procs = 1):
-    """Try to add add_procs to the process table. If it can
-    returns OK, otherwise (e.g., too many procs) return Failed."""
-    fo = open(procTable, mode = 'r+')
-    fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
-    currentProcs = int(fo.read())
-    if currentProcs >= max_num_procs:
-        fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
-        fo.close()
-        return 'Failed'
-    else:
-        fo.seek(0)
-        fo.write(str(currentProcs + add_procs))
-        fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
-        fo.close()
-        return 'OK'
+# def add_to_proc_table(max_num_procs, add_procs = 1):
+#     """Try to add add_procs to the process table. If it can
+#     returns OK, otherwise (e.g., too many procs) return Failed.
+#     Locking would be great ... but it does not work over NFS. """
+    
+#     fo = open(procTable, mode = 'r+')
+#     fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
+#     currentProcs = int(fo.read())
+#     if currentProcs >= max_num_procs:
+#         fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
+#         fo.close()
+#         return 'Failed'
+#     else:
+#         fo.seek(0)
+#         fo.write(str(currentProcs + add_procs))
+#         fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
+#         fo.close()
+#         return 'OK'
+
+# def add_to_proc_table(max_num_procs, add_procs = 1):
+#     """Try to add add_procs to the process table. If it can
+#     returns OK, otherwise (e.g., too many procs) return Failed."""
+#     fo = open(procTable, mode = 'r+')
+#     currentProcs = int(fo.read())
+#     if currentProcs >= max_num_procs:
+#         fo.close()
+#         return 'Failed'
+#     else:
+#         fo.seek(0)
+#         fo.write(str(currentProcs + add_procs))
+#         fo.close()
+#         return 'OK'
+
+
 
 
 def del_from_proc_table(del_procs = 1):
     """Decrease count in the process table."""
     fo = open(procTable, mode = 'r+')
-    fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
     currentProcs = int(fo.read())
     fo.seek(0)
     fo.write(str(currentProcs - del_procs))
-    fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
     fo.close()
     return 'OK'
 
 
-
 def my_queue(MAX_NUM_PROCS,
+             runningProcs = runningProcs,
              ADD_PROCS = 1,
-             CHECK_QUEUE = 120,
+             CHECK_QUEUE = 20,
              MAX_DURATION_TRY = 5 * 3600):
     """ Wait here until the number of slaves is smaller than
     MAX_SIMUL_RSLAVES.  But only wait for MAX_DURATION. Check
@@ -776,16 +803,14 @@ def my_queue(MAX_NUM_PROCS,
             out_value = 'Failed'
             break
         num_lamd = int(os.popen('pgrep lamd | wc').readline().split()[0])
-        if num_lamd <= MAX_NUM_PROCS:
-            procTableAdd = add_to_proc_table(MAX_NUM_PROCS, ADD_PROCS)
-            if procTableAdd == 'OK':
-                issue_echo('     procTable OK; num_lamd = ' + str(num_lamd), tmpDir)
-                break
-            else:
-                issue_echo('     procTable wait; num_lamd = ' + str(num_lamd), tmpDir)
-                time.sleep(CHECK_QUEUE)
+        num_sentinel = int(len(glob.glob(''.join([runningProcs, 'sentinel.lam.*']))))
+        if (num_lamd < MAX_NUM_PROCS) and (num_sentinel < MAX_NUM_PROCS):
+            issue_echo('     OK; num_lamd = ' + str(num_lamd) + \
+                       '; num_sentinel = ' + str(num_sentinel), tmpDir)
+            break
         else:
-	    issue_echo('     num_lamd wait:  num_lamd = ' + str(num_lamd), tmpDir)
+	    issue_echo('     wait:  num_lamd = ' + str(num_lamd) + \
+                       '; num_sentinel = ' + str(num_sentinel), tmpDir)
             time.sleep(CHECK_QUEUE)
 
 def generate_lam_suffix(tmpDir):
@@ -819,12 +844,14 @@ lamSuffix = generate_lam_suffix(tmpDir)
 issue_echo('at 3', tmpDir)
 
 check_room = my_queue(MAX_NUM_PROCS)
-issue_echo('after my_queue', tmpDir)
 if check_room == 'Failed':
     printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
     sys.exit()
-    
+
 lamboot(lamSuffix, NCPU)
+issue_echo('after lamboot', tmpDir)
+
+
 Rrun(tmpDir, lamSuffix)
         
 time_start = time.time()
@@ -835,27 +862,27 @@ count_mpi_crash = 0
 while True:
     if did_run_out_of_time(tmpDir, R_MAX_time):
         issue_echo('run out of time', tmpDir)
-        cleanups(tmpDir, newDir, 'killed.pid.txt')
+        cleanups(tmpDir, newDir, 'killed.pid.txt', lamSuffix)
         printRKilled()
         break
     elif finished_ok(tmpDir):
         issue_echo('finished OK', tmpDir)
-        cleanups(tmpDir, newDir, 'natural.death.pid.txt')
+        cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
         printOKRun()
         break
     elif halted(tmpDir):
         issue_echo('halted', tmpDir)
-        cleanups(tmpDir, newDir, 'natural.death.pid.txt')
+        cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
         printErrorRun(tmpDir + '/Status.msg')
         break
     elif did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[0]:
         issue_echo('R crash in slaves', tmpDir)
-        cleanups(tmpDir, newDir, 'natural.death.pid.txt')
+        cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
         printErrorRun(did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[1])
         break
     elif master_out_of_time(time_start):
         issue_echo('master out of time', tmpDir)
-        cleanups(tmpDir, newDir, 'killed.pid.txt')
+        cleanups(tmpDir, newDir, 'killed.pid.txt', lamSuffix)
         printRKilled()
         break
     elif did_mpi_crash(tmpDir, machine_root = 'karl'):
@@ -865,6 +892,7 @@ while True:
             break
         else:
             recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS,
+                                   lamSuffix,
                                    machine_root = 'karl')
     else:
         lam_crash_log(tmpDir, 'NoCrash') ## if we get here, this much we know

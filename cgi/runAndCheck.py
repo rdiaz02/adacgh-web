@@ -14,12 +14,8 @@ import socket
 import fcntl
 
 sys.path = sys.path + ['/http/mpi.log']
-
 import counterApplications
 
-# import cgitb
-# cgitb.enable() ## zz: eliminar for real work?
-# sys.stderr = sys.stdout ## eliminar?
 
 R_MAX_time = 12 * 3600 ## 12 hours is max duration allowd for any process
 TIME_BETWEEN_CHECKS = 45
@@ -39,6 +35,29 @@ if not os.path.exists(procTable):
     fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
     fo.close()
 
+def set_defaults_lam(tmpDir):
+    """ Set defaults for lamboot and Rslaves and number procs
+    based on the size of the data file. This is all heuristic,
+    but works for us with 6 GB RAM per node. The key idea is to
+    prevent swapping. ncpu are the Rslaves spawned by lamd, or the cpu=ncpu
+    in the lamb-host file. max_num_procs is the maximum number of simultaneous
+    adacgh processes running at any time.
+    We return the tuple ncpu, max_num_procs"""
+    datsize1 = 0
+    datsize2 = 0
+    if os.path.exists(tmpDir + '/acghData'):
+        datsize1 = int(os.popen('ls ' + tmpDir + '/acghData -sk').read().split()[0])
+    if os.path.exists(tmpDir + '/acghAndPosition'):
+        datsize2 = int(os.popen('ls ' + tmpDir + '/acghAndPosition -sk').read().split()[0])
+    datsize = max(datsize2, datsize1)
+    if datsize < 2000:
+        return (2, 3)
+    elif datsize < 6000:
+        return (2, 2)
+    elif datsize < 14000:
+        return (2, 1)
+    else:
+        return (1, 1)
 
 def collectZombies(k = 10):
     """ Make sure there are no zombies in the process tables.
@@ -486,10 +505,11 @@ def printMPITooBusy(tmpDir, MAX_DURATION_TRY, application = 'ADaCGH2'):
 
 
 
-def lamboot(lamSuffix):
+def lamboot(lamSuffix, ncpu):
     'Boot a lam universe'
     fullCommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
-                  '"; /http/mpi.log/tryBootLAM2.py ' + lamSuffix
+                  '"; /http/mpi.log/tryBootLAM2.py ' + lamSuffix + \
+                  ' ' + str(ncpu)
     lboot = os.system(fullCommand)
 
 def check_tping(lamSuffix, tmpDir, tsleep = 15, nc = 2):
@@ -539,7 +559,7 @@ def lam_crash_log(tmpDir, value):
     os.system('echo "' + value + '  at ' + timeHuman + \
               '" >> ' + tmpDir + '/recoverFromLAMCrash.out')
     
-def recover_from_lam_crash(tmpDir, machine_root = 'karl'):
+def recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS, machine_root = 'karl'):
     """Check if lam crashed during R run. If it did, restart R
     after possibly rebooting the lam universe.
     Leave a trace of what happened."""
@@ -552,13 +572,13 @@ def recover_from_lam_crash(tmpDir, machine_root = 'karl'):
         None
     lamSuffix = open(tmpDir + "/lamSuffix", mode = "r").readline()
 
-    check_room = my_queue()
+    check_room = my_queue(MAX_NUM_PROCS)
     if check_room == 'Failed':
         printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
 
     lam_ok = check_tping(lamSuffix, tmpDir)
     if lam_ok == 0:
-        lboot = lamboot(lamSuffix)
+        lboot = lamboot(lamSuffix, NCPU)
     Rrun(tmpDir, lamSuffix)
     lam_crash_log(tmpDir, '..... recovering')
 
@@ -663,7 +683,7 @@ def did_run_out_of_time(tmpDir, R_MAX_time):
                            
 
 def cleanups(tmpDir, newDir, newnamepid, appl = 'adacgh2'):
-    """ Clean up actions; kill lam, delete running.procs files."""
+    """ Clean up actions; kill lam, delete running.procs files, clean process table."""
     lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
     rinfo = open(tmpDir + '/current_R_proc_info', mode = 'r').readline().split()
     try:
@@ -683,7 +703,7 @@ def cleanups(tmpDir, newDir, newnamepid, appl = 'adacgh2'):
         os.rename(tmpDir + '/pid.txt', tmpDir + '/' + newnamepid)
     except:
         None
-
+    del_from_proc_table()
 
 
 def finished_ok(tmpDir):
@@ -709,34 +729,9 @@ def master_out_of_time(time_start):
         return False
         
 
-    
-
-import fcntl, cPickle
-# open in update mode
-fo = open('somefile.pickle', 'r+')
-# acquire an exclusive lock; any other process trying to acquire this
-# will block
-fcntl.lockf(fo.fileno(), fcntl.LOCK_EX)
-data = cPickle.load(fo)
-.... do stuff to data ...
-# go back to the beginning
-fo.seek(0)
-# write out the new pickle
-cPickle.dump(data, fo)
-# throw the rest of the (old) pickle away
-fo.truncate()
-# and close. This releases the lock.
-fo.close()
-
-    cf = open('/http/mpi.log/ApplicationCounter', mode = 'a')
-    fcntl.flock(cf.fileno(), fcntl.LOCK_SH)
-    cf.write(outstr)
-    fcntl.flock(cf.fileno(), fcntl.LOCK_UN)
-    cf.close()
-
-
-
-def add_to_proc_table(max_num_procs = 2, add_procs = 1):
+def add_to_proc_table(max_num_procs, add_procs = 1):
+    """Try to add add_procs to the process table. If it can
+    returns OK, otherwise (e.g., too many procs) return Failed."""
     fo = open(procTable, mode = 'r+')
     fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
     currentProcs = int(fo.read())
@@ -745,13 +740,27 @@ def add_to_proc_table(max_num_procs = 2, add_procs = 1):
         fo.close()
         return 'Failed'
     else:
+        fo.seek(0)
         fo.write(str(currentProcs + add_procs))
         fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
         fo.close()
         return 'OK'
 
-def my_queue(MAX_SIMUL_LAMD = 3,
-             MAX_NUM_PROCS = 2,
+
+def del_from_proc_table(del_procs = 1):
+    """Decrease count in the process table."""
+    fo = open(procTable, mode = 'r+')
+    fcntl.flock(fo.fileno(), fcntl.LOCK_EX)
+    currentProcs = int(fo.read())
+    fo.seek(0)
+    fo.write(str(currentProcs - del_procs))
+    fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
+    fo.close()
+    return 'OK'
+
+
+
+def my_queue(MAX_NUM_PROCS,
              ADD_PROCS = 1,
              CHECK_QUEUE = 120,
              MAX_DURATION_TRY = 5 * 3600):
@@ -767,16 +776,16 @@ def my_queue(MAX_SIMUL_LAMD = 3,
             out_value = 'Failed'
             break
         num_lamd = int(os.popen('pgrep lamd | wc').readline().split()[0])
-        if num_lamd < MAX_SIMUL_LAMD:
+        if num_lamd <= MAX_NUM_PROCS:
             procTableAdd = add_to_proc_table(MAX_NUM_PROCS, ADD_PROCS)
             if procTableAdd == 'OK':
-                issue_echo('     procTable OK; num_lamd = ', str(num_lamd))
+                issue_echo('     procTable OK; num_lamd = ' + str(num_lamd), tmpDir)
                 break
             else:
-                issue_echo('     procTable wait; num_lamd = ', str(num_lamd))
+                issue_echo('     procTable wait; num_lamd = ' + str(num_lamd), tmpDir)
                 time.sleep(CHECK_QUEUE)
         else:
-	    issue_echo('     num_lamd wait:  num_lamd = ', str(num_lamd))
+	    issue_echo('     num_lamd wait:  num_lamd = ' + str(num_lamd), tmpDir)
             time.sleep(CHECK_QUEUE)
 
 def generate_lam_suffix(tmpDir):
@@ -795,6 +804,9 @@ def generate_lam_suffix(tmpDir):
 
 issue_echo('starting', tmpDir)
 
+        
+NCPU, MAX_NUM_PROCS = set_defaults_lam(tmpDir)
+
 try:
     counterApplications.add_to_log(application, tmpDir, socket.gethostname())
 except:
@@ -806,18 +818,13 @@ lamSuffix = generate_lam_suffix(tmpDir)
 
 issue_echo('at 3', tmpDir)
 
-check_room = my_queue()
+check_room = my_queue(MAX_NUM_PROCS)
 issue_echo('after my_queue', tmpDir)
 if check_room == 'Failed':
     printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
     sys.exit()
     
-lamboot(lamSuffix)
-check_room = my_queue()
-issue_echo('after my_queue', tmpDir)
-if check_room == 'Failed':
-    printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
-    sys.exit()
+lamboot(lamSuffix, NCPU)
 Rrun(tmpDir, lamSuffix)
         
 time_start = time.time()
@@ -857,7 +864,8 @@ while True:
             printMPIerror(tmpDir, MAX_MPI_CRASHES)
             break
         else:
-            recover_from_lam_crash(tmpDir, machine_root = 'karl')
+            recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS,
+                                   machine_root = 'karl')
     else:
         lam_crash_log(tmpDir, 'NoCrash') ## if we get here, this much we know
     time.sleep(TIME_BETWEEN_CHECKS)

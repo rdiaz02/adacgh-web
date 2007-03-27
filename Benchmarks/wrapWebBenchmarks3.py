@@ -82,10 +82,11 @@ NUM_USERS = (20, 10, 1, 1, 1, 1, 1,
              5) ## used for large
 
 TESTS = (
-    'Wavelets_large',
-    'CBS_large',
-    'HMM_large',
-    'GLAD_large'
+   'CGHseg_large',
+   'Wavelets_large',
+   'CBS_large',
+   'HMM_large',
+   'GLAD_large'
 )
 
 SUFFIX = (1, 1, 1, 2, 3, 4, 5, 1)

@@ -69,21 +69,6 @@ pSegmentACE <- function(x, chrom.numeric, ...) {
 
 
 pSegmentHMM <- function(x, chrom.numeric, ...) {
-    nsample <- ncol(x)
-    nchrom <- unique(chrom.numeric)
-    datalist <- list()
-    klist <- 1
-    for(i in 1:nsample) {
-        for (j in nchrom) {
-            datalist[[klist]] <- x[chrom.numeric == j, i]
-            klist <- klist + 1
-        }
-    }
-      
-    out0 <- papply(datalist, function(z) CGHsegWrapper(z))
-
-
-    
     out <- papply(data.frame(x),
                   function(z) hmmWrapper(z, Chrom = slave_chrom),
                   papply_commondata = list(

@@ -117,11 +117,11 @@ methodaCGH <- scan("methodaCGH", what = "", n = 1)
 assign(".__ADaCGH_WEB_APPL", TRUE)
 print("testing existence of indicator")
 print(exists(".__ADaCGH_WEB_APPL"))
-library(Hmisc)
-library("waveslim") ## we will have to load ADaCGH soon,
+library(Hmisc, quietly = TRUE, verbose = FALSE)
+library("waveslim", quietly = TRUE, verbose = FALSE) ## we will have to load ADaCGH soon,
 ## but we must mask certain defs. in waveslim. So load
 ## waveslim here
-library(ADaCGH)
+library(ADaCGH, quietly = TRUE, verbose = FALSE)
 
 
 

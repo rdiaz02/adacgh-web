@@ -1273,8 +1273,6 @@ internalSmoothCNA <- function(genomdat,
                               smooth.SD.scale = 2, trim = 0.025) {
     ## this is just the original smoothCNA funct. adapted to use
     ## a single array *chromosome and to be parallelized and fed to internalDNAcopy
-   chrom.numeric 
-   uchrom <- unique(chrom)
    ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
    trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
    outlier.SD <- outlier.SD.scale * trimmed.SD
@@ -1295,8 +1293,8 @@ internalSmoothCNA <- function(genomdat,
                       xi
               },
               genomdat[ina], n, c(-k:-1, 1:k), outlier.SD, smooth.SD)
-   acghdata[ina] <- smoothed.data
-   acghdata
+   genomdat[ina] <- smoothed.data
+   genomdat
 }
     
 internalDNAcopy0 <- function(acghdata,
@@ -1344,8 +1342,6 @@ internalDNAcopy0 <- function(acghdata,
 
     
 internalDNAcopy <- function(acghdata,
-                            sbdry,
-                            sbn,
                             alpha,
                             nperm,
                             kmax,
@@ -1353,7 +1349,9 @@ internalDNAcopy <- function(acghdata,
                             overlap, 
                             trim,
                             undo.prune,
-                            undo.SD) {
+                            undo.SD,                            
+                            sbdry,
+                            sbn) {
     ## tries to follow the original "segment"
     data.type <- "logratio"
     p.method <- "hybrid"
@@ -2330,7 +2328,7 @@ sd.ACE.analysis<- function(obj.ACE.analysis) {
 		}
 }
 
-ace.analysisP <-function(x) {
+ace.analysisP <-function(x, coefs, Sdev, array.names) {
     ace.analysis.C(x, coefs, Sdev, array.names)
 }
 
@@ -2344,8 +2342,7 @@ firstACEestimate <- function(x, coefs, Sdev, array.names) {
 ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
 
 ####### x is log2.ratio
-####### Chrom ---MUST BE NUMERIC-- 
-###### only for 1 array at a time
+####### Chrom.numeric ---MUST BE NUMERIC-- 
      if (!is.numeric(chrom.numeric)) {
          stop("Chromosome variable must be numeric")
      }
@@ -2375,7 +2372,6 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
      } else {
          res <- list()
          nsample <- ncol(x)
-         nchrom <- unique(chrom.numeric)
          datalist <- list()
          klist <- 1
          for(i in 1:nsample) {
@@ -2399,30 +2395,36 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
 
          res <- papply(datalist,
                        function(z) ace.analysisP(z$logr,
-                                                    coefs = cmm_coefs,
-                                                    Sdev = cmm_Sdev,
-                                                    array.names = z$arrayn),
+                                                 coefs = cmm_coefs,
+                                                 Sdev = cmm_Sdev,
+                                                 array.names = z$arrayn),
                        papply_commondata = list(cmm_coefs = coefs,
                        cmm_Sdev = Sdevs))
          resout <- list()
          i <- 1
-         k <- 1
-         while(k <= klist) { #if k == klist it will bomb, which we want
+         k <- 0
+         kall <- length(res)
+         cat("\n kall is ", kall, "\n")
+
+         while(k < kall) { #if k == klist it will bomb, which we want
              ## as that will signal an error
+             k <- k + 1
+             cat("\n k is ", k, "\n")
              resout[[i]] <- list()
              resout[[i]] <- res[[k]]
              for(j in 2:nchrom) {
                  k <- k + 1
+                 cat("\n     inner k is ", k, "\n")
                  for(m in 1:8) resout[[i]][[m]] <- c(resout[[i]][[m]],
                                                      res[[k]][[m]])
              }
              class(resout[[i]]) <- "ACE"
              i <- i + 1
          }
-         class(res) <- "ACE.array"
+         class(resout) <- "ACE.array"
      }
-     res$chrom.numeric <- Chrom
-     invisible(res)
+     resout$chrom.numeric <- chrom.numeric
+     invisible(resout)
  }
 
 get.FDR <- function(object, nchrom) {

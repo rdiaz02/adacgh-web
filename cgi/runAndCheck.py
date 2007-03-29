@@ -789,8 +789,8 @@ def del_from_proc_table(del_procs = 1):
 def my_queue(MAX_NUM_PROCS,
              runningProcs = runningProcs,
              ADD_PROCS = 1,
-             CHECK_QUEUE = 20,
-             MAX_DURATION_TRY = 5 * 3600):
+             CHECK_QUEUE = 23,
+             MAX_DURATION_TRY = 25 * 3600):
     """ Wait here until the number of slaves is smaller than
     MAX_SIMUL_RSLAVES.  But only wait for MAX_DURATION. Check
     every CHECK_QUEUE seconds. If able to find an opening, return
@@ -811,7 +811,7 @@ def my_queue(MAX_NUM_PROCS,
         else:
 	    issue_echo('     wait:  num_lamd = ' + str(num_lamd) + \
                        '; num_sentinel = ' + str(num_sentinel), tmpDir)
-            time.sleep(CHECK_QUEUE)
+            time.sleep(CHECK_QUEUE + random.uniform(0.1, 5))
 
 def generate_lam_suffix(tmpDir):
     """As it says. Generate and write it out"""
@@ -843,6 +843,8 @@ lamSuffix = generate_lam_suffix(tmpDir)
 
 issue_echo('at 3', tmpDir)
 
+time.sleep(random.uniform(0.1, 15)) ## Break ties if starting at identical times
+
 check_room = my_queue(MAX_NUM_PROCS)
 if check_room == 'Failed':
     printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
@@ -855,7 +857,7 @@ issue_echo('after lamboot', tmpDir)
 Rrun(tmpDir, lamSuffix)
         
 time_start = time.time()
-time.sleep(TIME_BETWEEN_CHECKS)
+time.sleep(TIME_BETWEEN_CHECKS + random.uniform(0.1, 3))
 
 count_mpi_crash = 0
 

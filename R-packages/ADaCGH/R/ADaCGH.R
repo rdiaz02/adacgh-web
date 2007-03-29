@@ -3806,7 +3806,7 @@ hmmWrapper_A <- function(logratio, Chrom, Pos = NULL) {
 
 pSegmentBioHMM_A <- function(x, chrom.numeric, Pos, ...) {
     out <- papply(data.frame(x),
-                  function(z) BioHMMWrapper(z,
+                  function(z) BioHMMWrapper_A(z,
                                          Chrom = slave_chrom,
                                          Pos    = slave_kb),
                   papply_commondata = list(

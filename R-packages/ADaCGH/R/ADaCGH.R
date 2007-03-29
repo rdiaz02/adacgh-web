@@ -69,14 +69,14 @@ pSegmentACE <- function(x, chrom.numeric, ...) {
 
 
 pSegmentHMM <- function(x, chrom.numeric, ...) {
-    start.time <- Sys.time()
+##     start.time <- Sys.time()
     
-    cat("\n     1st gc inside pSegmentHMM \n")
-    print(gc())
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     cat("\n     1st gc inside pSegmentHMM \n")
+##     print(gc())
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     nsample <- ncol(x)
     nchrom <- unique(chrom.numeric)
     datalist <- list()
@@ -91,16 +91,16 @@ pSegmentHMM <- function(x, chrom.numeric, ...) {
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
-    stime <- Sys.time()
-    cat("\n     pSegmentHMM completed segmentation step in ",
-        (stime - start.time)[[1]],
-        " seconds \n")
-    cat("\n     2nd gc inside pSegmentHMM \n")
-    print(gc())
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     stime <- Sys.time()
+##     cat("\n     pSegmentHMM completed segmentation step in ",
+##         (stime - start.time)[[1]],
+##         " seconds \n")
+##     cat("\n     2nd gc inside pSegmentHMM \n")
+##     print(gc())
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     
     ## list with one entry per array
     datalist <- list()
@@ -110,18 +110,18 @@ pSegmentHMM <- function(x, chrom.numeric, ...) {
         datalist[[i]]$pred <- matout0[, i]
     }
     
-    cat("\n     3rd gc inside pSegmentHMM \n")
-    print(gc())
+##     cat("\n     3rd gc inside pSegmentHMM \n")
+##     print(gc())
     
     out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-    mtime <- Sys.time()
-    cat("\n     pSegmentHMM completed merging step in ",
-        (mtime - stime)[[1]],
-        " seconds \n")
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     mtime <- Sys.time()
+##     cat("\n     pSegmentHMM completed merging step in ",
+##         (mtime - stime)[[1]],
+##         " seconds \n")
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     
     outl <- list()
     outl$segm <- out
@@ -149,13 +149,13 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
 
 
 pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
-    start.time <- Sys.time()
-    cat("\n     1st gc inside pSegmentBioHMM \n")
-    print(gc())
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     start.time <- Sys.time()
+##     cat("\n     1st gc inside pSegmentBioHMM \n")
+##     print(gc())
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     nsample <- ncol(x)
     nchrom <- unique(chrom.numeric)
     datalist <- list()
@@ -182,16 +182,16 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
-    stime <- Sys.time()
-    cat("\n     pSegmentBioHMM completed segmentation step in ",
-        (stime - start.time)[[1]],
-        " seconds \n")
-    cat("\n     2nd gc inside pSegmentBioHMM \n")
-    print(gc())
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     stime <- Sys.time()
+##     cat("\n     pSegmentBioHMM completed segmentation step in ",
+##         (stime - start.time)[[1]],
+##         " seconds \n")
+##     cat("\n     2nd gc inside pSegmentBioHMM \n")
+##     print(gc())
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     ## list with one entry per array
     datalist <- list()
     klist <- 1
@@ -201,18 +201,18 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
         datalist[[i]]$pred <- matout0[, i]
     }
     
-    cat("\n     3rd gc inside pSegmentBioHMM \n")
-    print(gc())
+##     cat("\n     3rd gc inside pSegmentBioHMM \n")
+##     print(gc())
     
     out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-    mtime <- Sys.time()
-    cat("\n     pSegmentBioHMM completed merging step in ",
-        (mtime - stime)[[1]],
-        " seconds \n")
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     mtime <- Sys.time()
+##     cat("\n     pSegmentBioHMM completed merging step in ",
+##         (mtime - stime)[[1]],
+##         " seconds \n")
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     
     outl <- list()
     outl$segm <- out
@@ -417,14 +417,13 @@ pSegmentDNAcopy <- function(x, chrom.numeric, smooth = TRUE,
                             alpha=0.01, nperm=10000, kmax=25, nmin=200,
                             eta = 0.05, overlap=0.25, trim = 0.025,
                             undo.prune=0.05, undo.SD=3, ...) {
-    start.time <- Sys.time()
-    
-    cat("\n     1st gc inside pSegmentDNAcopy \n")
-    print(gc())
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     start.time <- Sys.time()
+##     cat("\n     1st gc inside pSegmentDNAcopy \n")
+##     print(gc())
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     nsample <- ncol(x)
     nchrom <- unique(chrom.numeric)
     datalist <- list()
@@ -487,16 +486,16 @@ pSegmentDNAcopy <- function(x, chrom.numeric, smooth = TRUE,
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
-    stime <- Sys.time()
-    cat("\n     pSegmentDNAcopy completed segmentation step in ",
-        (stime - start.time)[[1]],
-        " seconds \n")
-    cat("\n     2nd gc inside pSegmentDNAcopy \n")
-    print(gc())
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     stime <- Sys.time()
+##     cat("\n     pSegmentDNAcopy completed segmentation step in ",
+##         (stime - start.time)[[1]],
+##         " seconds \n")
+##     cat("\n     2nd gc inside pSegmentDNAcopy \n")
+##     print(gc())
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     
     ## list with one entry per array
     datalist <- list()
@@ -506,18 +505,18 @@ pSegmentDNAcopy <- function(x, chrom.numeric, smooth = TRUE,
         datalist[[i]]$pred <- matout0[, i]
     }
     
-    cat("\n     3rd gc inside pSegmentDNAcopy \n")
-    print(gc())
+##     cat("\n     3rd gc inside pSegmentDNAcopy \n")
+##     print(gc())
     
     out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-    mtime <- Sys.time()
-    cat("\n     pSegmentDNAcopy completed merging step in ",
-        (mtime - stime)[[1]],
-        " seconds \n")
-    if(mpi.universe.size() > 1) {
-        cat("\n  ....  gc inside remote nodes \n")
-        print(mpi.remote.exec(gc()))
-    }
+##     mtime <- Sys.time()
+##     cat("\n     pSegmentDNAcopy completed merging step in ",
+##         (mtime - stime)[[1]],
+##         " seconds \n")
+##     if(mpi.universe.size() > 1) {
+##         cat("\n  ....  gc inside remote nodes \n")
+##         print(mpi.remote.exec(gc()))
+##     }
     
     outl <- list()
     outl$segm <- out
@@ -3757,3 +3756,333 @@ combine.funcB <- function(diff,vecObs, vecPredNow, mnNow, mn1, mn2, pv.thres=0.0
 
 
 ## Error in max(-1e+05, log(BFGS.output$prior[i]), na.rm = T) :
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################  Parallel over arrays only
+
+pSegmentHMM_A <- function(x, chrom.numeric, ...) {
+    out <- papply(data.frame(x),
+                  function(z) hmmWrapper_A(z, Chrom = slave_chrom),
+                  papply_commondata = list(
+                  slave_chrom = chrom.numeric))
+    outl <- list()
+    outl$segm <- out
+    outl$chrom.numeric <- chrom.numeric
+    class(outl) <- c("adacgh.generic.out","mergedHMM")
+    return(outl)
+}
+
+hmmWrapper_A <- function(logratio, Chrom, Pos = NULL) {
+    ## Fit HMM, and do mergeLevels
+    Clone <- 1:length(logratio)
+    if(is.null(Pos)) Pos <- Clone
+    obj.aCGH <- create.aCGH(data.frame(logratio),
+                            data.frame(Clone = Clone,
+                                       Chrom = Chrom,
+                                       kb = Pos))
+    res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
+    hmm(obj.aCGH) <- res
+    out <- ourMerge(obj.aCGH$hmm$states.hmm[[1]][, 8],
+                      obj.aCGH$hmm$states.hmm[[1]][, 6]) 
+    return(out)
+}
+
+
+
+pSegmentBioHMM_A <- function(x, chrom.numeric, Pos, ...) {
+    out <- papply(data.frame(x),
+                  function(z) BioHMMWrapper(z,
+                                         Chrom = slave_chrom,
+                                         Pos    = slave_kb),
+                  papply_commondata = list(
+                  slave_chrom = chrom.numeric,
+                  slave_kb    = Pos))
+
+    te <- unlist(unlist(lapply(out, function(x) inherits(x, "try-error"))))
+    if(any(te)) {
+        m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
+        m2 <- "You can try rerunning it a few times."
+        m3 <- "You can also tell the original authors that you get the error "
+        mm <- paste(m1, m2, m3, out[[which(te)]])
+        caughtError(mm)
+    }
+    outl <- list()
+    outl$segm <- out
+    outl$chrom.numeric <- chrom.numeric
+    outl$pos <- Pos
+    class(outl) <- c("adacgh.generic.out","mergedBioHMM")
+    return(outl)
+}
+
+BioHMMWrapper_A <- function(logratio, Chrom, Pos) {
+  logratio <- matrix(logratio, ncol=1)
+  uchrom <- unique(Chrom)
+##  obs <- NULL
+  smoothed <- NULL
+  for (ic in uchrom) {
+      ydat <- logratio[Chrom == ic]
+      n <- length(ydat)
+      res <- try(fit.model(sample = 1, chrom = ic, dat = matrix(ydat, ncol = 1),
+                       datainfo = data.frame(Name = 1:n, Chrom = rep(ic, n),
+                       Position = Pos[Chrom == ic])))
+      if(inherits(res, "try-error")) {
+          return(res)
+      } else {
+          smoothed <- c(smoothed, res$out.list$mean)
+      }
+  }
+  out <- ourMerge(logratio, smoothed)
+  ##out <- ourMerge(obs, smoothed)
+  return(out)
+}
+
+
+
+
+pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
+                            alpha=0.01, nperm=10000, kmax=25, nmin=200,
+                            eta = 0.05, overlap=0.25, trim = 0.025,
+                            undo.prune=0.05, undo.SD=3, merge.pv.thresh =
+                            1e-04, merge.ansari.sign = 0.05,
+                            merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
+    
+    if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
+        sbdry <- default.DNAcopy.bdry
+    } else {
+        max.ones <- floor(nperm * alpha) + 1
+        sbdry <- getbdry(eta, nperm, max.ones)
+    }
+    sbn <- length(sbdry)
+   
+    datalist <- data.frame(x)
+    papply_common <- list(slave_cnum         = chrom.numeric,
+                          slave_alpha        = alpha,
+                          slave_nperm        = nperm,
+                          slave_kmax         = kmax,
+                          slave_nmin         = nmin,
+                          slave_overlap      = overlap,
+                          slave_trim         = trim,
+                          slave_undo.prune   = undo.prune,
+                          slave_undo.SD      = undo.SD,
+                          slave_sbdry        = sbdry,
+                          slave_sbn          = sbn,
+                          slave_merge        = mergeSegs,
+                          slave_pv_th_merge  = merge.pv.thresh,
+                          slave_ansari_sign  = merge.ansari.sign,
+                          slave_merge_tmin   = merge.thresMin,
+                          slave_merge_tmax   = merge.thresMax,
+                          slave_smooth       = smooth)
+       
+    papfunc <- function(data) {
+        if(slave_smooth)
+            data <- internalSmoothCNA_A(data,
+                                      chrom.numeric = slave_cnum,
+                                      smooth.region = 2, outlier.SD.scale = 4,
+                                      smooth.SD.scale = 2, trim = 0.025)
+        outseg <-
+            internalDNAcopy_A(data,
+                            chrom.numeric = slave_cnum,      
+                            alpha =         slave_alpha,     
+                            nperm =         slave_nperm,    
+                            kmax =          slave_kmax,      
+                            nmin =          slave_nmin,      
+                            overlap =       slave_overlap,   
+                            trim =          slave_trim,      
+                            undo.prune =    slave_undo.prune,
+                            undo.SD =       slave_undo.SD,   
+                            sbdry =         slave_sbdry,     
+                            sbn =           slave_sbn)
+        if(!slave_merge) {
+            return(outseg)
+        } else {
+            outmerge <- ourMerge(outseg[, 1], outseg[, 2],
+                                   merge.pv.thresh = slave_pv_th_merge,
+                                   merge.ansari.sign = slave_ansari_sign,
+                                   merge.thresMin = slave_merge_tmin,
+                                   merge.thresMax = slave_merge_tmax)
+            return(outmerge)
+        }
+    }
+    papout <- papply(datalist,
+                     papfunc,
+                     papply_common)
+   
+    outl <- list()
+    outl$segm <- papout
+    outl$chrom.numeric <- chrom.numeric
+    class(outl) <- "DNAcopy"
+    if(mergeSegs) class(outl) <- c(class(outl), "adacgh.generic.out")
+    return(outl)
+}
+
+
+internalSmoothCNA_A <- function(acghdata, chrom.numeric,
+                              smooth.region = 2, outlier.SD.scale = 4,
+                              smooth.SD.scale = 2, trim = 0.025) {
+    ## this is just the original smoothCNA funct. adapted to use
+    ## a single array and to be parallelized and fed to internalDNAcopy
+   chrom <- chrom.numeric
+   uchrom <- unique(chrom)
+   genomdat <- acghdata
+   ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
+   trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
+   outlier.SD <- outlier.SD.scale * trimmed.SD
+   smooth.SD <- smooth.SD.scale * trimmed.SD
+   k <- smooth.region
+   for (i in uchrom) {
+       ina <-
+           which(!is.na(genomdat) & !(abs(genomdat) == Inf) & chrom == i)
+       n <- length(genomdat[ina])
+       smoothed.data <-
+           sapply(1:n,
+                  function(i, x, n, nbhd, oSD, sSD) {
+                      xi <- x[i]
+                      nbhd <- i + nbhd
+                      xnbhd <- x[nbhd[nbhd > 0 & nbhd <= n]]
+                      if (xi > max(xnbhd) + oSD) 
+                          xi <- median(c(xi, xnbhd)) + sSD
+                      if (xi < min(xnbhd) - oSD) 
+                          xi <- median(c(xi, xnbhd)) - sSD
+                      xi
+                  },
+                  genomdat[ina], n, c(-k:-1, 1:k), outlier.SD, smooth.SD)
+       acghdata[ina] <- smoothed.data
+   }
+   acghdata
+}
+
+
+
+
+internalDNAcopy_A <- function(acghdata,
+                            chrom.numeric,
+                            sbdry,
+                            sbn,
+                            alpha,
+                            nperm,
+                            kmax,
+                            nmin,
+                            overlap, 
+                            trim,
+                            undo.prune,
+                            undo.SD) {
+    ## tries to follow the original "segment"
+    
+    uchrom <- unique(chrom.numeric)
+    data.type <- "logratio"
+    p.method <- "hybrid"
+    window.size <- NULL
+    undo.splits <- "prune"
+    genomdati <- acghdata
+    ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
+
+    ## The code allows for dealing with NA and Inf, but would need to
+    ## adjust other functions (as different arrays would have different
+    ## length of pos, genenames, etc. So for now stop:
+    if (length(ina) != length(genomdati))
+        stop("Either an NA or an infinite in the data")
+
+    genomdati <- genomdati[ina]
+    trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
+    chromi <- chrom.numeric[ina]
+    sample.lsegs <- NULL
+    sample.segmeans <- NULL
+    for (ic in uchrom) {
+        segci <- changepoints(genomdati[chromi==ic], data.type = "logratio", alpha, 
+                              sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
+                              nmin, trimmed.SD, undo.splits, undo.prune,
+                              undo.SD, verbose = 2)
+        sample.lsegs <- c(sample.lsegs, segci$lseg)
+        sample.segmeans <- c(sample.segmeans, segci$segmeans)
+    }
+    if(length(sample.lsegs) != length(sample.segmeans))
+        stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
+    stretched.segmeans <- rep(sample.segmeans, sample.lsegs)
+    stretched.state    <- rep(1:length(sample.lsegs), sample.lsegs)
+    return(cbind(Observed = genomdati, Predicted = stretched.segmeans,
+                 State = stretched.state))
+}
+
+
+pSegmentACE_A <- function(x, chrom.numeric, ...) {
+    ## ACE is already parallelized
+    ACE_A(x, chrom.numeric, echo = FALSE, coefs = file.aux, Sdev = 0.2)
+}
+
+ace.analysisP_A <-function(x) {
+    ace.analysis.C(x, coefs, Sdev, array.names)
+}
+
+
+
+
+ACE_A <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
+
+ 	####### x is log2.ratio
+ 	####### Chrom ---MUST BE NUMERIC-- 
+ 	###### only for 1 array at a time
+ 	if (!is.numeric(Chrom)) {
+ 		stop("Chromosome variable must be numeric")
+ 	}
+
+ 	array.names <- colnames(x)
+		
+ 	nchrom <- length(unique(Chrom))
+ 	if(is.null(dim(x)) || (dim(x)[2]==1)) {
+ 		genes <- split(x, Chrom)
+ 		first.estimate <- papply(genes, ace.analysisP_A,
+                                          papply_commondata =list(coefs = coefs,
+                                          Sdev = Sdev,
+                                          echo = FALSE, array.names = array.names))
+ 		Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
+ 		Sdevs <- unlist(lapply(Sdevs.estimate, "[", 1))
+ 		Sdevs <- mean(Sdevs[Sdevs>0])
+                if(is.nan(Sdevs)) Sdevs <- 0
+ 		res <- papply(genes, ace.analysisP_A,
+                               papply_commondata =list(coefs=coefs,
+                               Sdev = Sdevs,
+                               echo = FALSE, array.names = array.names))
+ 		class(res) <- "ACE"
+ 		}
+ 	else {
+ 		Sdevs <- matrix(NA, ncol(x),nchrom)
+ 		res <- list()
+ 		for(i in 1:ncol(x)) {
+ 			genes <- split(x[,i], Chrom)
+                         first.estimate <- papply(genes, ace.analysisP_A,
+                                                  papply_commondata =list(coefs= coefs,
+                                                  Sdev = Sdev,
+                                                  echo = FALSE, array.names = array.names[i]))
+                         Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
+ 			Sdevs[i,] <- unlist(lapply(Sdevs.estimate, "[", 1))
+ 		}
+ 		Sdevs <- mean(Sdevs[Sdevs>0])
+                if(is.nan(Sdevs)) Sdevs <- 0
+ 		for (i in 1:ncol(x)) {
+ 			genes <- split(x[,i], Chrom)
+                         res[[i]] <- papply(genes, ace.analysisP_A,
+                                       papply_commondata =list(coefs= coefs,
+                                       Sdev = Sdevs,
+                                       echo = FALSE, array.names = array.names[i]))
+ 			class(res[[i]]) <- "ACE"
+ 		}
+ 		class(res) <- "ACE.array"
+ 	}
+        res$chrom.numeric <- Chrom
+ 	invisible(res)
+ }

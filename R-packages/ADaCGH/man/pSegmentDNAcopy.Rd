@@ -20,13 +20,11 @@
 
 \usage{
 
-pSegmentDNAcopy(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
+pSegmentDNAcopy(x, chrom.numeric, smooth = TRUE,
                 alpha = 0.01, nperm = 10000,
                 kmax = 25, nmin = 200, eta = 0.05, 
                 overlap = 0.25, trim = 0.025,
-                undo.prune = 0.05, undo.SD = 3,
-                merge.pv.thresh = 1e-04, merge.ansari.sign = 0.05,
-                merge.thresMin = 0.05, merge.thresMax = 0.5, ...)
+                undo.prune = 0.05, undo.SD = 3, ...)
 
 pSegmentACE(x, chrom.numeric, ...)
 
@@ -71,10 +69,6 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
   \item{trim}{See \code{\link[DNAcopy]{segment}} }
   \item{undo.prune}{See \code{\link[DNAcopy]{segment}} }
   \item{undo.SD}{See \code{\link[DNAcopy]{segment}} }
-  \item{merge.pv.thresh}{See \code{\link[aCGH]{mergeLevels}}}
-  \item{merge.ansari.sign}{See \code{\link[aCGH]{mergeLevels}}}
-  \item{merge.thresMin}{See \code{\link[aCGH]{mergeLevels}}}
-  \item{merge.thresMax}{See \code{\link[aCGH]{mergeLevels}}}
   \item{common.data}{A data frame with columns that contain the common
     information about the clones/genes. For now, this is limited to five
     columns of data.   We do nothing with this, except
@@ -315,9 +309,7 @@ ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
 cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
-cbs.nm.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
-cbs.nm.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE,
-                                 smooth = FALSE)
+cbs.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, smooth = FALSE)
 psw.pos.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = 1)
 psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1)
 
@@ -422,99 +414,6 @@ segmentPlot(ace.out.sum,
 
 }
 
-
-##############################################################################
-###########
-########### Comparing our parallel output with original sequential in DNAcopy
-###########
-##############################################################################
-
-
-data(cghMCRe)
-common <- cghMCRe[, -c(5:7)]
-common$MidPoint <- common$Start + 0.5 * (common$End - common$Start)
-colnames(common)[1] <- "ID"
-chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
-chrom.numeric[cghMCRe$Chromosome == "X"] <- 23
-chrom.numeric[cghMCRe$Chromosome == "Y"] <- 24
-reorder <- order(chrom.numeric,
-                 common$MidPoint,
-                 cghMCRe$Start,
-                 cghMCRe$End,
-                 cghMCRe$Name)
-cghMCRe <- cghMCRe[reorder, ]
-chrom.numeric <- chrom.numeric[reorder]
-
-CNA.object <- CNA(as.matrix(cghMCRe[, 5:7]),
-                  chrom = chrom.numeric,
-                  maploc = 1:nrow(cghMCRe),
-                  data.type = "logratio",
-                  sampleid = colnames(cghMCRe[, 5:7]))
-smoothed.CNA.object <- smooth.CNA(CNA.object)
-## Yes, tilingArray has an identically named function, but DNAcopy does
-## not have a namespace. Problems would be caught by different params.
-out.original <- segment(smoothed.CNA.object, nperm = 10000,
-                        undo.splits = "prune")
-
-
-
-out.merge <- pSegmentDNAcopy(as.matrix(cghMCRe[, 5:7]),
-                  chrom = chrom.numeric, nperm = 10000)
-out1 <- pSegmentDNAcopy(as.matrix(cghMCRe[, 5:7]),
-                  chrom = chrom.numeric, mergeSegs = FALSE, nperm = 10000)
-
-
-
-## We need to stretch the output of the original function
-
-stretchCNAoutput <- function(object) {
-    if(!(inherits(object, "DNAcopy")))
-        stop("This function can only be applied to DNAcopy objects")
-    numarrays <- ncol(object$data) - 2
-    stretched <- list()
-    for(arraynum in 1:numarrays) {
-        obs <- object$data[, 2 + arraynum]
-        segmented <-
-            object$output[object$output$ID ==
-                          colnames(object$data)[2 + arraynum], ]
-        smoothed <- object$data$maploc 
-        for(i in 1:nrow(segmented)) {
-            smoothed[(segmented[i,'loc.end'] >= smoothed) &
-                     (segmented[i,'loc.start'] <= smoothed)] <-
-                         segmented[i,'seg.mean']
-        }
-        
-        stretched[[arraynum]] <- cbind(Observed = obs,
-                                       Predicted = smoothed)
-        
-    }
-    return(stretched)
-}
-
-
-## recall the originall segment rounds output
-verifCNA <- mapply(function(x, y) all.equal(x[, 2], round(y[, 2], 4)),
-                    stretchCNAoutput(out.original), out1$segm) 
-
-all(verifCNA) ## should see TRUE
-if(! all(verifCNA)) stop("Differences in original and parallelized DNAcopy.\n Rerun test")
-
-
-## verify reconstruction
-rec.verif <- function(x, y) {
-    t1 <- all.equal(x$output[, 3], y$output$loc.start)
-    t2 <- all.equal(x$output[, 4], y$output$loc.end)
-    t3 <- all.equal(x$output[, 6], round(y$output$seg.mean, 4))
-
-    if(t1) print("Start equal")
-    if(t2) print("End equal")
-    if(t3) print("seg.mean equal") else t3
-    if(t1 & t2 & t3) print("***Global result:  OK ***") else stop("Not equal")
-}
-reconstructed <- ADaCGH:::constructSegmObj(out1$segm,  chrom.numeric, cghMCRe[, 5:7],
-                                  Pos = 1:nrow(cghMCRe))
-
-rec.verif(out.original, reconstructed)
 
 
 }

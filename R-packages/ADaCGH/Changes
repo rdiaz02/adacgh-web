@@ -1,3 +1,9 @@
+1.1	2007-03-29
+	- Parallelization of BioHMM, HMM, DNAcopy, ACE over
+	arrays * chromosomes for segmentation
+	
+1.0-1	2007-03
+	- Much more extenssive testing and bug fixes
 0.99	2007-01-15
 	- Major changes in some existing code:
 	  - parallelize PSW over arrays

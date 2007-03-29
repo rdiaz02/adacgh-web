@@ -161,8 +161,8 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     datalist <- list()
     klist <- 1
     for(i in 1:nsample) {
-        datalist <- list()
         for (j in nchrom) {
+            datalist[[klist]] <- list()
             datalist[[klist]]$logr <- x[chrom.numeric == j, i]
             datalist[[klist]]$pos <- Pos[chrom.numeric == j]
             klist <- klist + 1
@@ -171,12 +171,12 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     out0 <- papply(datalist,
                   function(z) BioHMMWrapper(z$logr, Pos = z$pos))
 
-    te <- unlist(unlist(lapply(out, function(x) inherits(x, "try-error"))))
+    te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
     if(any(te)) {
         m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
         m2 <- "You can try rerunning it a few times."
         m3 <- "You can also tell the original authors that you get the error "
-        mm <- paste(m1, m2, m3, out[[which(te)]])
+        mm <- paste(m1, m2, m3, out0[[which(te)]])
         caughtError(mm)
     }
     matout0 <- matrix(unlist(out0), ncol = nsample)
@@ -1107,16 +1107,17 @@ hmmWrapper <- function(logratio) {
 
 
 BioHMMWrapper <- function(logratio, Pos) {
-  ydat <- matrix(logratio, ncol=1)
-  n <- length(ydat)
-  res <- try(fit.model(sample = 1, chrom = 1, dat = matrix(ydat, ncol = 1),
-                       datainfo = data.frame(Name = 1:n, Chrom = rep(1, n),
-                       Position = Pos)))
-  if(inherits(res, "try-error")) {
-      return(res)
-  } else {
-      return(res$out.list$mean)
-  }
+    cat("\n       .... running BioHMMWrapper \n")
+    ydat <- matrix(logratio, ncol=1)
+    n <- length(ydat)
+    res <- try(fit.model(sample = 1, chrom = 1, dat = matrix(ydat, ncol = 1),
+                         datainfo = data.frame(Name = 1:n, Chrom = rep(1, n),
+                         Position = Pos)))
+    if(inherits(res, "try-error")) {
+        return(res)
+    } else {
+        return(res$out.list$mean)
+    }
 }
 
 #######################################################
@@ -2408,15 +2409,12 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
 
          while(k < kall) { #if k == klist it will bomb, which we want
              ## as that will signal an error
-             k <- k + 1
-             cat("\n k is ", k, "\n")
+             cat("\n i is ", i, "\n")
              resout[[i]] <- list()
-             resout[[i]] <- res[[k]]
-             for(j in 2:nchrom) {
+             for(j in 1:nchrom) {
                  k <- k + 1
                  cat("\n     inner k is ", k, "\n")
-                 for(m in 1:8) resout[[i]][[m]] <- c(resout[[i]][[m]],
-                                                     res[[k]][[m]])
+                 resout[[i]][[j]] <- res[[k]]
              }
              class(resout[[i]]) <- "ACE"
              i <- i + 1
@@ -2551,13 +2549,13 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
 
     chrom.numeric <- object$chrom.numeric
     object$chrom.numeric <- NULL
-	nchrom <- length(object[[1]])
+    nchrom <- length(object[[1]])
                                         #Recalculate FDR for multiple arrays
-	FDR.table <- lapply(object, get.FDR, nchrom=nchrom)
+    FDR.table <- lapply(object, get.FDR, nchrom=nchrom)
         
-	genes <- apply(do.call("cbind",lapply(FDR.table, function(x)x[,2])), 1, sum)
-	ACEPgene <- object[[1]][[1]]$ACEPgene
-        FDR <- mapply(function(A, b) {(1-A) / b}, A=ACEPgene, b=genes)
+    genes <- apply(do.call("cbind",lapply(FDR.table, function(x)x[,2])), 1, sum)
+    ACEPgene <- object[[1]][[1]]$ACEPgene
+    FDR <- mapply(function(A, b) {(1-A) / b}, A=ACEPgene, b=genes)
 ###Total of genes. Calculated as in original java function. Could be missing values?	
         tot.genes <- sum(sapply(object[[1]], function(x) length(x[[1]])))*length(object)
         FDR <- FDR*tot.genes

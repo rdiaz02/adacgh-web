@@ -1137,6 +1137,8 @@ ourMerge <- function(observed, predicted,
                        merge.ansari.sign = 0.05,
                        merge.thresMin = 0.05,
                        merge.thresMax = 0.5) {
+
+    cat("\n        Starting merge \n")
     segmentus2 <-
         mergeLevelsB(vecObs  = observed,
                     vecPred = predicted,
@@ -1150,6 +1152,7 @@ ourMerge <- function(observed, predicted,
     ref <- rep(0, length(segmentus2))
     ref[segmentus2 > classes.ref] <- 1
     ref[segmentus2 < classes.ref] <- -1
+    cat("\n        Done  merge \n")
     return(cbind(Observed = observed,
                  MergedMean = segmentus2,
                  Alteration = ref))
@@ -1273,7 +1276,8 @@ internalSmoothCNA <- function(genomdat,
                               smooth.SD.scale = 2, trim = 0.025) {
     ## this is just the original smoothCNA funct. adapted to use
     ## a single array *chromosome and to be parallelized and fed to internalDNAcopy
-   ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
+   cat("\n      Starting smoothing \n")
+    ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
    trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
    outlier.SD <- outlier.SD.scale * trimmed.SD
    smooth.SD <- smooth.SD.scale * trimmed.SD
@@ -1294,6 +1298,7 @@ internalSmoothCNA <- function(genomdat,
               },
               genomdat[ina], n, c(-k:-1, 1:k), outlier.SD, smooth.SD)
    genomdat[ina] <- smoothed.data
+   cat("\n       Done smoothing \n")
    genomdat
 }
     
@@ -1309,7 +1314,8 @@ internalDNAcopy0 <- function(acghdata,
                             undo.prune,
                             undo.SD) {
     ## tries to follow the original "segment"
-    
+    cat("\n        Starting segmentation \n")
+
     data.type <- "logratio"
     p.method <- "hybrid"
     window.size <- NULL
@@ -1335,6 +1341,9 @@ internalDNAcopy0 <- function(acghdata,
         stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
     stretched.segmeans <- rep(sample.segmeans, sample.lsegs)
     stretched.state    <- rep(1:length(sample.lsegs), sample.lsegs)
+
+    cat("\n        Done segmentation \n")
+
     return(cbind(Observed = genomdati, Predicted = stretched.segmeans,
                  State = stretched.state))
 }
@@ -1353,6 +1362,8 @@ internalDNAcopy <- function(acghdata,
                             sbdry,
                             sbn) {
     ## tries to follow the original "segment"
+    cat("\n        Starting segmentation \n")
+
     data.type <- "logratio"
     p.method <- "hybrid"
     window.size <- NULL
@@ -1377,6 +1388,8 @@ internalDNAcopy <- function(acghdata,
     if(length(sample.lsegs) != length(sample.segmeans))
         stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
     stretched.segmeans <- rep(sample.segmeans, sample.lsegs)
+    cat("\n        Done segmentation \n")
+
     return(stretched.segmeans)
 }
 
@@ -2265,11 +2278,10 @@ ace.analysis <-function(x, coefs = file.aux, Sdev, echo=FALSE, array.names="x") 
     Nlevels <- nrow(coefs)
     called <- matrix(NA, Nlevels, Nclusters)
     
-    v1 <- t(as.matrix(mapply(function(alpha1, beta1) {								                        z2-(alpha1+beta1*z1) }
-                             , alpha1=alpha1, beta1=beta1)))
+    v1 <- t(as.matrix(mapply(function(alpha1, beta1) {
+        z2-(alpha1+beta1*z1) }, alpha1=alpha1, beta1=beta1)))
     v2 <- t(as.matrix(mapply(function(alpha2, beta2) {
-        z2-(alpha2+beta2*z1) }
-                             , alpha2=alpha2, beta2=beta2)))
+        z2-(alpha2+beta2*z1) }, alpha2=alpha2, beta2=beta2)))
 ###Check that mapply left the matrix in good shape
     if (nrow(v1)!=Nlevels) {
         v1 <- t(v1)
@@ -2404,15 +2416,15 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
          i <- 1
          k <- 0
          kall <- length(res)
-         cat("\n kall is ", kall, "\n")
+##         cat("\n kall is ", kall, "\n")
 
          while(k < kall) { #if k == klist it will bomb, which we want
              ## as that will signal an error
-             cat("\n i is ", i, "\n")
+##             cat("\n i is ", i, "\n")
              resout[[i]] <- list()
              for(j in 1:nchrom) {
                  k <- k + 1
-                 cat("\n     inner k is ", k, "\n")
+##                 cat("\n     inner k is ", k, "\n")
                  resout[[i]][[j]] <- res[[k]]
              }
              class(resout[[i]]) <- "ACE"

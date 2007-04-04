@@ -158,6 +158,7 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     nchrom <- unique(chrom.numeric)
     datalist <- list()
     klist <- 1
+    gc0 <- gc()
     for(i in 1:nsample) {
         for (j in nchrom) {
             datalist[[klist]] <- list()
@@ -166,6 +167,8 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
             klist <- klist + 1
         }
     }
+    gc01 <- gc()
+    browser()
     out0 <- papply(datalist,
                   function(z) BioHMMWrapper(z$logr, Pos = z$pos))
 
@@ -180,8 +183,7 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
-
-    ##     stime <- Sys.time()
+##     stime <- Sys.time()
 ##     cat("\n     pSegmentBioHMM completed segmentation step in ",
 ##         (stime - start.time)[[1]],
 ##         " seconds \n")
@@ -199,7 +201,7 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
-
+    
 ##     cat("\n     3rd gc inside pSegmentBioHMM \n")
 ##     print(gc())
     
@@ -220,7 +222,6 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     class(outl) <- c("adacgh.generic.out","mergedBioHMM")
     return(outl)
 }
-
 
 
 pSegmentCGHseg <- function(x, chrom.numeric, ...) {
@@ -1107,15 +1108,17 @@ hmmWrapper <- function(logratio) {
 
 BioHMMWrapper <- function(logratio, Pos) {
     cat("\n       .... running BioHMMWrapper \n")
-    ydat <- matrix(logratio, ncol=1)
-    n <- length(ydat)
-    res <- try(fit.model(sample = 1, chrom = 1, dat = matrix(ydat, ncol = 1),
+##    ydat <- matrix(logratio, ncol=1)
+    gc1 <- gc()
+    n <- length(logratio)
+    res <- try(fit.model(sample = 1, chrom = 1, dat = matrix(logratio, ncol = 1),
                          datainfo = data.frame(Name = 1:n, Chrom = rep(1, n),
                          Position = Pos)))
+    gc2 <- gc()
     if(inherits(res, "try-error")) {
         return(res)
     } else {
-        return(res$out.list$mean)
+        return(list(res$out.list$mean))
     }
 }
 
@@ -1153,9 +1156,15 @@ ourMerge <- function(observed, predicted,
     ref[segmentus2 > classes.ref] <- 1
     ref[segmentus2 < classes.ref] <- -1
     cat("\n        Done  merge \n")
+    gcm <- gc()
+##     return(cbind(Observed = observed,
+##                  MergedMean = segmentus2,
+##                  Alteration = ref))
     return(cbind(Observed = observed,
                  MergedMean = segmentus2,
-                 Alteration = ref))
+                 Alteration = ref,
+                 gcm = gcm))
+
 }
 
 
@@ -3796,6 +3805,7 @@ pSegmentBioHMM_A <- function(x, chrom.numeric, Pos, ...) {
 }
 
 BioHMMWrapper_A <- function(logratio, Chrom, Pos) {
+    gc1 <- gc()
   logratio <- matrix(logratio, ncol=1)
   uchrom <- unique(Chrom)
 ##  obs <- NULL
@@ -3813,8 +3823,10 @@ BioHMMWrapper_A <- function(logratio, Chrom, Pos) {
       }
   }
   out <- ourMerge(logratio, smoothed)
+    gc2 <- gc()
   ##out <- ourMerge(obs, smoothed)
-  return(out)
+##  return(out)
+    return(list(out = out, gc1 = gc1, gc2 = gc2))
 }
 
 

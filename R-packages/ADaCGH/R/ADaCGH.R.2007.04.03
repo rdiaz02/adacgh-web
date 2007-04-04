@@ -180,8 +180,7 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
-
-    ##     stime <- Sys.time()
+##     stime <- Sys.time()
 ##     cat("\n     pSegmentBioHMM completed segmentation step in ",
 ##         (stime - start.time)[[1]],
 ##         " seconds \n")
@@ -199,7 +198,7 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
-
+    
 ##     cat("\n     3rd gc inside pSegmentBioHMM \n")
 ##     print(gc())
     
@@ -220,7 +219,6 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     class(outl) <- c("adacgh.generic.out","mergedBioHMM")
     return(outl)
 }
-
 
 
 pSegmentCGHseg <- function(x, chrom.numeric, ...) {

@@ -60,21 +60,28 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
     }
 }
 
-pSegmentACE <- function(x, chrom.numeric, ...) {
-    ## ACE is already parallelized
-    ACE(x, chrom.numeric, echo = FALSE, coefs = file.aux, Sdev = 0.2)
+
+pSegmentACE <- function(x, chrom.numeric, parall = "auto", ...) {
+    if (parall == "auto")
+        parall <- ifelse(ncol(x) > 75, "axc", "chr")
+    if (parall == "chr")
+        return(ACE_C(x, chrom.numeric, echo = FALSE,
+                     coefs = file.aux, Sdev = 0.2))
+    if (parall == "axc")
+        return(ACE(x, chrom.numeric, echo = FALSE,
+                   coefs = file.aux, Sdev = 0.2))
+}
+
+pSegmentHMM <- function(x, chrom.numeric, parall = "auto", ...) {
+    if (parall == "auto") parall <- "arr"
+    if (parall == "arr")
+        return(pSegmentHMM_A(x, chrom.numeric, ...))
+    if (parall == "axc")
+        return(pSegmentHMM_axc(x, chrom.numeric, ...))
 }
 
 
-pSegmentHMM <- function(x, chrom.numeric, ...) {
-##     start.time <- Sys.time()
-    
-##     cat("\n     1st gc inside pSegmentHMM \n")
-##     print(gc())
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
+pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
     nsample <- ncol(x)
     nchrom <- unique(chrom.numeric)
     datalist <- list()
@@ -89,46 +96,20 @@ pSegmentHMM <- function(x, chrom.numeric, ...) {
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
-##     stime <- Sys.time()
-##     cat("\n     pSegmentHMM completed segmentation step in ",
-##         (stime - start.time)[[1]],
-##         " seconds \n")
-##     cat("\n     2nd gc inside pSegmentHMM \n")
-##     print(gc())
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
     
-    ## list with one entry per array
     datalist <- list()
     for(i in 1:nsample) {
         datalist[[i]] <- list()
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
-    
-##     cat("\n     3rd gc inside pSegmentHMM \n")
-##     print(gc())
-    
     out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-##     mtime <- Sys.time()
-##     cat("\n     pSegmentHMM completed merging step in ",
-##         (mtime - stime)[[1]],
-##         " seconds \n")
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
-    
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
     class(outl) <- c("adacgh.generic.out","mergedHMM")
     return(outl)
 }
-
-
 
 
 pSegmentGLAD <- function(x, chrom.numeric, ...) {
@@ -146,14 +127,17 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
 
 
 
-pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
-##     start.time <- Sys.time()
-##     cat("\n     1st gc inside pSegmentBioHMM \n")
-##     print(gc())
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
+pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
+    if (parall == "auto")
+        parall <- ifelse(ncol(x) > 110, "arr", "axc")
+    if (parall == "arr")
+        return(pSegmentBioHMM_A(x, chrom.numeric, Pos, ...))
+    if (parall == "axc")
+        return(pSegmentBioHMM_axc(x, chrom.numeric, Pos, ...))
+}
+
+    
+pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
     nsample <- ncol(x)
     nchrom <- unique(chrom.numeric)
     datalist <- list()
@@ -181,17 +165,6 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
     rm(datalist)
     rm(out0)
 
-    ##     stime <- Sys.time()
-##     cat("\n     pSegmentBioHMM completed segmentation step in ",
-##         (stime - start.time)[[1]],
-##         " seconds \n")
-##     cat("\n     2nd gc inside pSegmentBioHMM \n")
-##     print(gc())
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
-    ## list with one entry per array
     datalist <- list()
     klist <- 1
     for(i in 1:nsample) {
@@ -199,20 +172,9 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, ...) {
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
-
-##     cat("\n     3rd gc inside pSegmentBioHMM \n")
-##     print(gc())
     
     out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-##     mtime <- Sys.time()
-##     cat("\n     pSegmentBioHMM completed merging step in ",
-##         (mtime - stime)[[1]],
-##         " seconds \n")
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
-    
+   
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
@@ -413,17 +375,21 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 }
 
 
-pSegmentDNAcopy <- function(x, chrom.numeric, smooth = TRUE,
+pSegmentDNAcopy <- function(x, chrom.numeric, parall = "auto", ...) {
+    if (parall == "auto")
+        parall <- ifelse(ncol(x) > 75, "arr", "axc")
+    if (parall == "arr")
+        return(pSegmentDNAcopy_A(x, chrom.numeric, ...))
+    if (parall == "axc")
+        return(pSegmentDNAcopy_axc(x, chrom.numeric, ...))
+}
+
+
+
+pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
                             alpha=0.01, nperm=10000, kmax=25, nmin=200,
                             eta = 0.05, overlap=0.25, trim = 0.025,
                             undo.prune=0.05, undo.SD=3, ...) {
-##     start.time <- Sys.time()
-##     cat("\n     1st gc inside pSegmentDNAcopy \n")
-##     print(gc())
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
     nsample <- ncol(x)
     nchrom <- unique(chrom.numeric)
     datalist <- list()
@@ -486,44 +452,22 @@ pSegmentDNAcopy <- function(x, chrom.numeric, smooth = TRUE,
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
-##     stime <- Sys.time()
-##     cat("\n     pSegmentDNAcopy completed segmentation step in ",
-##         (stime - start.time)[[1]],
-##         " seconds \n")
-##     cat("\n     2nd gc inside pSegmentDNAcopy \n")
-##     print(gc())
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
-    
-    ## list with one entry per array
     datalist <- list()
     for(i in 1:nsample) {
         datalist[[i]] <- list()
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
-    
-##     cat("\n     3rd gc inside pSegmentDNAcopy \n")
-##     print(gc())
-    
     out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-##     mtime <- Sys.time()
-##     cat("\n     pSegmentDNAcopy completed merging step in ",
-##         (mtime - stime)[[1]],
-##         " seconds \n")
-##     if(mpi.universe.size() > 1) {
-##         cat("\n  ....  gc inside remote nodes \n")
-##         print(mpi.remote.exec(gc()))
-##     }
-    
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
     class(outl) <- c("DNAcopy", "adacgh.generic.out")
     return(outl)
 }
+
+
+
 
 
 segmentPlot <- function(x, geneNames,
@@ -3743,7 +3687,7 @@ combine.funcB <- function(diff,vecObs, vecPredNow, mnNow, mn1, mn2, pv.thres=0.0
 
 pSegmentHMM_A <- function(x, chrom.numeric, ...) {
     out <- papply(data.frame(x),
-                  function(z) hmmWrapper_A(z, Chrom = slave_chrom),
+                  function(z) hmmWrapper_(z, Chrom = slave_chrom),
                   papply_commondata = list(
                   slave_chrom = chrom.numeric))
     outl <- list()
@@ -3985,19 +3929,15 @@ internalDNAcopy_A <- function(acghdata,
 }
 
 
-pSegmentACE_A <- function(x, chrom.numeric, ...) {
-    ## ACE is already parallelized
-    ACE_A(x, chrom.numeric, echo = FALSE, coefs = file.aux, Sdev = 0.2)
-}
 
-ace.analysisP_A <-function(x) {
+ace.analysisP_C <-function(x) {
     ace.analysis.C(x, coefs, Sdev, array.names)
 }
 
 
 
 
-ACE_A <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
+ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
 
  	####### x is log2.ratio
  	####### Chrom ---MUST BE NUMERIC-- 
@@ -4011,7 +3951,7 @@ ACE_A <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
  	nchrom <- length(unique(Chrom))
  	if(is.null(dim(x)) || (dim(x)[2]==1)) {
  		genes <- split(x, Chrom)
- 		first.estimate <- papply(genes, ace.analysisP_A,
+ 		first.estimate <- papply(genes, ace.analysisP_C,
                                           papply_commondata =list(coefs = coefs,
                                           Sdev = Sdev,
                                           echo = FALSE, array.names = array.names))
@@ -4019,7 +3959,7 @@ ACE_A <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
  		Sdevs <- unlist(lapply(Sdevs.estimate, "[", 1))
  		Sdevs <- mean(Sdevs[Sdevs>0])
                 if(is.nan(Sdevs)) Sdevs <- 0
- 		res <- papply(genes, ace.analysisP_A,
+ 		res <- papply(genes, ace.analysisP_C,
                                papply_commondata =list(coefs=coefs,
                                Sdev = Sdevs,
                                echo = FALSE, array.names = array.names))
@@ -4030,7 +3970,7 @@ ACE_A <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
  		res <- list()
  		for(i in 1:ncol(x)) {
  			genes <- split(x[,i], Chrom)
-                         first.estimate <- papply(genes, ace.analysisP_A,
+                         first.estimate <- papply(genes, ace.analysisP_C,
                                                   papply_commondata =list(coefs= coefs,
                                                   Sdev = Sdev,
                                                   echo = FALSE, array.names = array.names[i]))
@@ -4041,7 +3981,7 @@ ACE_A <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
                 if(is.nan(Sdevs)) Sdevs <- 0
  		for (i in 1:ncol(x)) {
  			genes <- split(x[,i], Chrom)
-                         res[[i]] <- papply(genes, ace.analysisP_A,
+                         res[[i]] <- papply(genes, ace.analysisP_C,
                                        papply_commondata =list(coefs= coefs,
                                        Sdev = Sdevs,
                                        echo = FALSE, array.names = array.names[i]))

@@ -1,72 +1,12 @@
-#### Benchmarking: makes no sense for ACE or Wavelets, since no other
-##   implementation.
-
-##   For PSW, we are doing different things (some anal. are over genome),
-##   so hard to compare.
-
-##   With Piccard, we are also doing different things wrt to Huber
-##   (getting best k).
-
-
-## Wait: with all PSW, wavelets, and Piccard can show timings, with MPI,
-## even if no comparison possible
-
-##  Therefore, compare: DNAcopy, Hmm, BioHMM, GLAD.
-
-
-#### Prepare data; only needed once
-
-## library(DNAcopy)
-## data(coriell)
-
-
-## ## Prepare data
-## cordat <- na.omit(unlist(coriell[, c(4, 5)]))
-## names(cordat) <- NULL
-## cordat <- matrix(c(cordat, sample(cordat, 353)), ncol = 2)
-
-## dataList <- list()
-## dataList[[1]] <- list()
-## dataList[[1]]$acgh <- cordat
-## dataList[[1]]$nr <- 2271
-## dataList[[1]]$nc <- 2
-## dataList[[1]]$Chrom <- coriell$Chromosome
-## dataList[[1]]$Pos <- coriell$Position
-
-## load("long.data.RData")
-
-
-## ## give ordered data
-## start2 <- unlist(tapply(posdat2$start, posdat2$chrom, sort))
-
-## ## verify ordered
-## cucu <- tapply(start2, posdat2$chrom, order)
-## lapply(cucu, function(z) max(abs(z - (1:length(z)))))
-
-## dataList[[2]] <- list()
-## dataList[[2]]$acgh <- long.long
-## dataList[[2]]$nr <- 42325
-## dataList[[2]]$nc <- 11
-## dataList[[2]]$Chrom <- posdat2$chrom
-## dataList[[2]]$Pos <- start2
-
-
-## selected <- sort(sample(1:42325, 10000))
-
-## dataList[[3]] <- list()
-## dataList[[3]]$acgh <- dataList[[2]]$acgh[selected,]
-## dataList[[3]]$nr <- 10000
-## dataList[[3]]$nc <- 11
-## dataList[[3]]$Chrom <- dataList[[2]]$Chrom[selected]
-## dataList[[3]]$Pos <- dataList[[2]]$Pos[selected]
-
+## selected <- sort(sample(1:42325, 20000))
+## dataList[[4]] <- list()
+## dataList[[4]]$acgh <- dataList[[2]]$acgh[selected,]
+## dataList[[4]]$nr <- 20000
+## dataList[[4]]$nc <- 11
+## dataList[[4]]$Chrom <- dataList[[2]]$Chrom[selected]
+## dataList[[4]]$Pos <- dataList[[2]]$Pos[selected]
 ## save(file = "dataList.RData", dataList)
 
-
-## nohup R --no-save --no-restore --slave < benchmarks.R > benchmarksB.Rout &
-
-
-##################################################33
 
 
 rm(list = ls())
@@ -104,12 +44,15 @@ make.cghdata <- function(ind, samps) {
     tmp <- dataList[[ind]]$acgh
     if(samps <= nc) {
         inds <- sample(1:nc, samps, replace = TRUE)
-        return(tmp[ , inds])
+        dd <- tmp[ , inds]
     } else {
         inds <- sample(1:nc, (samps - nc), replace = TRUE)
         rans <- matrix(rnorm(nr * (samps - nc)), ncol = (samps - nc))
-        return(cbind(tmp, tmp[, inds] + rans))
+        dd <- cbind(tmp, tmp[, inds] + rans)
     }
+    save.image(file = "after.make.cghdata.RData")
+    save(file = "dd.RData", dd)
+    return(dd)
 }
 
 ## the next two, needed to feed the functions the appropriate
@@ -141,7 +84,7 @@ make.hmm.obj <- function(ind, samps) {
 
 doCBS <- function(data) {
     smoothed <- smooth.CNA(data)
-    segmented <- segment(smoothed, undo.splits = "prune", nperm = 10000)
+    segmented <- segment(smoothed, undo.splits = "none", nperm = 10000)
 }
 
 doHMM <- function(data, nsamp) {
@@ -238,8 +181,7 @@ fHMM.mpi <- function(ind, samples) {
 fCBS.mpi <- function(ind, samples) {
     data <- make.cghdata(ind, samples)
     chr <- dataList[[ind]]$Chrom
-    return(unix.time(trash <- pSegmentDNAcopy(data, chr,
-                                              mergeSegs = FALSE))[3])
+    return(unix.time(trash <- pSegmentDNAcopy(data, chr))[3])
 }
 
 fBioHMM.mpi <- function(ind, samples) {
@@ -353,8 +295,8 @@ getTimesB <- function(dataind,
     ## we call gc() a number of times
     ## like getTimes, but methods are passed as parameters, which allows
     ## finer contol if need to repeat.
-    
-    gcnum <- 5
+    save.image(file = "upToHere.RData") ## up to here
+    gcnum <- 1
     
      designm <- expand.grid(Rep = 1:reps,
                            NumberArrays = nsamps,
@@ -394,238 +336,182 @@ getTimesB <- function(dataind,
     out <- mapply(f1, designm$NumberArrays, designm$Method,
                   designm$MPI, designm$number)
     out <- cbind(designm, out)
-    
+    out
 }
 
 
+fHMM_A.mpi <- function(ind, samples) {
+    data <- make.cghdata(ind, samples)
+    chr <- dataList[[ind]]$Chrom
+    return(unix.time(trash <- pSegmentHMM_A(data, chr))[3])
+}
 
+fCBS_A.mpi <- function(ind, samples) {
+    data <- make.cghdata(ind, samples)
+    chr <- dataList[[ind]]$Chrom
+    return(unix.time(trash <- pSegmentDNAcopy_A(data, chr))[3])
+}
 
-#numberArrays <- c(5, 10, 20, 40, 80, 120)
-#mpiSizes     <- c(1, 4, 20, 60, 120)
-#reps <- 5
+fBioHMM_A.mpi <- function(ind, samples) {
+    data <- make.cghdata(ind, samples)
+    chr <- dataList[[ind]]$Chrom
+    pos <- dataList[[ind]]$Pos
+    return(unix.time(trash <- pSegmentBioHMM_A(data, chr, pos))[3])
+}    
 
-numberArrays <- c(5, 10, 20, 50, 100, 150)
-mpiSizes     <- c(10, 30, 60, 120)
-reps <- 10
-Methods <- c("GLAD", "HMM", "CBS")
+fACE_A.mpi <- function(ind, samples) {
+    data <- make.cghdata(ind, samples)
+    chr <- dataList[[ind]]$Chrom
+    return(unix.time(trash <- pSegmentACE_A(data, chr))[3])
+}
 
-smallTiming120 <- getTimesB(1, nsamps = numberArrays,
-                            reps = reps,
-                            MPI = 120, Methods = Methods)
-save(file = "smallTiming120_10reps.RData", smallTiming120)
 
+numberArrays <- c(10, 20, 50, 100, 150)
+mpiSizes     <- c(60)
+reps <- 4
 
-smallTiming60 <- getTimesB(1, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = Methods)
-save(file = "smallTiming60_10reps.RData", smallTiming60)
+MethodsA <- c("GLAD", "HMM", "CBS", "BioHMM")
+MethodsB <- c("ACE", "CGHseg", "Wave")
 
+### Recall: in dataList,
+##          4: 20000 genes: m
+##          3: 10000 genes: s
+##          2: 42325 genes: b
 
-smallTiming30 <- getTimesB(1, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = Methods)
-save(file = "smallTiming30_10reps.RData", smallTiming30)
 
 
+#### We first run the parallelized. The sequential ones can be run
+#### several at a time from different machines as there is no interferecne.
 
-smallTimingNone <- getTimesB(1, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = "None", Methods = Methods)
-save(file = "smallTimingNone_10reps.RData", smallTimingNone)
+#### Sure, we could write a function. But this allows for
+##   simpler error recovery if something  breaks.
 
 
 
-smallTiming10 <- getTimesB(1, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = Methods)
-save(file = "smallTiming10_10reps.RData", smallTiming10)
+#### First those with a sequential counterpart
 
+smallTiming60 <- getTimesB(3, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 60, Methods = MethodsA)
+save(file = "smallTiming60.RData", smallTiming60)
 
+smallTiming30 <- getTimesB(3, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 30, Methods = MethodsA)
+save(file = "smallTiming30.RData", smallTiming30)
 
+smallTiming10 <- getTimesB(3, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 10, Methods = MethodsA)
+save(file = "smallTiming10.RData", smallTiming10)
 
-mediumTiming120 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 120, Methods = Methods)
-save(file = "mediumTiming120_10reps.RData", mediumTiming120)
 
 
-mediumTiming60 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = Methods)
-save(file = "mediumTiming60_10reps.RData", mediumTiming60)
+mediumTiming60 <- getTimesB(4, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 60, Methods = MethodsA)
+save(file = "mediumTiming60.RData", mediumTiming60)
 
+mediumTiming30 <- getTimesB(4, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 30, Methods = MethodsA)
+save(file = "mediumTiming30.RData", mediumTiming30)
 
-mediumTiming30 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = Methods)
-save(file = "mediumTiming30_10reps.RData", mediumTiming30)
+mediumTiming10 <- getTimesB(4, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 10, Methods = MethodsA)
+save(file = "mediumTiming10.RData", mediumTiming10)
 
 
-mediumTimingNone <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = "None", Methods = Methods)
-save(file = "mediumTimingNone_10reps.RData", mediumTimingNone)
-
-mediumTiming10 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = Methods)
-save(file = "mediumTiming10_10reps.RData", mediumTiming10)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Now only methods that have no sequential counterpart
-
-
-
-
-numberArrays <- c(5, 10, 20, 50)
-mpiSizes     <- c(10, 30, 60, 120)
-reps <- 3
-MethodsP <- c("ACE", "CGHseg", "PSW", "Wave")
-
-## Already done
-smallTimingNoSeq120 <- getTimesB(1, nsamps = numberArrays,
-                            reps = reps,
-                            MPI = 120, Methods = MethodsP)
-save(file = "smallTimingNoSeq120_10reps.RData", smallTimingNoSeq120)
-
-
-smallTimingNoSeq60 <- getTimesB(1, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = MethodsP)
-save(file = "smallTimingNoSeq60_10reps.RData", smallTimingNoSeq60)
-
-
-smallTimingNoSeq30 <- getTimesB(1, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = MethodsP)
-save(file = "smallTimingNoSeq30_10reps.RData", smallTimingNoSeq30)
-
-
-
-smallTimingNoSeq10 <- getTimesB(1, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = MethodsP)
-save(file = "smallTimingNoSeq10_10reps.RData", smallTimingNoSeq10)
-
-
-
-mediumTimingNoSeq120 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 120, Methods = MethodsP)
-save(file = "mediumTimingNoSeq120_10reps.RData", mediumTimingNoSeq120)
-
-
-mediumTimingNoSeq60 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = MethodsP)
-save(file = "mediumTimingNoSeq60_10reps.RData", mediumTimingNoSeq60)
-
-
-mediumTimingNoSeq30 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = MethodsP)
-save(file = "mediumTimingNoSeq30_10reps.RData", mediumTimingNoSeq30)
-
-
-
-mediumTimingNoSeq10 <- getTimesB(3, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = MethodsP)
-save(file = "mediumTimingNoSeq10_10reps.RData", mediumTimingNoSeq10)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-largeTiming120 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 120, Methods = Methods)
-save(file = "largeTiming120_10reps.RData", largeTiming120)
 
 
 largeTiming60 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = Methods)
-save(file = "largeTiming60_10reps.RData", largeTiming60)
-
+                           reps = reps,
+                           MPI = 60, Methods = MethodsA)
+save(file = "largeTiming60.RData", largeTiming60)
 
 largeTiming30 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = Methods)
-save(file = "largeTiming30_10reps.RData", largeTiming30)
-
-
-largeTimingNone <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = "None", Methods = Methods)
-save(file = "largeTimingNone_10reps.RData", largeTimingNone)
+                           reps = reps,
+                           MPI = 30, Methods = MethodsA)
+save(file = "largeTiming30.RData", largeTiming30)
 
 largeTiming10 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = Methods)
-save(file = "largeTiming10_10reps.RData", largeTiming10)
+                           reps = reps,
+                           MPI = 10, Methods = MethodsA)
+save(file = "largeTiming10.RData", largeTiming10)
 
 
 
 
+#### Now those without sequential counterpart
+
+
+smallTimingNoSeq60 <- getTimesB(3, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 60, Methods = MethodsB)
+save(file = "smallTimingNoSeq60.RData", smallTimingNoSeq60)
+
+smallTimingNoSeq30 <- getTimesB(3, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 30, Methods = MethodsB)
+save(file = "smallTimingNoSeq30.RData", smallTimingNoSeq30)
+
+smallTimingNoSeq10 <- getTimesB(3, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 10, Methods = MethodsB)
+save(file = "smallTimingNoSeq10.RData", smallTimingNoSeq10)
 
 
 
+mediumTimingNoSeq60 <- getTimesB(4, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 60, Methods = MethodsB)
+save(file = "mediumTimingNoSeq60.RData", mediumTimingNoSeq60)
+
+mediumTimingNoSeq30 <- getTimesB(4, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 30, Methods = MethodsB)
+save(file = "mediumTimingNoSeq30.RData", mediumTimingNoSeq30)
+
+mediumTimingNoSeq10 <- getTimesB(4, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = 10, Methods = MethodsB)
+save(file = "mediumTimingNoSeq10.RData", mediumTimingNoSeq10)
 
 
-largeTimingNoSeq120 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 120, Methods = MethodsP)
-save(file = "largeTimingNoSeq120_10reps.RData", largeTimingNoSeq120)
 
 
 largeTimingNoSeq60 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 60, Methods = MethodsP)
-save(file = "largeTimingNoSeq60_10reps.RData", largeTimingNoSeq60)
-
+                           reps = reps,
+                           MPI = 60, Methods = MethodsB)
+save(file = "largeTimingNoSeq60.RData", largeTimingNoSeq60)
 
 largeTimingNoSeq30 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 30, Methods = MethodsP)
-save(file = "largeTimingNoSeq30_10reps.RData", largeTimingNoSeq30)
-
-
+                           reps = reps,
+                           MPI = 30, Methods = MethodsB)
+save(file = "largeTimingNoSeq30.RData", largeTimingNoSeq30)
 
 largeTimingNoSeq10 <- getTimesB(2, nsamps = numberArrays,
-                        reps = reps,
-                        MPI = 10, Methods = MethodsP)
-save(file = "largeTimingNoSeq10_10reps.RData", largeTimingNoSeq10)
+                           reps = reps,
+                           MPI = 10, Methods = MethodsB)
+save(file = "largeTimingNoSeq10.RData", largeTimingNoSeq10)
 
 
 
+### Now the sequential part
 
 
+smallTimingNone <- getTimesB(3, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = "None", Methods = MethodsA)
+save(file = "smallTimingNone.RData", smallTimingNone)
+
+mediumTimingNone <- getTimesB(4, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = "None", Methods = MethodsA)
+save(file = "mediumTimingNone.RData", mediumTimingNone)
+
+largeTimingNone <- getTimesB(2, nsamps = numberArrays,
+                           reps = reps,
+                           MPI = "None", Methods = MethodsA)
+save(file = "largeTimingNone.RData", largeTimingNone)

@@ -12,10 +12,6 @@ export("mpiInit",
        "segmentPlot",
        "writeResults",
        "SegmentPlotWrite",
-       "pSegmentDNAcopy_A",
-       "pSegmentACE_A",
-       "pSegmentHMM_A",
-       "pSegmentBioHMM_A",
        "doMCR")
 
 

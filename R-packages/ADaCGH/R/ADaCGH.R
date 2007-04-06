@@ -64,20 +64,28 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
 pSegmentACE <- function(x, chrom.numeric, parall = "auto", ...) {
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 75, "axc", "chr")
-    if (parall == "chr")
+    if (parall == "chr") {
+        cat("\n    running chr version \n")
         return(ACE_C(x, chrom.numeric, echo = FALSE,
                      coefs = file.aux, Sdev = 0.2))
-    if (parall == "axc")
+    }
+    if (parall == "axc") {
+        cat("\n    running axc version \n")
         return(ACE(x, chrom.numeric, echo = FALSE,
                    coefs = file.aux, Sdev = 0.2))
+    }
 }
 
 pSegmentHMM <- function(x, chrom.numeric, parall = "auto", ...) {
     if (parall == "auto") parall <- "arr"
-    if (parall == "arr")
+    if (parall == "arr") {
+        cat("\n    running arr version \n")
         return(pSegmentHMM_A(x, chrom.numeric, ...))
-    if (parall == "axc")
+    }
+    if (parall == "axc") {
+        cat("\n    running axc version \n")
         return(pSegmentHMM_axc(x, chrom.numeric, ...))
+    }
 }
 
 
@@ -130,10 +138,14 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
 pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 110, "arr", "axc")
-    if (parall == "arr")
+    if (parall == "arr") {
+        cat("\n    running arr version \n")
         return(pSegmentBioHMM_A(x, chrom.numeric, Pos, ...))
-    if (parall == "axc")
+    }
+    if (parall == "axc") {
+        cat("\n    running axc version \n")
         return(pSegmentBioHMM_axc(x, chrom.numeric, Pos, ...))
+    }
 }
 
     
@@ -378,10 +390,14 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 pSegmentDNAcopy <- function(x, chrom.numeric, parall = "auto", ...) {
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 75, "arr", "axc")
-    if (parall == "arr")
+    if (parall == "arr") {
+        cat("\n    running arr version \n")
         return(pSegmentDNAcopy_A(x, chrom.numeric, ...))
-    if (parall == "axc")
+    }
+    if (parall == "axc") {
+        cat("\n    running axc version \n")
         return(pSegmentDNAcopy_axc(x, chrom.numeric, ...))
+    }
 }
 
 
@@ -3687,7 +3703,7 @@ combine.funcB <- function(diff,vecObs, vecPredNow, mnNow, mn1, mn2, pv.thres=0.0
 
 pSegmentHMM_A <- function(x, chrom.numeric, ...) {
     out <- papply(data.frame(x),
-                  function(z) hmmWrapper_(z, Chrom = slave_chrom),
+                  function(z) hmmWrapper_A(z, Chrom = slave_chrom),
                   papply_commondata = list(
                   slave_chrom = chrom.numeric))
     outl <- list()

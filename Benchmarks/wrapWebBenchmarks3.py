@@ -54,12 +54,11 @@ TESTS = (
    'Wavelets_small',
    'CBS_small',
    'HMM_small',
-   'GLAD_small',
-   'CGHseg_large')
+   'GLAD_small')
 
-NUM_USERS = (20, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-             5, 5) ## used for medium and small
-SUFFIX = (1, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2)
+NUM_USERS = (20, 10, 1, 1, 1, 1, 1, 5) ## used for medium and small
+SUFFIX = (1, 1, 1, 2, 3, 4, 5, 1)
+
 
 kwd = zip(NUM_USERS, SUFFIX)
 
@@ -71,15 +70,12 @@ for test in TESTS:
             timings = launchUTests(test, nu)
         except:
             None
-        writeFile(timings, 'web.bnchmk5.' + test + '_' + \
+        writeFile(timings, 'web.bnchmk6.' + test + '_' + \
                   str(nu) + '.' + str(ks[1]) + '.txt')
 
 
 
 #### Large:
-
-NUM_USERS = (20, 10, 1, 1, 1, 1, 1,
-             5) ## used for large
 
 TESTS = (
    'CGHseg_large',
@@ -101,7 +97,7 @@ for test in TESTS:
             timings = launchUTests(test, nu)
         except:
             None
-        writeFile(timings, 'web.bnchmk5.' + test + '_' + \
+        writeFile(timings, 'web.bnchmk6.' + test + '_' + \
                   str(nu) + '.' + str(ks[1]) + '.txt')
 
 

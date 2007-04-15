@@ -70,7 +70,7 @@ for test in TESTS:
             timings = launchUTests(test, nu)
         except:
             None
-        writeFile(timings, 'web.bnchmk6.' + test + '_' + \
+        writeFile(timings, 'web.bnchmk7.' + test + '_' + \
                   str(nu) + '.' + str(ks[1]) + '.txt')
 
 
@@ -97,7 +97,7 @@ for test in TESTS:
             timings = launchUTests(test, nu)
         except:
             None
-        writeFile(timings, 'web.bnchmk6.' + test + '_' + \
+        writeFile(timings, 'web.bnchmk7.' + test + '_' + \
                   str(nu) + '.' + str(ks[1]) + '.txt')
 
 

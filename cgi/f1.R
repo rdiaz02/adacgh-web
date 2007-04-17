@@ -792,13 +792,8 @@ options(warn = -1)
 
 
 try({
-    if(methodaCGH != "CGHseg") {
-        mpiInit(universeSize = min(max(numarrays, chromnum),
-                mpi.universe.size()))
-    } else {
-        mpiInit(universeSize =
-                min(numarrays * chromnum, mpi.universe.size()))
-    }
+    mpiInit(universeSize =
+            min(numarrays * chromnum, mpi.universe.size()))
     cat("\n\nAbout to print mpiOK file\n")
     sink(file = "mpiOK")
     cat("MPI started OK\n")

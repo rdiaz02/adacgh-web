@@ -17,7 +17,7 @@ sys.path = sys.path + ['/http/mpi.log']
 import counterApplications
 
 
-R_MAX_time = 12 * 3600 ## 12 hours is max duration allowd for any process
+R_MAX_time = 36 * 3600 ## 12 hours is max duration allowd for any process
 TIME_BETWEEN_CHECKS = 45
 MAX_MPI_CRASHES = 20
 
@@ -633,11 +633,14 @@ def did_R_crash_in_slaves(tmpDir, machine_root = 'karl'):
 
 
 def did_lam_crash(tmpDir, machine_root = 'karl'):
-    """ Verify whether LAM/MPI crashed by checking logs."""
+    """ Verify whether LAM/MPI crashed by checking logs and f1.Rout
+    for single universe lamboot."""
     OTHER_LAM_MSGS = 'Call stack within LAM:'
     lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
     in_error_msg = int(os.popen('grep MPI_Error_string ' + \
                                 tmpDir + '/Status.msg | wc').readline().split()[0])
+#     no_universe = int(os.popen('grep "Running serial version of papply" ' + \
+#                                 tmpDir + '/f1.Rout | wc').readline().split()[0])
     if in_error_msg > 0:
         for lam_log in lam_logs:
             os.system('rm ' + lam_log)

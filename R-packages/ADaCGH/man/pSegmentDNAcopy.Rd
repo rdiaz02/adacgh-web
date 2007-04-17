@@ -20,19 +20,15 @@
 
 \usage{
 
-pSegmentDNAcopy(x, chrom.numeric, smooth = TRUE,
-                alpha = 0.01, nperm = 10000,
-                kmax = 25, nmin = 200, eta = 0.05, 
-                overlap = 0.25, trim = 0.025,
-                undo.prune = 0.05, undo.SD = 3, ...)
+pSegmentDNAcopy(x, chrom.numeric, parall = "arr", ...)
 
-pSegmentACE(x, chrom.numeric, ...)
+pSegmentACE(x, chrom.numeric, parall = "auto", ...)
 
-pSegmentHMM(x, chrom.numeric, ...)
+pSegmentHMM(x, chrom.numeric, parall = "auto",...)
 
 pSegmentGLAD(x, chrom.numeric, ...)
 
-pSegmentBioHMM(x, chrom.numeric, Pos, ...)
+pSegmentBioHMM(x, chrom.numeric, Pos, parall = "auto", ...)
 
 pSegmentCGHseg(x, chrom.numeric, ...)
 
@@ -58,17 +54,10 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
   \item{Pos}{The location (e.g., position in kbases) of each probe in
     the chromosome. A vector of the same length as the number of rows in
   \code{x}}
-  \item{mergeSegs}{Merge (genome-wide) the resulting segments using \code{\link[aCGH]{mergeLevels}}?}
-  \item{smooth}{Smooth data before segmentation (using \code{\link[DNAcopy]{smoothCNA}})?}
-  \item{alpha}{See \code{\link[DNAcopy]{segment}} }
-  \item{nperm}{See \code{\link[DNAcopy]{segment}} }
-  \item{kmax}{See \code{\link[DNAcopy]{segment}} }
-  \item{nmin}{See \code{\link[DNAcopy]{segment}} }
-  \item{eta}{See \code{\link[DNAcopy]{segment}} }
-  \item{overlap}{See \code{\link[DNAcopy]{segment}} }
-  \item{trim}{See \code{\link[DNAcopy]{segment}} }
-  \item{undo.prune}{See \code{\link[DNAcopy]{segment}} }
-  \item{undo.SD}{See \code{\link[DNAcopy]{segment}} }
+\item{parall}{Where available whether to parallelize over arrays (all
+  except ACE) or chromosomes (ACE) or array by chromosome (ACE, DNAcopy,
+  HMM, BioHMM.}
+\item{mergeSegs}{Merge (genome-wide) the resulting segments using \code{\link[aCGH]{mergeLevels}}?}
   \item{common.data}{A data frame with columns that contain the common
     information about the clones/genes. For now, this is limited to five
     columns of data.   We do nothing with this, except
@@ -133,6 +122,11 @@ you want to play around with the code, the sources are available from
 http://www.well.ox.ac.uk/~tprice/cgh/ and as the R package
 \code{cgh}). (I thank Tom Price for his discussion on these issues; some
 sentences here are copied almost verbatim from his emails.)
+
+Beware that, with DNAcopy, parallelization over arrays by chromosome can
+lead to slightly different results than parallelization over arrays
+(and, thus, to the original function). This is because of the way the
+smoothing is carried out, which affects the timmed.SD used.
 
 }
 

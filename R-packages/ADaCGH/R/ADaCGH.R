@@ -387,7 +387,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 }
 
 
-pSegmentDNAcopy <- function(x, chrom.numeric, parall = "auto", ...) {
+pSegmentDNAcopy <- function(x, chrom.numeric, parall = "arr", ...) {
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 75, "arr", "axc")
     if (parall == "arr") {
@@ -395,7 +395,7 @@ pSegmentDNAcopy <- function(x, chrom.numeric, parall = "auto", ...) {
         return(pSegmentDNAcopy_A(x, chrom.numeric, ...))
     }
     if (parall == "axc") {
-        cat("\n    running axc version \n")
+        cat("\n    running axc version. Beware smoothing is not the same as original! \n")
         return(pSegmentDNAcopy_axc(x, chrom.numeric, ...))
     }
 }
@@ -1316,9 +1316,9 @@ wrapperDNAcopySmooth <- function(data, alpha, nperm, kmax, nmin, overlap, trim,
     smooth.region <- 2
     outlier.SD.scale <- 4
     smooth.SD.scale <- 2
-    data <- internalSmoothCNA(data, smooth.region, outlier.SD.scale,
+    data2 <- internalSmoothCNA(data, smooth.region, outlier.SD.scale,
                               smooth.SD.scale, trim)
-    outseg <- internalDNAcopy(data, alpha, nperm,  kmax,  nmin, overlap,   
+    outseg <- internalDNAcopy(data2, alpha, nperm,  kmax,  nmin, overlap,   
                               trim, undo.prune, undo.SD, sbdry, sbn)
     outseg
 }

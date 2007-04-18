@@ -36,7 +36,8 @@ px <- function(x, method) {
 
 
 
-pdf(file = "bench_r-code_small.pdf", height = 9, width = 12,
+
+postscript(file = "bench_r-code_small.eps", height = 9, width = 17,
     onefile = FALSE, paper = "special")
 ylim <- c(4, 6500)
 xlim <- c(10 , 165)
@@ -117,7 +118,7 @@ points(px(smallTiming60, "BioHMM"), type = "b", col = "blue",  lwd = 1.5)
 points(px(smallTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 1.5)
 points(px(smallTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
 
-mtext("10,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 1.5)
+mtext("a) 10,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 2, adj = 0)
 mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 1.5)
 par(las = 0)
 mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3, cex = 1.5)
@@ -128,7 +129,7 @@ dev.off()
 
 
 
-pdf(file = "bench_r-code_medium.pdf", height = 9, width = 12,
+postscript(file = "bench_r-code_medium.eps", height = 9, width = 17,
     onefile = FALSE, paper = "special")
 ylim <- c(15, 12000)
 xlim <- c(10 , 165)
@@ -208,7 +209,7 @@ points(px(mediumTiming60, "BioHMM"), type = "b", col = "blue",  lwd = 1.5)
 points(px(mediumTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 1.5)
 points(px(mediumTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
 
-mtext("20,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 1.5)
+mtext("b) 20,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 2, adj = 0)
 mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 1.5)
 par(las = 0)
 mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3.5, cex = 1.5)
@@ -219,7 +220,7 @@ dev.off()
 
 
 
-pdf(file = "bench_r-code_large.pdf", height = 9, width = 12,
+postscript(file = "bench_r-code_large.eps", height = 9, width = 17,
     onefile = FALSE, paper = "special")
 ylim <- c(50, 25000)
 xlim <- c(10 , 165)
@@ -300,11 +301,155 @@ points(px(largeTiming60, "BioHMM"), type = "b", col = "blue",  lwd = 1.5)
 points(px(largeTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 1.5)
 points(px(largeTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
 
-mtext("42,325 genes", side = 3, outer = TRUE, line = 0.2, cex = 1.5)
+mtext("c) 42,325 genes", side = 3, outer = TRUE, line = 0.2, cex = 2, adj = 0)
 mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 1.5)
 par(las = 0)
 mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3.5, cex = 1.5)
 dev.off()
+
+
+system("epstopdf bench_r-code_small.eps")
+system("epstopdf bench_r-code_medium.eps")
+system("epstopdf bench_r-code_large.eps")
+system("pdftk bench_r-code_small.pdf bench_r-code_medium.pdf bench_r-code_large.pdf cat output bench_preall.pdf")
+system("pdfnup --orient landscape --nup 3x1 bench_preall.pdf --outfile bench_r_all.pdf")
+system("pdf2ps bench_r_all.pdf")
+system("cp bench_r_all.pdf ~/Proyectos/ADaCGH-paper/GenomeBiology/.")
+system("cp bench_r_all.ps ~/Proyectos/ADaCGH-paper/GenomeBiology/bench_r_all.eps")
+
+
+
+
+
+## load("smallTimingNoSeq30.RData")
+## load("smallTimingNoSeq10.RData")
+## load("mediumTimingNoSeq30.RData")
+## load("mediumTimingNoSeq10.RData")
+
+
+## postscript(file = "bench_r-codeNS_small.eps", height = 9, width = 17,
+##     onefile = FALSE, paper = "special")
+## ylim <- c(4, 450)
+## xlim <- c(10 , 165)
+## par(mfrow = c(1, 3))
+## par(oma = c(0, 4.2, 2 , 3))
+## par(las = 1)
+## par(cex = 1)
+## par(mar = c(5, 0, 4, 0))
+## plot(px(smallTimingNoSeq10, "Wave"),
+##      ylim = ylim, lwd = 1.5, type = "b",
+##      log = "y", xaxt = "n",
+##      xlab = "",
+##      ylab = "User wall time (seconds)",
+##      main = "Wavelet-based smoothing",
+##      xlim = xlim, axes = FALSE,
+##      col = "red")
+## axis(1, at = c(10, 20, 50, 100, 150),
+##      labels = TRUE, cex.axis = 0.9)
+## axis(1, at = c(20),
+##      labels = TRUE, cex.axis = 0.7)
+## axis(2, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000))
+## box()
+## points(px(smallTimingNoSeq30, "Wave"), type = "b", col = "orange",  lwd = 1.5)
+## text(cbind(4, 0) + px(smallTimingNoSeq30, "Wave")[5, ], "30", col = "orange", adj = 0)
+## text(cbind(4, 0) + px(smallTimingNoSeq10, "Wave")[5, ], "10", col = "red", adj = 0)
+
+## plot(px(smallTimingNoSeq10, "ACE"),
+##      ylim = ylim, lwd = 1.5, type = "b",
+##      log = "y", xaxt = "n",
+##      xlab = "",
+##      ylab = "User wall time (seconds)",
+##      main = "Wavelet-based smoothing",
+##      xlim = xlim, axes = FALSE,
+##      col = "red")
+## axis(1, at = c(10, 20, 50, 100, 150),
+##      labels = TRUE, cex.axis = 0.9)
+## axis(1, at = c(20),
+##      labels = TRUE, cex.axis = 0.7)
+## axis(2, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000))
+## box()
+## points(px(smallTimingNoSeq30, "ACE"), type = "b", col = "orange",  lwd = 1.5)
+
+## plot(px(smallTimingNoSeq10, "CGHseg"),
+##      ylim = ylim, lwd = 1.5, type = "b",
+##      log = "y", xaxt = "n",
+##      xlab = "",
+##      ylab = "User wall time (seconds)",
+##      main = "CGHseg",
+##      xlim = xlim, axes = FALSE,
+##      col = "red")
+## axis(1, at = c(10, 20, 50, 100, 150),
+##      labels = TRUE, cex.axis = 0.9)
+## axis(1, at = c(20),
+##      labels = TRUE, cex.axis = 0.7)
+## axis(2, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000))
+## box()
+## points(px(smallTimingNoSeq30, "CGHseg"), type = "b", col = "orange",  lwd = 1.5)
+
+
+
+
+
+
+
+
+## par(mar = c(5, 0, 4, 0))
+## plot(px(smallTimingNone, "GLAD"),
+##      ylim = ylim, lwd = 1.5, type = "b",
+##      log = "y", xaxt = "n",
+##      xlab = "",
+##      ylab = "",
+##      main = "GLAD",
+##      xlim = xlim, axes = FALSE)
+## box()
+## axis(1, at = c(10, 20, 50, 100, 150), 
+##      labels = TRUE, cex.axis = 0.9)
+## points(px(smallTiming60, "GLAD"), type = "b", col = "blue",  lwd = 1.5)
+## points(px(smallTiming30, "GLAD"), type = "b", col = "orange",  lwd = 1.5)
+## points(px(smallTiming10, "GLAD"), type = "b", col = "red",  lwd = 1.5)
+
+
+
+## par(mar = c(5, 0, 4, 0))
+## plot(px(smallTimingNone, "CBS"),
+##      ylim = ylim, lwd = 1.5, type = "b",
+##      log = "y", xaxt = "n",
+##      xlab = "",
+##      ylab = "",
+##      main = "CBS",
+##      xlim = xlim, axes = FALSE)
+## box()
+## axis(1, at = c(10, 20, 50, 100, 150),
+##      labels = TRUE, cex.axis = 0.9)
+## points(px(smallTiming60, "CBS"), type = "b", col = "blue",  lwd = 1.5)
+## points(px(smallTiming30, "CBS"), type = "b", col = "orange",  lwd = 1.5)
+## points(px(smallTiming10, "CBS"), type = "b", col = "red",  lwd = 1.5)
+
+
+## par(mar = c(5, 0, 4, 0))
+## plot(px(smallTimingNone, "BioHMM"),
+##      ylim = ylim, lwd = 1.5, type = "b",
+##      log = "y", xaxt = "n",
+##      xlab = "",
+##      ylab = "",
+##      main = "BioHMM",
+##      xlim = xlim, axes = FALSE)
+## box()
+## axis(1, at = c(10, 20, 50, 100, 150), 
+##      labels = TRUE, cex.axis = 0.9)
+## axis(4, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000))
+## points(px(smallTiming60, "BioHMM"), type = "b", col = "blue",  lwd = 1.5)
+## points(px(smallTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 1.5)
+## points(px(smallTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
+
+## mtext("a) 10,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 2, adj = 0)
+## mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 1.5)
+## par(las = 0)
+## mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3, cex = 1.5)
+## dev.off()
+
+
+
 
 
 

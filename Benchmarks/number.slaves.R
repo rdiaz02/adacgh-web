@@ -4,11 +4,13 @@
 
 vars <- expand.grid(replicate = c(1, 2),
                     num.arrays = c(20, 50, 100, 150),
-                    version = c("A", "AxC"),
+                    version = c("Array", "Array by Chromosome"),
                     method = c("ACE", "HMM", "BioHMM", "CBS"),
                     num.genes = c(20000, 40000),
-                    slaves = c(60, 120)
+                    slaves = c("Slaves: 2 per node", "Slaves: 4 per node")
                     )
+vars$slaves <- factor(vars$slaves)
+#vars$num.genes <- factor(vars$num.genes)
 
 times <- c(29, 29, 75, 75, 152, 151, 232, 231,
            17, 12, 57, 61, 131, 392, 309, 772,
@@ -43,5 +45,48 @@ times <- c(29, 29, 75, 75, 152, 151, 232, 231,
            190, 174, 180, 176, 184, 185, 190, 190,
            107, 107, 176, 175, 556, 319, 603, 520)
 
-           
-           
+datos <- cbind(vars, times)
+datos.20000 <- datos[datos$num.genes == 20000, ]
+datos.40000 <- datos[datos$num.genes == 40000, ]
+
+library(lattice)
+
+
+
+pdf("120.vs.60.20000.pdf", height = 9, width = 12)
+xyplot(times ~ num.arrays|method*slaves,
+       groups = version,
+       auto.key = TRUE,
+       scales = list(x = list(at = c(20, 50, 100, 150)),
+       y = list(log = TRUE, at = c(10, 50, 100, 500, 1000)),
+       cex = 1.1),
+       xlab = "Number of arrays",
+       ylab = "Users' wall time",
+       data = datos.20000,
+       main = "20,000 genes",
+       cex = 1.2,
+       par.settings = list(fontsize = list(text = 14, points = 10)))
+dev.off()
+
+
+pdf("120.vs.60.40000.pdf", height = 9, width = 12)
+xyplot(times ~ num.arrays|method*slaves,
+       groups = version,
+       auto.key = TRUE,
+       scales = list(x = list(at = c(20, 50, 100, 150)),
+       y = list(log = TRUE, at = c(10, 50, 100, 500, 1000)),
+       cex = 1.1),
+       xlab = "Number of arrays",
+       ylab = "Users' wall time",
+       data = datos.40000,
+       main = "42,325 genes",
+       cex = 1.2,
+       par.settings = list(fontsize = list(text = 14, points = 10)))
+dev.off()
+
+
+
+
+system("pdftk 120.vs.60.20000.pdf 120.vs.60.40000.pdf cat output 120.vs.60.pdf")
+system("pdfnup --nup 1x2 120.vs.60.pdf --outfile 120.vs.60.b.pdf")
+system("cp 120.vs.60.b.pdf ~/Proyectos/ADaCGH-paper/GenomeBiology/.")

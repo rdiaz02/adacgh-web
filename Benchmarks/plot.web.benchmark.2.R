@@ -136,7 +136,7 @@ bwplot(timings ~ nusers | method, groups = nusers, data = small.timings,
        }
        )
 par(new = TRUE)
-mtext("2271 genes, 10 arrays", side = 3, outer = TRUE, line = 2.5, cex = 1.5)
+mtext("a) 2271 genes, 10 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2, adj = 0)
 mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
 par(las = 0)
 mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1, cex = 1.5)
@@ -165,7 +165,7 @@ bwplot(timings ~ nusers | method, groups = nusers, data = medium.timings,
        }
        )
 par(new = TRUE)
-mtext("15000 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 1.5)
+mtext("b) 15000 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2, adj = 0)
 mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
 par(las = 0)
 mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 1.5)
@@ -193,8 +193,16 @@ bwplot(timings ~ nusers | method, groups = nusers, data = large.timings,
        }
        )
 par(new = TRUE)
-mtext("42325 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 1.5)
+mtext("c) 42325 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2, adj = 0)
 mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
 par(las = 0)
 mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 1.5)
 dev.off()
+
+
+system("pdftk bench_web_small.pdf bench_web_medium.pdf bench_web_large.pdf cat output bench_web_pre.pdf")
+system("pdfnup --nup 1x3 bench_web_pre.pdf --outfile bench_web_all.pdf")
+system("pdf2ps bench_web_all.pdf")
+
+system("cp bench_web_all.pdf ~/Proyectos/ADaCGH-paper/GenomeBiology/.")
+system("cp bench_web_all.ps ~/Proyectos/ADaCGH-paper/GenomeBiology/bench_web_all.eps")

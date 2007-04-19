@@ -7,7 +7,7 @@ vars <- expand.grid(replicate = c(1, 2),
                     version = c("Array", "Array by Chromosome"),
                     method = c("ACE", "HMM", "BioHMM", "CBS"),
                     num.genes = c(20000, 40000),
-                    slaves = c("Slaves: 2 per node", "Slaves: 4 per node")
+                    slaves = c("Slaves: 2", "Slaves: 4")
                     )
 vars$slaves <- factor(vars$slaves)
 #vars$num.genes <- factor(vars$num.genes)
@@ -51,40 +51,45 @@ datos.40000 <- datos[datos$num.genes == 40000, ]
 
 library(lattice)
 
-
-
 pdf("120.vs.60.20000.pdf", height = 9, width = 12)
 xyplot(times ~ num.arrays|method*slaves,
        groups = version,
-       auto.key = TRUE,
-       scales = list(x = list(at = c(20, 50, 100, 150)),
-       y = list(log = TRUE, at = c(10, 50, 100, 500, 1000)),
-       cex = 1.1),
+       key = list(text = list(c("Array (Chromosome for ACE)",
+                  "Array by Chromosome"), cex = 0.8),
+       col = c("blue", "magenta"),
+       points = list(pch = c(1, 1), cex = 1.3)),
+#       space = "top",
+       ##        corner = c(0,0),
+       ##        x = 0.3, y = 0.7
+       scales = list(x = list(at = c(20, 50, 100, 150), cex = 0.6),
+       y = list(log = TRUE, at = c(10, 50, 100, 500, 1000, 2000)),
+       cex = 0.6),
        xlab = "Number of arrays",
        ylab = "Users' wall time",
        data = datos.20000,
        main = "20,000 genes",
        cex = 1.2,
-       par.settings = list(fontsize = list(text = 14, points = 10)))
+       ylim = c(8, 2500),
+       par.settings = list(fontsize = list(text = 30, points = 10)))
 dev.off()
 
 
 pdf("120.vs.60.40000.pdf", height = 9, width = 12)
 xyplot(times ~ num.arrays|method*slaves,
        groups = version,
-       auto.key = TRUE,
-       scales = list(x = list(at = c(20, 50, 100, 150)),
-       y = list(log = TRUE, at = c(10, 50, 100, 500, 1000)),
+       auto.key = FALSE,
+       scales = list(x = list(at = c(20, 50, 100, 150), cex = 0.6),
+       y = list(log = TRUE, at = c(10, 50, 100, 500, 1000, 2000),
+       cex = 0.6),
        cex = 1.1),
        xlab = "Number of arrays",
        ylab = "Users' wall time",
        data = datos.40000,
        main = "42,325 genes",
        cex = 1.2,
-       par.settings = list(fontsize = list(text = 14, points = 10)))
+       ylim = c(8, 2500), 
+       par.settings = list(fontsize = list(text = 30, points = 10)))
 dev.off()
-
-
 
 
 system("pdftk 120.vs.60.20000.pdf 120.vs.60.40000.pdf cat output 120.vs.60.pdf")

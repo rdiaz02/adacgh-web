@@ -333,6 +333,107 @@ system("cp bench_r_all.ps ~/Proyectos/ADaCGH-paper/GenomeBiology/bench_r_all.eps
 
 
 
+#### Plot for the ERCIM (Geneva) talk
+
+pdf(file = "talk_bench_r-code_medium.pdf", height = 9, width = 17,
+    onefile = FALSE, paper = "special")
+ylim <- c(10, 12000)
+xlim <- c(10 , 165)
+par(mfrow = c(1, 4))
+par(oma = c(0.3, 6.1, 2 , 4.8))
+par(las = 1)
+par(cex = 1)
+par(mar = c(5, 0, 4, 0))
+
+par(cex.lab = 2)
+par(cex.main = 2.2)
+par(cex.axis = 1.6)
+
+plot(px(mediumTimingNone, "HMM"),
+     ylim = ylim, lwd = 1.5, type = "b",
+     log = "y", xaxt = "n",
+     xlab = "",
+     ylab = "User wall time (seconds)",
+     main = "HMM",
+     xlim = xlim, axes = FALSE)
+axis(1, at = c(10, 20, 50, 100, 150),
+     labels = TRUE)
+axis(1, at = c(20),
+     labels = TRUE, cex.axis = 0.7)
+axis(2, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000, 10000))
+box()
+points(px(mediumTiming60, "HMM"), type = "b", col = "blue",  lwd = 1.5)
+points(px(mediumTiming30, "HMM"), type = "b", col = "orange",  lwd = 1.5)
+points(px(mediumTiming10, "HMM"), type = "b", col = "red",  lwd = 1.5)
+text(60, 1400, "Sequential code", cex = 1.8)
+text(80, 150, "Parallelized code", cex = 1.8)
+text(cbind(4, 0) + px(mediumTiming60, "HMM")[5, ], "60", col = "blue", adj = 0, cex = 1.9)
+text(cbind(4, 0) + px(mediumTiming30, "HMM")[5, ], "30", col = "orange", adj = 0, cex = 1.9)
+text(cbind(4, 0) + px(mediumTiming10, "HMM")[5, ], "10", col = "red", adj = 0, cex = 1.9)
+
+
+
+par(mar = c(5, 0, 4, 0))
+plot(px(mediumTimingNone, "GLAD"),
+     ylim = ylim, lwd = 1.5, type = "b",
+     log = "y", xaxt = "n",
+     xlab = "",
+     ylab = "",
+     main = "GLAD",
+     xlim = xlim, axes = FALSE)
+box()
+axis(1, at = c(10, 20, 50, 100, 150), 
+     labels = TRUE)
+points(px(mediumTiming60, "GLAD"), type = "b", col = "blue",  lwd = 1.5)
+points(px(mediumTiming30, "GLAD"), type = "b", col = "orange",  lwd = 1.5)
+points(px(mediumTiming10, "GLAD"), type = "b", col = "red",  lwd = 1.5)
+
+
+par(mar = c(5, 0, 4, 0))
+plot(px(mediumTimingNone, "CBS"),
+     ylim = ylim, lwd = 1.5, type = "b",
+     log = "y", xaxt = "n",
+     xlab = "",
+     ylab = "",
+     main = "CBS",
+     xlim = xlim, axes = FALSE)
+box()
+axis(1, at = c(10, 20, 50, 100, 150),
+     labels = TRUE)
+points(px(mediumTiming60, "CBS"), type = "b", col = "blue",  lwd = 1.5)
+points(px(mediumTiming30, "CBS"), type = "b", col = "orange",  lwd = 1.5)
+points(px(mediumTiming10, "CBS"), type = "b", col = "red",  lwd = 1.5)
+
+
+par(mar = c(5, 0, 4, 0))
+plot(px(mediumTimingNone, "BioHMM"),
+     ylim = ylim, lwd = 1.5, type = "b",
+     log = "y", xaxt = "n",
+     xlab = "",
+     ylab = "",
+     main = "BioHMM",
+     xlim = xlim, axes = FALSE)
+box()
+axis(1, at = c(10, 20, 50, 100, 150), 
+     labels = TRUE)
+axis(4, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000, 10000))
+points(px(mediumTiming60, "BioHMM"), type = "b", col = "blue",  lwd = 1.5)
+points(px(mediumTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 1.5)
+points(px(mediumTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
+
+mtext("20,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 2.5)
+mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 2)
+par(las = 0)
+mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 4.5, cex = 2)
+dev.off()
+
+
+
+
+
+
+
+
 
 ## load("smallTimingNoSeq30.RData")
 ## load("smallTimingNoSeq10.RData")

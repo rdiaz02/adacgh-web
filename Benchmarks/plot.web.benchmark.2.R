@@ -206,3 +206,37 @@ system("pdf2ps bench_web_all.pdf")
 
 system("cp bench_web_all.pdf ~/Proyectos/ADaCGH-paper/GenomeBiology/.")
 system("cp bench_web_all.ps ~/Proyectos/ADaCGH-paper/GenomeBiology/bench_web_all.eps")
+
+
+
+
+
+### Geneva ERCIM talk
+pdf(file = "talk_bench_web_medium.pdf", height = 9, width = 12,
+           onefile = FALSE, paper = "special")
+ par(new = TRUE)
+ plot.new()
+##  mtext("Small data set (2271 genes, 10 arrays)", side = 3, outer = TRUE, line = 2.5, cex = 1.5)
+##  mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 2, cex = 1.5)
+##  par(las = 0)
+##  mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 2.8, cex = 1.5)
+##  par(new = TRUE)
+par(oma = c(3, 3, 4, 2))
+bwplot(timings ~ nusers | method, groups = nusers, data = medium.timings,
+       xlab = "", ylab = "",
+       scales = list(cex = 1.2,
+       y = list(log = TRUE,
+       at = c(250, 500, 1000, 2000, 4000))),
+       cex.lab = 1.5,
+       par.settings = list(fontsize = list(text = 30, points = 10)))
+       panel = function(...) {
+           panel.bwplot(fill = "gray", cex.lab = 1.5, ...)
+       }
+       )
+par(new = TRUE)
+mtext("15000 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2)
+mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
+par(las = 0)
+mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 1.5)
+dev.off()
+

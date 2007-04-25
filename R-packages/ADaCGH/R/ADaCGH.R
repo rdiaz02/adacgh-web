@@ -1160,7 +1160,7 @@ gladWrapper <- function(x, Chrom, Pos = NULL) {
 #######################################################
 
 
-piccardsK <- function(loglik, n, s = -0.5) {
+piccardsKO <- function(loglik, n, s = -0.5) {
     ## return the optimal number of segments, as in
     ## piccard et al., p. 13. k is number of segments, not breakponts.
     dks <- c(NA, diff(loglik, lag = 1, differences = 2))
@@ -1173,23 +1173,87 @@ piccardsK <- function(loglik, n, s = -0.5) {
     }
 }
 
-piccardsStretch <- function(obj, k, n, logratio) {
+piccardsKL <- function(J, n, s = -0.5) {
+    ## return the optimal number of segments, as in
+    ## piccard et al., p. 13. k is number of segments, not breakponts.
+    ## Following Lai et al. Seems wrong.
+    S <- -1*s
+    lj <- length(J)
+    Jtild <- (J[lj] - J)/(J[lj] - J[1]) * (lj - 1) + 1
+    okdk <- which(diff(Jtild, lag = 1, differences = 2) > S)
+    if(length(okdk) > 0) {
+        return(max(okdk) + 1)
+    } else {
+        return(1)
+    }
+}
+
+piccardsStretchO <- function(obj, k, n, logratio, collapse = TRUE) {
     if(k > 1) {
         poss <- obj@breakpoints[[k]]
         start <- c(1, poss)
         end <- c(poss - 1, n)
-        smoothed <- mapply(function(start, end) mean(logratio[start: end]), start, end)
+        smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
         reps <- diff(c(start, n + 1))
-        smoothed <- rep(smoothed, reps)
+        smoothed <- rep(smoothedC, reps)
         state <- rep(1:k, reps)
-    } else {
-        smoothed <- rep(mean(logratio), n)
-        state <- rep(1, n)
+        if(! collapse) {
+            return(cbind(smoothed = smoothed, state = state))
+        }
+        else {
+            class0 <- which.max(reps)
+            meanclass0 <- smoothedC[class0]
+            state[state == class0] <- 0
+            state[smoothed < meanclass0] <- -1
+            state[smoothed > meanclass0] <- 1
+            return(cbind(smoothed = smoothed, state = state))
+        }
     }
-    return(cbind(smoothed = smoothed, state = state))
+    else { ## only one segment
+        smoothed <- rep(mean(logratio), n)
+        if(collapse) {
+            state <- rep(0, n)
+        } else {
+            state <- rep(1, n)
+        }
+        return(cbind(smoothed = smoothed, state = state))
+    }
 }
-    
-CGHsegWrapper <- function(logratio, maxseg = NULL, maxk = NULL) {
+
+
+piccardsStretchML <- function(obj, k, n, logratio, collapse = TRUE) {
+    if(k > 1) {
+        poss <- obj@breakpoints[[k]]
+        start <- c(1, poss)
+        end <- c(poss - 1, n)
+        smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
+        reps <- diff(c(start, n + 1))
+        smoothed <- rep(smoothedC, reps)
+        state <- rep(1:k, reps)
+        if(! collapse) {
+            return(cbind(smoothed = smoothed, state = state))
+        }
+        else {
+            tmp <- ADaCGH:::ourMerge(logratio, smoothed)
+            return(cbind(smoothed = tmp[, 2], state = tmp[, 3]))
+        }
+    }
+    else { ## only one segment
+        smoothed <- rep(mean(logratio), n)
+        if(collapse) {
+            state <- rep(0, n)
+        } else {
+            state <- rep(1, n)
+        }
+        return(cbind(smoothed = smoothed, state = state))
+    }
+}
+
+
+
+CGHsegWrapper <- function(logratio, s = -0.5, maxseg = NULL,
+                          maxk = NULL,
+                          verbose = TRUE) {
     ## beware, this is by chrom!!
     ## Just in case:
     n <- length(logratio)
@@ -1197,12 +1261,78 @@ CGHsegWrapper <- function(logratio, maxseg = NULL, maxk = NULL) {
     if(is.null(maxk)) maxk   <- n
     obj1 <- tilingArray:::segment(logratio, maxseg = maxseg,
                                   maxk = maxk)
-    optk <- piccardsK(obj1@logLik, n)
-    finalsegm <- piccardsStretch(obj1, optk, n, logratio)
+    optk <- piccardsKO(obj1@logLik, n, s)
+    if (verbose) cat("\n Optimal k ", optk, "\n")
+    finalsegm <- piccardsStretchML(obj1, optk, n, logratio)
     return(cbind(Observed = logratio, SmoothedMean = finalsegm[, 1],
                  Alteration = finalsegm[, 2]))
 }
 
+
+
+#### Choosing a good s for Piccard's approach
+####  and collapsing levels
+
+## CGHsegWrapper2 <- function(logratio, s,
+##                            true.states,
+##                            maxseg = NULL,
+##                            maxk = NULL,
+##                            verbose = TRUE) {
+##     n <- length(logratio)
+##     if(is.null(maxseg)) maxseg <- n/2
+##     if(is.null(maxk)) maxk   <- n
+##     obj1 <- tilingArray:::segment(logratio, maxseg = maxseg,
+##                                   maxk = maxk)
+
+##     optks <- rep(NA, length(s))
+##     for (i in 1:length(s)) {
+##         optk <- piccardsKO(obj1@logLik, n, s[i])
+##         cat("\n S = ", s[i], ". Optimal k = ", optk, "\n")
+##         cat("\n        naive collapsing \n")
+##         finalsegm <- piccardsStretchO(obj1, optk, n, logratio)
+##         print(table(true.states, finalsegm[, 2]))
+##         cat("\n        merge levels collapsing \n")
+##         finalsegm <- piccardsStretchML(obj1, optk, n, logratio)
+##         print(table(true.states, finalsegm[, 2]))
+
+##     }
+## }
+
+## lambda <- 0
+## load("simulated.data.RData")
+## for(t in 1:10) {
+##     cat("\n #########  Doing t ", t, "\n")
+##     willen <- paste("res.RJaCGH", t, i, "RData", sep=".")
+##     load(willen)
+##     y <- eval(parse(text=paste(sub(".RData", "", willen), "fit", "y", sep="$")))
+##     Pos <- eval(parse(text=paste(sub(".RData", "", willen), "fit", "Pos", sep="$")))
+##     ## true states
+##     true.states <- eval(parse(text=paste("simulated.data$sample",
+##                               eval(parse(text=paste(sub(".RData",
+##                                          "", willen), "file", sep="$"))),
+##                               "$sample[Pos,4]", sep="")))
+    
+##     willen <- list(y=y) ## , Pos=Pos)    
+    
+##     CGHsegWrapper2(willen[['y']], s = c(-0.5, -0.25, -0.1, -0.075, -0.05,
+##                                   -0.01, -0.005, -0.0025, -0.001),
+##                    true.states = true.states)
+## }
+    
+
+
+
+
+### Verify with Piccard's paper, figure 1.
+
+## coriel.data <- read.table("gm03563.txt", header = TRUE)
+## cd3 <- coriel.data[coriel.data$Chromosome == 3, 3]
+    
+
+## out.lai <- CGHsegWrapper(cd3, optK = "L")  ## k = 14
+## out.our <- CGHsegWrapper(cd3, optK = "O")  ## k = 2
+
+## so our implementation seems correct.
 
 
 

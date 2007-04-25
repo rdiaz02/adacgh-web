@@ -1,3 +1,12 @@
+1.3	2007-04-25
+	- Automatic recategorization of CGHseg states to three levels.
+	- Parameterization of the S parameter for optimal penalization 
+	  in CGHseg.
+	- A little bit of CGHseg testing (compare to paper)
+
+1.2-2	2007-04-24
+	- Bug in CGHseg when k = 1
+
 1.2	2007-04-05
 	- Possibility of using either parallelization granularity
 	with an "auto" option  based on  benchmarks (see our

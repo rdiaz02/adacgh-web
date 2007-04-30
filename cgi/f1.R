@@ -290,7 +290,10 @@ if (methodaCGH == "Wavelets") {
     PSW.p.crit <- scan("PSW.p.crit", what = double(0), n = 1)
 } else if (methodaCGH == "ACE") {
     ACE.fdr <- scan("ACE.fdr", what = double(0), n = 1)
+} else if (methodaCGH == "CGHseg") {
+    CGHseg.s <- scan("CGHseg.s", what = double(0), n = 1)
 } 
+
 
 
 twoFiles <- try(scan("twofiles", what = "", n = 1))
@@ -516,8 +519,9 @@ if (methodaCGH == "Wavelets") {
 } else if (methodaCGH == "PSW") {
     cat("<p>        PSW.nIter\t\t:             ",             PSW.nIter,"</p>\n")
     cat("<p>        PSW.p.crit\t\t:            ",             PSW.p.crit,"</p>\n")
+} else if (methodaCGH == "CGHseg") {
+    cat("<p>        CGHseg.threshold\t\t:             ",             CGHseg.s,"</p>\n")
 }
-
 
 cat("<h4>Minimal common regions </h4>\n")
 cat("<p>        MCR.gapAllowed\t\t:             ",       MCR.gapAllowed,"</p>\n")
@@ -553,8 +557,9 @@ if (methodaCGH == "Wavelets") {
 } else if (methodaCGH == "PSW") {
     cat("\n\nPSW.nIter\t\t:             ",             PSW.nIter)
     cat("\n\nPSW.p.crit\t\t:            ",             PSW.p.crit)
+} else if (methodaCGH == "CGHseg") {
+    cat("\n\nCGHseg.threshold\t\t:             ",             CGHseg.s)
 }
-
 cat("\n\n\n\nMinimal common regions\n")
 cat("\n\nMCR.gapAllowed\t\t:             ",       MCR.gapAllowed)
 cat("\n\nMCR.alteredLow\t\t:             ",       MCR.alteredLow)            
@@ -774,6 +779,7 @@ if(!(exists("mergeRes"))) mergeRes <- TRUE
 if(mergeRes == "Yes") mergeRes <- TRUE
 if(mergeRes == "No") mergeRes <- FALSE
 
+if(!(exists("CGHseg.s"))) CGHseg.s <- NULL
 
 
 doCheckpoint(1)
@@ -826,10 +832,11 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         trythis <- try({Wave.minDiff
                         fseg <- get(paste("pSegment", methodaCGH, sep = ""))
                         segmres <- fseg(as.matrix(xcenter),
-                                       chrom.numeric = positions.merge1$chrom.numeric,
-                                       Pos = positions.merge1$MidPoint,
-                                       mergeSegs = mergeRes,
-                                       minDiff = force(Wave.minDiff))
+                                        chrom.numeric = positions.merge1$chrom.numeric,
+                                        Pos = positions.merge1$MidPoint,
+                                        mergeSegs = mergeRes,
+                                        minDiff = force(Wave.minDiff),
+                                        CGHseg.thres = force(CGHseg.s))
                        })
         
         if(inherits(trythis, "try-error"))

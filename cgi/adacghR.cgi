@@ -343,6 +343,15 @@ if methodaCGH == 'ACE':
 if methodaCGH == 'PSW':
     tmp = valueNumUpload('PSW.nIter', 'int', 10)
     tmp = valueNumUpload('PSW.p.crit', 'float', 0)
+if methodaCGH == 'CGHseg':
+    tmp = valueNumUpload('CGHseg.s', 'float', -9999999999)
+    if tmp > 0:
+        commonOutput()
+        print "<h1> ERROR </h1>"
+        print "<p> It makes no sense to have this threshold be positive </p>"
+        print "</body></html>"
+        sys.exit()
+        
 centering = radioUpload('centering', acceptedMethodCentering)
 twofiles = radioUpload('twofiles', ('Two.files', 'One.file'))
 

@@ -333,11 +333,36 @@ segments. In particular, the model with common variance allows detecting
 segments with one observation (e.g., singletons). </p>
 
 <p>The original paper includes no details on mapping the segmentation
-results to the "gain/loss/no-change" classes. Simply using mergeLevels on
-the outcome does not seem appropriate (because of the explicit model-based
-assumptions of this procedure). In the absence of any comparison work, we
-return the segmented results for the user to then assign to groups
-of "gain/loss/no-change" if desired.</p>
+results to the "gain/loss/no-change" classes. We thus use mergeLevels on
+the output. With this approach, CGHseg is one of the best overall
+performers (on par with Circular Binary Segmentation)
+in our comparison of several methods for aCGH analysis (see Supplementary Material to <a
+href="http://www.ligarto.org/rdiaz/Papers/rjhmm-report-plus-sup-mat.pdf">Rueda
+Diaz-Uriarte</a> for further discussion).</p>
+
+
+<p>Using CGHseg requires setting one threshold for the adaptive
+penalization. (Briefly, this threshold is used to determine when the
+second derivative of the likelihood w.r.t. the number of segments is not
+large enough to justify further segments; see p. 13 of <cite>Picard et
+al. (2005)</cite>). The default value used in the original reference is
+-0.5. However, our experience with the simulated data in <cite>Willenbrock
+and Fridlyand (2005)</cite> indicates that for those data values around
+-0.005 are more appropriate (see Supplementary Material to <a
+href="http://www.ligarto.org/rdiaz/Papers/rjhmm-report-plus-sup-mat.pdf">Rueda
+Diaz-Uriarte</a> for further discussion). We recommend that users play
+around with the threshold until a reasonable value is found. It only makes
+sense for this value to be negative (even if very close to 0).</p>
+
+
+
+<!-- and D  -->
+
+<!-- Simply using mergeLevels on -->
+<!-- the outcome does not seem appropriate (because of the explicit model-based -->
+<!-- assumptions of this procedure). In the absence of any comparison work, we -->
+<!-- return the segmented results for the user to then assign to groups -->
+<!-- of "gain/loss/no-change" if desired.</p> -->
 
 
 <h3><a name="GLAD">Gain and Loss Analysis of DNA by Hupe et a. (GLAD)</a></h3>

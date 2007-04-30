@@ -197,33 +197,37 @@ pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
 
 
 
-pSegmentCGHseg <- function(x, chrom.numeric, ...) {
-    ## Beware: we parallelize over chromosoes AND subjects
+pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres, ...) {
+    ## Beware: we parallelize over subjects
  
-    nsample <- ncol(x)
-    nchrom <- unique(chrom.numeric)
-    datalist <- list()
-    klist <- 1
-    for(i in 1:nsample) {
-        for (j in nchrom) {
-            datalist[[klist]] <- x[chrom.numeric == j, i]
-            klist <- klist + 1
-        }
-    }
-      
-    out0 <- papply(datalist, function(z) CGHsegWrapper(z))
+##    nsample <- ncol(x)
+##    nchrom <- unique(chrom.numeric)
+##     datalist <- list()
+##     klist <- 1
+##     for(i in 1:nsample) {
+##         for (j in nchrom) {
+##             datalist[[klist]] <- x[chrom.numeric == j, i]
+##             klist <- klist + 1
+##         }
+##     }
+    datalist <- data.frame(x)
+    out0 <- papply(datalist, function(z) CGHsegWrapper(z,
+                                                       chrom.numeric = slave_cnum,
+                                                       s = cghseg.s.slave),
+                   papply_commondata = list(cghseg.s.slave = CGHseg.thres,
+                   slave_cnum = chrom.numeric))
   
-    out <- list()
-    klist <- 1
-    for(i in 1:nsample) {
-        out[[i]] <- out0[[klist]]
-        for(j in nchrom[-1]) {
-            klist <- klist + 1
-            out[[i]] <- rbind(out[[i]], out0[[klist]])
-        }
-    }
+##     out <- list()
+##     klist <- 1
+##     for(i in 1:nsample) {
+##         out[[i]] <- out0[[klist]]
+##         for(j in nchrom[-1]) {
+##             klist <- klist + 1
+##             out[[i]] <- rbind(out[[i]], out0[[klist]])
+##         }
+##     }
     outl <- list()
-    outl$segm <- out
+    outl$segm <- out0
     outl$chrom.numeric <- chrom.numeric
     class(outl) <- c("adacgh.generic.out", "CGHseg")
     return(outl)
@@ -518,8 +522,7 @@ segmentPlot <- function(x, geneNames,
             original.pos <- 1
             segment.pos <- 2
         }
-        if (inherits(x, "CGHseg") |
-            (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged")))){
+        if(inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))){
             colors <- c(rep("orange", 3), "blue")
         } else {
             colors <- c("orange", "red", "green", "blue")
@@ -933,31 +936,31 @@ print.adacgh.generic.results <- function(res, xcenter,
 
 
 
-print.adacgh.cghseg.results <- function(res, xcenter,
-                                 commondata,
-                                 output = "CGHseg.results.txt"){
-    ## This function "stretches out" the output and creates a table
-    ## that matches the original names, etc.
-    out <- data.frame(commondata)
-##     out <- data.frame(ID = commondata$name,
-##                       Chromosome = commondata$chromosome,
-##                       Start = commondata$start,
-##                       End = commondata$end,
-##                       MidPoint = commondata$MidPoint)
+## print.adacgh.cghseg.results <- function(res, xcenter,
+##                                  commondata,
+##                                  output = "CGHseg.results.txt"){
+##     ## This function "stretches out" the output and creates a table
+##     ## that matches the original names, etc.
+##     out <- data.frame(commondata)
+## ##     out <- data.frame(ID = commondata$name,
+## ##                       Chromosome = commondata$chromosome,
+## ##                       Start = commondata$start,
+## ##                       End = commondata$end,
+## ##                       MidPoint = commondata$MidPoint)
 
-    for(i in 1:ncol(xcenter)) {
-            out <- cbind(out, res$segm[[i]][, c(1, 2)])
-    }
+##     for(i in 1:ncol(xcenter)) {
+##             out <- cbind(out, res$segm[[i]][, c(1, 2)])
+##     }
     
-    colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
-        paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
-              c(".Original", ".Smoothed"),
-              sep = "")
+##     colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
+##         paste(rep(colnames(xcenter),rep(2, ncol(xcenter))),
+##               c(".Original", ".Smoothed"),
+##               sep = "")
 
-    write.table(out, file = output,
-                sep = "\t", col.names = NA,
-                row.names = TRUE, quote = FALSE)
-}
+##     write.table(out, file = output,
+##                 sep = "\t", col.names = NA,
+##                 row.names = TRUE, quote = FALSE)
+## }
 
 
 writeForPaLS <- function(alist, names, outfile) {
@@ -1160,7 +1163,7 @@ gladWrapper <- function(x, Chrom, Pos = NULL) {
 #######################################################
 
 
-piccardsKO <- function(loglik, n, s = -0.5) {
+piccardsKO <- function(loglik, n, s) {
     ## return the optimal number of segments, as in
     ## piccard et al., p. 13. k is number of segments, not breakponts.
     dks <- c(NA, diff(loglik, lag = 1, differences = 2))
@@ -1173,22 +1176,86 @@ piccardsKO <- function(loglik, n, s = -0.5) {
     }
 }
 
-piccardsKL <- function(J, n, s = -0.5) {
-    ## return the optimal number of segments, as in
-    ## piccard et al., p. 13. k is number of segments, not breakponts.
-    ## Following Lai et al. Seems wrong.
-    S <- -1*s
-    lj <- length(J)
-    Jtild <- (J[lj] - J)/(J[lj] - J[1]) * (lj - 1) + 1
-    okdk <- which(diff(Jtild, lag = 1, differences = 2) > S)
-    if(length(okdk) > 0) {
-        return(max(okdk) + 1)
-    } else {
-        return(1)
-    }
-}
+## piccardsKL <- function(J, n, s = -0.5) {
+##     ## return the optimal number of segments, as in
+##     ## piccard et al., p. 13. k is number of segments, not breakponts.
+##     ## Following Lai et al. Seems wrong.
+##     S <- -1*s
+##     lj <- length(J)
+##     Jtild <- (J[lj] - J)/(J[lj] - J[1]) * (lj - 1) + 1
+##     okdk <- which(diff(Jtild, lag = 1, differences = 2) > S)
+##     if(length(okdk) > 0) {
+##         return(max(okdk) + 1)
+##     } else {
+##         return(1)
+##     }
+## }
 
-piccardsStretchO <- function(obj, k, n, logratio, collapse = TRUE) {
+## piccardsStretchO <- function(obj, k, n, logratio, collapse = TRUE) {
+##     ### Simple merging based on modal class no change, above is gain, below loss.
+##     if(k > 1) {
+##         poss <- obj@breakpoints[[k]]
+##         start <- c(1, poss)
+##         end <- c(poss - 1, n)
+##         smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
+##         reps <- diff(c(start, n + 1))
+##         smoothed <- rep(smoothedC, reps)
+##         state <- rep(1:k, reps)
+##         if(! collapse) {
+##             return(cbind(smoothed = smoothed, state = state))
+##         }
+##         else {
+##             class0 <- which.max(reps)
+##             meanclass0 <- smoothedC[class0]
+##             state[state == class0] <- 0
+##             state[smoothed < meanclass0] <- -1
+##             state[smoothed > meanclass0] <- 1
+##             return(cbind(smoothed = smoothed, state = state))
+##         }
+##     }
+##     else { ## only one segment
+##         smoothed <- rep(mean(logratio), n)
+##         if(collapse) {
+##             state <- rep(0, n)
+##         } else {
+##             state <- rep(1, n)
+##         }
+##         return(cbind(smoothed = smoothed, state = state))
+##     }
+## }
+
+
+## piccardsStretchML <- function(obj, k, n, logratio, collapse = TRUE) {
+##     ## mergeLevels used to map to gain/loss/no-change
+    
+##     if(k > 1) {
+##         poss <- obj@breakpoints[[k]]
+##         start <- c(1, poss)
+##         end <- c(poss - 1, n)
+##         smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
+##         reps <- diff(c(start, n + 1))
+##         smoothed <- rep(smoothedC, reps)
+##         state <- rep(1:k, reps)
+##         if(! collapse) {
+##             return(cbind(smoothed = smoothed, state = state))
+##         }
+##         else {
+##             tmp <- ADaCGH:::ourMerge(logratio, smoothed)
+##             return(cbind(smoothed = tmp[, 2], state = tmp[, 3]))
+##         }
+##     }
+##     else { ## only one segment
+##         smoothed <- rep(mean(logratio), n)
+##         if(collapse) {
+##             state <- rep(0, n)
+##         } else {
+##             state <- rep(1, n)
+##         }
+##         return(cbind(smoothed = smoothed, state = state))
+##     }
+## }
+
+piccardsStretch01 <- function(obj, k, n, logratio) {
     if(k > 1) {
         poss <- obj@breakpoints[[k]]
         start <- c(1, poss)
@@ -1197,75 +1264,43 @@ piccardsStretchO <- function(obj, k, n, logratio, collapse = TRUE) {
         reps <- diff(c(start, n + 1))
         smoothed <- rep(smoothedC, reps)
         state <- rep(1:k, reps)
-        if(! collapse) {
-            return(cbind(smoothed = smoothed, state = state))
-        }
-        else {
-            class0 <- which.max(reps)
-            meanclass0 <- smoothedC[class0]
-            state[state == class0] <- 0
-            state[smoothed < meanclass0] <- -1
-            state[smoothed > meanclass0] <- 1
-            return(cbind(smoothed = smoothed, state = state))
-        }
-    }
-    else { ## only one segment
+    } else { ## only one segment
         smoothed <- rep(mean(logratio), n)
-        if(collapse) {
-            state <- rep(0, n)
-        } else {
-            state <- rep(1, n)
-        }
-        return(cbind(smoothed = smoothed, state = state))
+        state <- rep(1, n)
     }
+    return(cbind(smoothed = smoothed, state = state))
 }
 
-
-piccardsStretchML <- function(obj, k, n, logratio, collapse = TRUE) {
-    if(k > 1) {
-        poss <- obj@breakpoints[[k]]
-        start <- c(1, poss)
-        end <- c(poss - 1, n)
-        smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
-        reps <- diff(c(start, n + 1))
-        smoothed <- rep(smoothedC, reps)
-        state <- rep(1:k, reps)
-        if(! collapse) {
-            return(cbind(smoothed = smoothed, state = state))
-        }
-        else {
-            tmp <- ADaCGH:::ourMerge(logratio, smoothed)
-            return(cbind(smoothed = tmp[, 2], state = tmp[, 3]))
-        }
-    }
-    else { ## only one segment
-        smoothed <- rep(mean(logratio), n)
-        if(collapse) {
-            state <- rep(0, n)
-        } else {
-            state <- rep(1, n)
-        }
-        return(cbind(smoothed = smoothed, state = state))
-    }
-}
-
-
-
-CGHsegWrapper <- function(logratio, s = -0.5, maxseg = NULL,
+CGHsegWrapper <- function(logratio, chrom.numeric,
+                          s, maxseg = NULL,
                           maxk = NULL,
-                          verbose = TRUE) {
-    ## beware, this is by chrom!!
-    ## Just in case:
-    n <- length(logratio)
-    if(is.null(maxseg)) maxseg <- n/2
-    if(is.null(maxk)) maxk   <- n
-    obj1 <- tilingArray:::segment(logratio, maxseg = maxseg,
-                                  maxk = maxk)
-    optk <- piccardsKO(obj1@logLik, n, s)
-    if (verbose) cat("\n Optimal k ", optk, "\n")
-    finalsegm <- piccardsStretchML(obj1, optk, n, logratio)
-    return(cbind(Observed = logratio, SmoothedMean = finalsegm[, 1],
-                 Alteration = finalsegm[, 2]))
+                          verbose = TRUE,
+                          domergeLevels = TRUE) {
+    ## Using merge levels now if domergeLevels = TRUE
+    uchrom <- unique(chrom.numeric)
+    segmeans <- NULL
+    segstates <- NULL
+    for (ic in uchrom) {
+        y <- logratio[chrom.numeric == ic]
+        n <- length(y)
+        obj1 <- tilingArray:::segment(y,
+                                      maxseg = ifelse(is.null(maxseg), n/2, maxseg),
+                                      maxk = ifelse(is.null(maxk), n, maxk))
+        optk <- piccardsKO(obj1@logLik, n, s)
+        if (verbose) {
+            cat("\n Chromosome ", ic, ";  Optimal k ", optk, "\n")
+        }
+        finalsegm <- piccardsStretch01(obj1, optk, n, y)
+        segmeans <- c(segmeans, finalsegm[, 1])
+        segstates <- c(segstates, finalsegm[, 2])
+    }
+    if(domergeLevels) {
+        tmp <- ourMerge(logratio, segmeans)
+        segmeans <- tmp[, 2]
+        segstates <- tmp[, 3]
+    }
+    return(cbind(Observed = logratio, SmoothedMean = segmeans,
+                 Alteration = segstates))
 }
 
 

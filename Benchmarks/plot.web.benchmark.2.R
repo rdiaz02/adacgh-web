@@ -77,19 +77,20 @@ par(oma = c(3, 3, 4, 2))
 bwplot(timings ~ nusers | method, groups = nusers, data = small.timings,
        xlab = "", ylab = "",
 #       ylim = c(50, 450),
-       scales = list(cex = 1.2,
+       scales = list(cex = 0.8,
        y = list(log = TRUE,
        at = c(75, 100, 200, 400))),
        cex.lab = 1.5,
+       par.settings = list(fontsize = list(text = 30, points = 10)),
        panel = function(...) {
-           panel.bwplot(fill = "gray", cex.lab = 1.5, ...)
+           panel.bwplot(fill = "gray", cex.lab = 2, ...)
        }
        )
 par(new = TRUE)
-mtext("a) 2271 genes, 10 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2, adj = 0)
-mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
-par(las = 0)
-mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1, cex = 1.5)
+mtext("a) 2271 genes, 10 arrays", side = 3, outer = TRUE, line = 2.3, cex = 2.4, adj = 0)
+## mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
+## par(las = 0)
+## mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1, cex = 1.5)
 dev.off()
 
 
@@ -106,19 +107,20 @@ pdf(file = "bench_web_medium.pdf", height = 9, width = 12,
 par(oma = c(3, 3, 4, 2))
 bwplot(timings ~ nusers | method, groups = nusers, data = medium.timings,
        xlab = "", ylab = "",
-       scales = list(cex = 1.2,
+       scales = list(cex = 0.8,
        y = list(log = TRUE,
        at = c(250, 500, 1000, 2000, 4000))),
        cex.lab = 1.5,
+       par.settings = list(fontsize = list(text = 30, points = 10)),
        panel = function(...) {
            panel.bwplot(fill = "gray", cex.lab = 1.5, ...)
        }
        )
 par(new = TRUE)
-mtext("b) 15000 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2, adj = 0)
-mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
+mtext("b) 15000 genes, 40 arrays", side = 3, outer = TRUE, line = 2.3, cex = 2.4, adj = 0)
+## mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 2.5)
 par(las = 0)
-mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 1.5)
+mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 2.5)
 dev.off()
 
 
@@ -134,19 +136,20 @@ pdf(file = "bench_web_large.pdf", height = 9, width = 12,
 par(oma = c(3, 3, 4, 2))
 bwplot(timings ~ nusers | method, groups = nusers, data = large.timings,
        xlab = "", ylab = "",
-       scales = list(cex = 1.2,
+       scales = list(cex = 0.8,
        y = list(log = TRUE,
-       at = c(500, 1000, 2000, 5000, 10000, 20000))),
+       at = c(500, 2000, 5000, 15000, 30000))), 
        cex.lab = 1.5,
+       par.settings = list(fontsize = list(text = 30, points = 10)),
        panel = function(...) {
            panel.bwplot(fill = "gray", cex.lab = 1.5, ...)
        }
        )
 par(new = TRUE)
-mtext("c) 42325 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2, adj = 0)
-mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
-par(las = 0)
-mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 1.5)
+mtext("c) 42325 genes, 40 arrays", side = 3, outer = TRUE, line = 2.3, cex = 2.4, adj = 0)
+mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 2.5)
+## par(las = 0)
+## mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 1.5)
 dev.off()
 
 

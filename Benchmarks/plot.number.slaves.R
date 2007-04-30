@@ -67,10 +67,10 @@ xyplot(times ~ num.arrays|method*slaves,
        xlab = "Number of arrays",
        ylab = "Users' wall time",
        data = datos.20000,
-       main = "20,000 genes",
+       main = "a) 20,000 genes",
        cex = 1.2,
        ylim = c(8, 2500),
-       par.settings = list(fontsize = list(text = 30, points = 10)))
+       par.settings = list(fontsize = list(text = 25, points = 10)))
 dev.off()
 
 
@@ -85,10 +85,10 @@ xyplot(times ~ num.arrays|method*slaves,
        xlab = "Number of arrays",
        ylab = "Users' wall time",
        data = datos.40000,
-       main = "42,325 genes",
+       main = "b) 42,325 genes",
        cex = 1.2,
        ylim = c(8, 2500), 
-       par.settings = list(fontsize = list(text = 30, points = 10)))
+       par.settings = list(fontsize = list(text = 25, points = 10)))
 dev.off()
 
 

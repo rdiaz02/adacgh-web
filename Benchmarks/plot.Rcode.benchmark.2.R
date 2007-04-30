@@ -41,10 +41,10 @@ postscript(file = "bench_r-code_small.eps", height = 9, width = 17,
 ylim <- c(4, 6500)
 xlim <- c(10 , 165)
 par(mfrow = c(1, 4))
-par(oma = c(0, 4.7, 2 , 3.9))
+par(oma = c(0, 7, 2 , 4))
 par(las = 1)
 par(cex = 1)
-par(mar = c(5, 2, 4, 0))
+par(mar = c(5, 0, 4, 0))
 par(cex.lab = 2)
 par(cex.main = 2.2)
 par(cex.axis = 1.6)
@@ -121,9 +121,9 @@ points(px(smallTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 1.5)
 points(px(smallTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
 
 mtext("a) 10,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 2.5, adj = 0)
-mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 2)
-par(las = 0)
-mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3, cex = 2)
+## mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 2)
+## par(las = 0)
+## mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3, cex = 2)
 dev.off()
 
 
@@ -136,7 +136,7 @@ postscript(file = "bench_r-code_medium.eps", height = 9, width = 17,
 ylim <- c(15, 12000)
 xlim <- c(10 , 165)
 par(mfrow = c(1, 4))
-par(oma = c(0.5, 5, 2 , 4))
+par(oma = c(0.5, 7, 2 , 4))
 par(las = 1)
 par(cex = 1)
 par(mar = c(5, 0, 4, 0))
@@ -218,9 +218,9 @@ points(px(mediumTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
 
 mtext("b) 20,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 2.5,
       adj = 0)
-mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 2)
+## mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 2)
 par(las = 0)
-mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3.5, cex = 2)
+mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 5, cex = 2.5)
 dev.off()
 
 
@@ -233,12 +233,17 @@ postscript(file = "bench_r-code_large.eps", height = 9, width = 17,
 ylim <- c(50, 25000)
 xlim <- c(10 , 165)
 par(mfrow = c(1, 4))
-par(oma = c(0, 4.7, 2 , 4.1))
+par(oma = c(1, 7, 2 , 4))
 par(las = 1)
 par(cex = 1)
 par(mar = c(5, 0, 4, 0))
-par(cex.lab = 1.5)
-par(cex.main = 1.7)
+
+par(cex.lab = 2)
+par(cex.main = 2.2)
+par(cex.axis = 1.6)
+
+
+
 plot(px(largeTimingNone, "HMM"),
      ylim = ylim, lwd = 1.5, type = "b",
      log = "y", xaxt = "n",
@@ -255,11 +260,11 @@ box()
 points(px(largeTiming60, "HMM"), type = "b", col = "blue",  lwd = 1.5)
 points(px(largeTiming30, "HMM"), type = "b", col = "orange",  lwd = 1.5)
 points(px(largeTiming10, "HMM"), type = "b", col = "red",  lwd = 1.5)
-text(60, 3500, "Sequential code")
-text(80, 400, "Parallelized code")
-text(cbind(4, 0) + px(largeTiming60, "HMM")[5, ], "60", col = "blue", adj = 0)
-text(cbind(4, 0) + px(largeTiming30, "HMM")[5, ], "30", col = "orange", adj = 0)
-text(cbind(4, 0) + px(largeTiming10, "HMM")[5, ], "10", col = "red", adj = 0)
+## text(60, 3500, "Sequential code")
+## text(80, 400, "Parallelized code")
+## text(cbind(4, 0) + px(largeTiming60, "HMM")[5, ], "60", col = "blue", adj = 0)
+## text(cbind(4, 0) + px(largeTiming30, "HMM")[5, ], "30", col = "orange", adj = 0)
+## text(cbind(4, 0) + px(largeTiming10, "HMM")[5, ], "10", col = "red", adj = 0)
 
 
 par(mar = c(5, 0, 4, 0))
@@ -313,11 +318,11 @@ points(px(largeTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
 
 mtext("c) 42,325 genes", side = 3, outer = TRUE, line = 0.2, cex = 2.5,
       adj = 0)
-mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2,
-      cex = 2)
-par(las = 0)
-mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3.5,
-      cex = 2)
+mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -1,
+      cex = 2.5)
+## par(las = 0)
+## mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 3.5,
+##       cex = 2)
 dev.off()
 
 

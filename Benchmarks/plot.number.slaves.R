@@ -94,4 +94,4 @@ dev.off()
 
 system("pdftk 120.vs.60.20000.pdf 120.vs.60.40000.pdf cat output 120.vs.60.pdf")
 system("pdfnup --nup 1x2 120.vs.60.pdf --outfile 120.vs.60.b.pdf")
-system("cp 120.vs.60.b.pdf ~/Proyectos/ADaCGH-paper/GenomeBiology/.")
+system("cp 120.vs.60.b.pdf ~/Proyectos/ADaCGH-paper/GenomeBiology/120_vs_60_b.pdf.")

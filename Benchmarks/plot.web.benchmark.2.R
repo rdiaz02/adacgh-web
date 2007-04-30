@@ -17,41 +17,41 @@ cbs.s <- freadall7("CBS_small")
 hmm.s <- freadall7("HMM_small")
 glad.s <- freadall7("GLAD_small")
 wavelets.s <- freadall7("Wavelets_small")
-cghseg.s <- freadall7("CGHseg_small")
+wavelets.s <- freadall7("Wavelets_small")
 
-small.timings7 <- data.frame(timings = c(cbs.s, hmm.s, glad.s, cghseg.s),
+small.timings7 <- data.frame(timings = c(cbs.s, hmm.s, glad.s, wavelets.s),
                             nusers = rep(nusers, 4),
                             method = c(rep("CBS", 40),
                             rep("HMM", 40),
                             rep("GLAD", 40),
-                            rep("CGHseg", 40)))
+                            rep("Wavelets", 40)))
 
 
 cbs.m <- freadall7("CBS_medium")
 hmm.m <- freadall7("HMM_medium")
 glad.m <- freadall7("GLAD_medium")
 wavelets.m <- freadall7("Wavelets_medium")
-cghseg.m <- freadall7("CGHseg_medium")
+wavelets.m <- freadall7("Wavelets_medium")
 
-medium.timings7 <- data.frame(timings = c(cbs.m, hmm.m, glad.m, cghseg.m),
+medium.timings7 <- data.frame(timings = c(cbs.m, hmm.m, glad.m, wavelets.m),
                             nusers = rep(nusers, 4),
                             method = c(rep("CBS", 40),
                             rep("HMM", 40),
                             rep("GLAD", 40),
-                            rep("CGHseg", 40)))
+                            rep("Wavelets", 40)))
 
 cbs.m <- freadall7("CBS_large")
 hmm.m <- freadall7("HMM_large")
 glad.m <- freadall7("GLAD_large")
 wavelets.m <- freadall7("Wavelets_large")
-cghseg.m <- freadall7("CGHseg_large")
+wavelets.m <- freadall7("Wavelets_large")
 
-large.timings7 <- data.frame(timings = c(cbs.m, hmm.m, glad.m, cghseg.m),
+large.timings7 <- data.frame(timings = c(cbs.m, hmm.m, glad.m, wavelets.m),
                              nusers = rep(nusers, 4),
                              method = c(rep("CBS", 40),
                              rep("HMM", 40),
                              rep("GLAD", 40),
-                             rep("CGHseg", 40)))
+                             rep("Wavelets", 40)))
 
 
 
@@ -61,56 +61,6 @@ large.timings7 <- data.frame(timings = c(cbs.m, hmm.m, glad.m, cghseg.m),
 medium.timings <- medium.timings7
 small.timings <- small.timings7
 large.timings <- large.timings7
-
-
-
-## freadall6 <- function(name) {
-##    fns <- paste("web.bnchmk6.", name, "_",
-##                 c("1.1", "1.2", "1.3", "1.4", "1.5",
-##                   "5.1", "10.1", "20.1"), ".txt",
-##                 sep = "")
-##    tms <- unlist(mapply(function(x, y) scan(x, n = y, what = double(0)),
-##                  fns, c(rep(1, 5), 5, 10, 20)))
-##    names(tms) <- NULL
-##    return(tms)
-## }
-
-## nusers <- factor(c(rep(1, 5), rep(5, 5), rep(10, 10), rep(20, 20)))
-
-
-## cbs.s <- freadall6("CBS_small")
-## hmm.s <- freadall6("HMM_small")
-## glad.s <- freadall6("GLAD_small")
-## wavelets.s <- freadall6("Wavelets_small")
-## cghseg.s <- freadall6("CGHseg_small")
-
-## small.timings6 <- data.frame(timings = c(cbs.s, hmm.s, glad.s, cghseg.s),
-##                             nusers = rep(nusers, 4),
-##                             method = c(rep("CBS", 40),
-##                             rep("HMM", 40),
-##                             rep("GLAD", 40),
-##                             rep("CGHseg", 40)))
-
-
-## cbs.m <- freadall6("CBS_medium")
-## hmm.m <- freadall6("HMM_medium")
-## glad.m <- freadall6("GLAD_medium")
-## wavelets.m <- freadall6("Wavelets_medium")
-## cghseg.m <- freadall6("CGHseg_medium")
-
-## medium.timings6 <- data.frame(timings = c(cbs.m, hmm.m, glad.m, cghseg.m),
-##                             nusers = rep(nusers, 4),
-##                             method = c(rep("CBS", 40),
-##                             rep("HMM", 40),
-##                             rep("GLAD", 40),
-##                             rep("CGHseg", 40)))
-
-
-
-
-## small.timings <- rbind(small.timings6, small.timings7)
-## medium.timings <- rbind(medium.timings6, medium.timings7)
-
 
 
 library(lattice)

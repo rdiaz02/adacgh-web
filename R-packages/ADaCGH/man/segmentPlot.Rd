@@ -43,7 +43,7 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
   Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
   web-based application for the analysis of aCGH data. Tech. report.
   \url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
-  \url{http://adacgh.bioinfo.cnio.es}. }
+  \url{http://adacgh.bioinfo.cnio.es}. 
  }
 \author{ Ramon Diaz-Uriarte \email{rdiaz02@gmail.com} }
 \note{ 

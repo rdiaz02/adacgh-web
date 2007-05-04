@@ -52,6 +52,11 @@ datos.40000 <- datos[datos$num.genes == 40000, ]
 library(lattice)
 
 pdf("120.vs.60.20000.pdf", height = 9, width = 12)
+
+
+trellis.device(device = "postscript", color = TRUE)
+postscript("120.vs.60.20000.eps", height = 9, width = 12)
+
 xyplot(times ~ num.arrays|method*slaves,
        groups = version,
        key = list(text = list(c("Array (Chromosome for ACE)",
@@ -65,7 +70,7 @@ xyplot(times ~ num.arrays|method*slaves,
        y = list(log = TRUE, at = c(10, 50, 100, 500, 1000, 2000)),
        cex = 0.6),
        xlab = "Number of arrays",
-       ylab = "Users' wall time",
+       ylab = "User wall time (seconds)",
        data = datos.20000,
        main = "a) 20,000 genes",
        cex = 1.2,
@@ -74,7 +79,9 @@ xyplot(times ~ num.arrays|method*slaves,
 dev.off()
 
 
-pdf("120.vs.60.40000.pdf", height = 9, width = 12)
+
+postscript("120.vs.60.40000.eps", height = 9, width = 12)
+
 xyplot(times ~ num.arrays|method*slaves,
        groups = version,
        auto.key = FALSE,
@@ -83,7 +90,7 @@ xyplot(times ~ num.arrays|method*slaves,
        cex = 0.6),
        cex = 1.1),
        xlab = "Number of arrays",
-       ylab = "Users' wall time",
+       ylab = "User wall time (seconds)",
        data = datos.40000,
        main = "b) 42,325 genes",
        cex = 1.2,
@@ -92,6 +99,6 @@ xyplot(times ~ num.arrays|method*slaves,
 dev.off()
 
 
-system("pdftk 120.vs.60.20000.pdf 120.vs.60.40000.pdf cat output 120.vs.60.pdf")
-system("pdfnup --nup 1x2 120.vs.60.pdf --outfile 120.vs.60.b.pdf")
-system("cp 120.vs.60.b.pdf ~/Proyectos/ADaCGH-paper/GenomeBiology/120_vs_60_b.pdf.")
+system("psmerge -o120.vs.60.eps 120.vs.60.20000.eps 120.vs.60.40000.eps")
+system("psnup -2 120.vs.60.eps 120_vs_60_b.eps")
+system("cp 120_vs_60_b.eps ~/Proyectos/ADaCGH-paper/PLoS/.")

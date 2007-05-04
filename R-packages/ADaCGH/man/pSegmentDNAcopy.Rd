@@ -30,7 +30,7 @@ pSegmentGLAD(x, chrom.numeric, ...)
 
 pSegmentBioHMM(x, chrom.numeric, Pos, parall = "auto", ...)
 
-pSegmentCGHseg(x, chrom.numeric, ...)
+pSegmentCGHseg(x, chrom.numeric, CGHseg.thres, ...)
 
 pSegmentPSW(x, chrom.numeric, common.data,
             sign = -1,
@@ -57,6 +57,9 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
 \item{parall}{Where available whether to parallelize over arrays (all
   except ACE) or chromosomes (ACE) or array by chromosome (ACE, DNAcopy,
   HMM, BioHMM.}
+\item{CGHseg.thres}{The threshold for the adaptive penalization in
+  Picard et al.'s CGHseg. See p. 13 of the original paper. Must be a
+  negative number.}
 \item{mergeSegs}{Merge (genome-wide) the resulting segments using \code{\link[aCGH]{mergeLevels}}?}
   \item{common.data}{A data frame with columns that contain the common
     information about the clones/genes. For now, this is limited to five
@@ -298,7 +301,7 @@ chrom.numeric <- chrom.numeric[reorder]
 ## run all methods
 hmm.out <- pSegmentHMM(cghE1[, 5:7], chrom.numeric)
 glad.out <- pSegmentGLAD(cghE1[, 5:7], chrom.numeric)
-cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric)
+cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric, CGHseg.thres = -0.05)
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
@@ -407,6 +410,26 @@ segmentPlot(ace.out.sum,
             organism = "Hs")
 
 }
+
+## To verify we are doing the right thing with Picard et al.'s method,
+## compare with their figure 1. Need to get the txt files with the
+## original data.
+## We got the data from the GLAD BioC package, and then exported the txt.
+## For convenience, it is in the "/inst/txt-data" directory of our package.
+
+## This verifies the output (look at ADaCGH.R for further details and other
+## comparisons):
+
+## coriel.data <- read.table("gm03563.txt", header = TRUE)
+## cd3 <- coriel.data[coriel.data$Chromosome == 3, 3]
+    
+## out.our <- CGHsegWrapper(cd3, rep(1, length(cd3)), s = -0.5)  ## k = 2
+## out.our
+
+## so our implementation seems correct. Look at where the
+## breakpoint is located, etc, and it is like figure 1 of
+## Picard's paper.
+
 
 
 

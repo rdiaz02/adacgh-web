@@ -74,12 +74,13 @@ pdf(file = "bench_web_small.pdf", height = 9, width = 12,
 ##  mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 2.8, cex = 1.5)
 ##  par(new = TRUE)
 par(oma = c(3, 3, 4, 2))
+par(mar = c(6, 5, 5, 3))
 bwplot(timings ~ nusers | method, groups = nusers, data = small.timings,
        xlab = "", ylab = "",
 #       ylim = c(50, 450),
        scales = list(cex = 0.8,
        y = list(log = TRUE,
-       at = c(75, 100, 200, 400))),
+       at = c(75, 100, 200, 400, 30000))),
        cex.lab = 1.5,
        par.settings = list(fontsize = list(text = 30, points = 10)),
        panel = function(...) {

@@ -1367,7 +1367,9 @@ CGHsegWrapper <- function(logratio, chrom.numeric,
 ## out.lai <- CGHsegWrapper(cd3, optK = "L")  ## k = 14
 ## out.our <- CGHsegWrapper(cd3, optK = "O")  ## k = 2
 
-## so our implementation seems correct.
+## so our implementation seems correct. look at where the
+## breakpoint is located, etc, and it is like figure 1 of
+## Picard's paper.
 
 
 

@@ -479,6 +479,8 @@ for nr in range(0, len(all_covar_lines)):
         arraynames = line.split('\t', positions_to_remove)[-1]
     elif (line.find("#", 0, 1) == 0):
         continue
+    elif (len(line.strip()) == 0): ## empty line
+        continue
     else:
         line_splitted = line.split('\t', positions_to_remove)   
         if line_splitted[-1].find(',') >= 0:

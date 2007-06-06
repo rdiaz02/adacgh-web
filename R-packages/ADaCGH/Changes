@@ -1,3 +1,9 @@
+1.3-1	2007-05-14
+	- Rmpi as "Suggests", not "Depends" since not needed for purely
+	sequential operation, and leads to problems when installing as
+	root (cannot lamboot as root)
+	- Minor cleaning of other stuff
+
 1.3	2007-04-25
 	- Automatic recategorization of CGHseg states to three levels.
 	- Parameterization of the S parameter for optimal penalization 

@@ -1,12 +1,3 @@
-## Linking to Toronto DB for a chromosome
-##http://projects.tcag.ca/variation/cgi-bin/tbrowse/tbrowse?source=hg18&table=Locus&show=table&keyword=&flop=AND&fcol=_C19&fcomp==&rnum=0&fkwd=chr13&cols=
-
-## Analysis: must return observed, smoothed, state.
-## Plot: must take the above plus geneNames and Position (where that can
-##       be a vector of consecutive integers)
-
-
-
 ## .__ADaCGH_WEB_APPL <- TRUE in web appl!
 
 if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
@@ -17,14 +8,7 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 
 
 ## where do we live? to call the python script
-.calltoMap.py <- function() {
-    tmp <- library()[[2]]
-    pathpy <- tmp[which(tmp[, 1] == "ADaCGH"), 2]
-    .python.call <- paste(pathpy, "/ADaCGH/Python/toMap.py", sep = "")
-    return(.python.call)
-}
-
-.python.toMap.py <- .calltoMap.py()
+.python.toMap.py <- system.file("Python", "toMap.py", package = "ADaCGH")
     
 ##############################################
 

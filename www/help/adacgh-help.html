@@ -616,10 +616,38 @@ of the aCGH file is  assumed to contain the ID information for genes, marker, or
 <p>More on names: please, do not use spaces in the names of your arrays:
   they lead to problems when generating the thumbnails for the figures.</p>
 
-<p>We assume all the aCGH data are <b>normalized log ratios</b>. We
-  carry out no checking of this. You can normalize your data using our
+<p>We assume all the aCGH data are <b>normalized log ratios</b> or
+  similar. We carry out no checking of this. You can normalize your data
+  using our
   <a href="http://dnmad.bioinfo.cnio.es">DNMAD</a> tool, though how
-  best to normalize aCGH data is very much an open question.</p> 
+  best to normalize aCGH data is very much an open question. Note that the
+  base of the log is really immaterial (though base 2 logs are the ones
+  commonly used). </p> 
+
+
+<p>Note that you can analyze data from a variety of platforms. You can
+  even analyze Affymetrix SNP-based arrays. For example, the recent paper
+  by <cite>Yu et al., 2007</cite> uses Affymetrix SNP arrays and uses a
+  variety of methods (including some implemented here) to analyze the
+  data. Of course, before being able to apply any of these methods to the
+  SNP data, the original data need to be processed with a suitable tool
+  (see <cite>Yu et al., 2007</cite> for examples and further references)
+  that estimates SNP-level copy numbers. Once you have those processed
+  data available, you can enter them into ADaCGH.</p>
+
+
+<p>(Some extra details on the Affymetrix SNP data: the initial data are
+the intensities from each each of the 20 probe pairs for each SNP (10 for
+the A allele and 10 for the B allele; each probe pair includes a perfect
+match and a mismatch probe).  The data from each probe pair are then
+subject to different possible transformations/averages and compared with a
+normal references set (transformations go from the relatively simple ones,
+basically involving averages, in <cite>Huang et al., 2004</cite>, to
+complex ones as in the CARAT method <cite>Huang et al., 2006</cite> which
+includes probe selection and regression on GC content and fragment length)
+before actually applying a segmentation algorithm to detect copy number
+alterations.)</p>
+
 
 
 <h3><a name="positioninfo">Position (coordinates) file/columns</a></h3>
@@ -1123,6 +1151,21 @@ Porter P. (2005) Denoising array-based comparative genomic
 hybridization data using wavelets.  Biostatistics, 6:211-26.</p>
 
 
+<p>Huang J, Wei W, Zhang J, Liu G, Bignell GR, Stratton MR, Futreal PA,
+	Wooster R, Jones KW, Shapero MH (2004). Whole genome DNA copy
+	number changes identified by high density oligonucleotide arrays. 
+Hum Genomics, 1: 287--299.</p>
+<!-- 	url = {http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve\&db=pubmed\&dopt=Abstract\&list_uids=15588488}, -->
+
+
+<p>Huang J, Wei W, Chen J, Zhang J, Liu G, Di X, Mei R, Ishikawa S,
+	Aburatani H, Jones KW, Shapero MH. (2006). CARAT: a novel method
+	for allelic detection of DNA copy number changes using high
+	density oligonucleotide arrays. BMC Bioinformatics, 7: 83.
+<!-- 	url = {http://dx.doi.org/10.1186/1471-2105-7-83}, -->
+</p>
+
+
 <p>Hupe P, Stransky N, Thiery JP, Radvanyi F, and Barillot E. (2004).
 Analysis of array cgh data: from signal ratio to gain and loss of dna
   regions. Bioinformatics, 20:3413--3422.</p>
@@ -1177,6 +1220,25 @@ statistical approach for array cgh data analysis.BMC Bioinformatics},
 <p>Willenbrock H, Fridlyand J. (2005). A comparison study: applying
 segmentation to array CGH data for downstream analyses Bioinformatics, 21:
 4084-4091.</p>
+
+
+<p>Yu T, Ye H, Sun W, Li K, Chen Z, Jacobs S, Bailey D, Wong D, Zhou
+	X. (2007). A forward-backward fragment assembling algorithm for
+	the identification of genomic amplification and deletion
+	breakpoints using high-density single nucleotide polymorphism
+	(SNP) arrays. BMC Bioinformatics, in press.</p>
+<!-- <a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve\&db=pubmed\&dopt=Abstract\&list_uids=17477871"> -->
+<!-- in press</a> -->
+
+
+
+
+
+
+
+
+
+
 
 <h3>Copyright</h3>
 This document is copyrighted. Copyright © 2005, 2006, 2007 Ramón

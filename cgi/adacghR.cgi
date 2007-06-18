@@ -496,6 +496,16 @@ for nr in range(0, len(all_covar_lines)):
             sys.exit()
         else:
             gname = line_splitted[0]
+            if twofiles == 'Two.files':
+                if(len(line_splitted)) < 2:
+                    commonOutput()
+                    print "<h1> ERROR </h1>"
+                    print """<p> Your aCGH data file contains only one column. It MUST
+                    contain at least two, where the first column are gene name or identifiers.
+                    Please see the help.</p>"""
+                    covarR.close()
+                    genenfile.close()
+                    sys.exit()
             if twofiles == 'One.file':
                 if len(line_splitted) < 5:
                     commonOutput()

@@ -311,8 +311,15 @@ if(class(trypositionInfo) == "try-error")
     caughtUserError(paste("The position file is not of the appropriate format\n",
                     "In case it helps this is the error we get\n",
                     trypositionInfo, sep =""))
+if((ncol(positionInfo) < 4) & (twoFiles == "Two.files"))
+    caughtUserError(paste("The position information file has less than four columns\n",
+                    "This file MUST contain, in this order, the fields Name, Chromosome, Start, End. \n",
+                          "Please see the help file."))
 
+    
 if(ncol(positionInfo) > 4) positionInfo <- positionInfo[, 1:4]
+
+
 
 arrayNames <- scan("arrayNames", sep = "\t", what = "char", quote = "")
 if(length(arrayNames) > 0) {

@@ -457,7 +457,7 @@ positions.merge1 <- positionInfo[!duplicated(positionInfo$ov), ]
 
 ## Do we have any identical MidPos in the same chromosome??  Just to solve
 ## it quickly and without nasty downstream consequences, we add a runif to
-## midPos.
+## midPos. But NO further averaging.
 
 tmp <- paste(positions.merge1$chromosome, positions.merge1$MidPoint, sep = ".")
 tmp <- factor(tmp, levels = unique(tmp), labels = unique(tmp))

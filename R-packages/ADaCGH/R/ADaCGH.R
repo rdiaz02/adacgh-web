@@ -40,7 +40,7 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
     })
     if(inherits(trythis, "try-error")) {
         cat("\nRmpi error\n", file = "Status.msg")
-        quit(save = TRUE, status = 12, runLast = "no")
+        quit(save = "yes", status = 12, runLast = FALSE)
     }
 }
 

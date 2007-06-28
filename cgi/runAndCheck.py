@@ -58,7 +58,7 @@ def set_defaults_lam(tmpDir):
     elif datsize < 14000:
         return (2, 1)
     else:
-        return (1, 1)
+        return (1, 1) 
 
 def collectZombies(k = 10):
     """ Make sure there are no zombies in the process tables.
@@ -640,10 +640,14 @@ def did_lam_crash(tmpDir, machine_root = 'karl'):
     in_error_msg = int(os.popen('grep MPI_Error_string ' + \
                                 tmpDir + '/Status.msg | wc').readline().split()[0])
 #     no_universe = int(os.popen('grep "Running serial version of papply" ' + \
-#                                 tmpDir + '/f1.Rout | wc').readline().split()[0])
+#                                tmpDir + '/f1.Rout | wc').readline().split()[0])
+## We do NOT want that, because sometimes a one node universe is legitimate!!!
     if in_error_msg > 0:
         for lam_log in lam_logs:
             os.system('rm ' + lam_log)
+#     elif no_universe > 0:
+#         os.system("sed -i 's/Running serial version of papply/already_seen:running serial version of papply/g'" + \
+#                   tmpDir + "/f1.Rout")
     else: ## look in lam logs
         in_lam_logs = 0
         for lam_log in lam_logs:
@@ -794,8 +798,10 @@ def my_queue(MAX_NUM_PROCS,
              ADD_PROCS = 1,
              CHECK_QUEUE = 23,
              MAX_DURATION_TRY = 25 * 3600):
-    """ Wait here until the number of slaves is smaller than
-    MAX_SIMUL_RSLAVES.  But only wait for MAX_DURATION. Check
+    """ Wait here until the number of processes is smaller than
+    MAX_NUM_PROCS and number of slaves smaller than MAX_NUM_PROCS + ADD_PROCS
+    (so we allow for other apps. launching lamd).
+    But only wait for MAX_DURATION. Check
     every CHECK_QUEUE seconds. If able to find an opening, return
     OK, otherwise return Failed"""
     out_value = 'OK'
@@ -805,9 +811,9 @@ def my_queue(MAX_NUM_PROCS,
         if (time.time() - startTime) > MAX_DURATION_TRY:
             out_value = 'Failed'
             break
-        num_lamd = int(os.popen('pgrep lamd | wc').readline().split()[0])
+        num_lamd = int(os.popen('pgrep -u www-data lamd | wc').readline().split()[0])
         num_sentinel = int(len(glob.glob(''.join([runningProcs, 'sentinel.lam.*']))))
-        if (num_lamd < MAX_NUM_PROCS) and (num_sentinel < MAX_NUM_PROCS):
+        if (num_lamd < (MAX_NUM_PROCS + ADD_PROCS)) and (num_sentinel < MAX_NUM_PROCS):
             issue_echo('     OK; num_lamd = ' + str(num_lamd) + \
                        '; num_sentinel = ' + str(num_sentinel), tmpDir)
             break

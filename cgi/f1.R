@@ -316,12 +316,35 @@ if((ncol(positionInfo) < 4) & (twoFiles == "Two.files"))
                     "This file MUST contain, in this order, the fields Name, Chromosome, Start, End. \n",
                           "Please see the help file."))
 
-    
-if(ncol(positionInfo) > 4) positionInfo <- positionInfo[, 1:4]
+
+## index.all.missing <- apply(z, 1, function(x) !all(is.na(x)))
+## the above could help to clean a data frame getting rid of all rows which are empty
+## for all columns
+
+
+if(ncol(positionInfo) > 4) {
+    warningsForUsers <-
+        c(warningsForUsers,
+          paste("\nThe position information file had more than four columns.",
+                "Only the first four kept.\n"))
+    positionInfo <- positionInfo[, 1:4]
+}
 
 
 
 arrayNames <- scan("arrayNames", sep = "\t", what = "char", quote = "")
+
+if(length(which(arrayNames == "")) > 1) {
+    message <- paste("There are empty values for the array names\n",
+                     "(or the first row in your data file).\n",
+                     "That probably means you are uploading a file\n",
+                     "that contains extra empty columns.\n",
+                     "Please fix this problem and try again.\n",
+                     "(We could try dealing with this automagically,\n",
+                     "but there are some issues when guessing whether you really\n",
+                     "had empty columns or legitimate columns with missing values)\n")
+    caughtUserError(message)
+}
 if(length(arrayNames) > 0) {
     ##arrayNames <- arrayNames[-1]
     if(length(unique(arrayNames)) < length(arrayNames)) {
@@ -353,6 +376,14 @@ if(nrow(xdata) != nrow(positionInfo))
                           "data and position (coordinate) files.\n",
                           nrow(xdata), "genes/clones in you data file\n",
                           nrow(positionInfo), "genes/clones in you positions file.\n"))
+
+
+if(ncol(xdata) != length(arrayNames)) {
+    emessage <- paste("We get that the number of columns in your data (", ncol(xdata), ")\n",
+                      "is different from the number of column names (", length(arrayNames), ")\n",
+                      "Check for things such as '#' or '#NULL!' in the middle of your data.\n")
+    caughtUserError(emessage)
+}
 colnames(xdata) <- arrayNames
 
 colnames(positionInfo) <- c("name", "chromosome", "start", "end")
@@ -367,10 +398,14 @@ if(any(is.na(xdata))) {
     caughtUserError("Your aCGH file contains missing values. \n That is not allowed.\n")
 }
 if(any(is.na(positionInfo))) {
-    caughtUserError("The position (coordinate) information contains missing values.\n That is not allowed.\n")
+    caughtUserError(paste("The position (coordinate) information contains missing values.\n",
+                          "That is not allowed.\n",
+                          "If you entered a single file, this means that there are missings\n",
+                          "in some of the first four columns.\n"))
 }
 if(any(!is.numeric(as.matrix(positionInfo[, c(3, 4)])))) {
-    caughtUserError(paste("Your position information contains non-numeric values \n",
+    caughtUserError(paste("Your position information (or the first four columns\n",
+                          "of your single file) contains non-numeric values \n",
                           "for the start and/or end positions."))
 }
 
@@ -973,7 +1008,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                     cghdata = xcenter,
                     idtype = idtype, organism = organism)
         doCheckpoint(5)
-        quit()
+        quit(save = "yes", status = 0, runLast = TRUE)
     }
     
 } else if(methodaCGH == "ACE") {
@@ -1062,6 +1097,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                  trythis, ". \n Please let us know so we can fix the code."))
         save(file = "ace.RData", list = ls())
         doCheckpoint(3)
-        quit()
+        quit(save = "yes", status = 0, runLast = TRUE)
     }
 }

@@ -807,6 +807,7 @@ def my_queue(MAX_NUM_PROCS,
     out_value = 'OK'
     startTime = time.time()
     while True:
+        killedlamandr = os.system('/http/mpi.log/killOldLamAllMachines.py')
         issue_echo('     inside my_queue ', tmpDir)
         if (time.time() - startTime) > MAX_DURATION_TRY:
             out_value = 'Failed'

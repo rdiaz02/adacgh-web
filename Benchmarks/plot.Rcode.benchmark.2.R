@@ -355,7 +355,7 @@ par(cex.main = 2.2)
 par(cex.axis = 1.6)
 
 plot(px(mediumTimingNone, "HMM"),
-     ylim = ylim, lwd = 1.5, type = "b",
+     ylim = ylim, lwd = 3.0, type = "b",
      log = "y", xaxt = "n",
      xlab = "",
      ylab = "User wall time (seconds)",
@@ -367,9 +367,9 @@ axis(1, at = c(20),
      labels = TRUE, cex.axis = 0.7)
 axis(2, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000, 10000))
 box()
-points(px(mediumTiming60, "HMM"), type = "b", col = "blue",  lwd = 1.5)
-points(px(mediumTiming30, "HMM"), type = "b", col = "orange",  lwd = 1.5)
-points(px(mediumTiming10, "HMM"), type = "b", col = "red",  lwd = 1.5)
+points(px(mediumTiming60, "HMM"), type = "b", col = "blue",  lwd = 3.0)
+points(px(mediumTiming30, "HMM"), type = "b", col = "orange",  lwd = 3.0)
+points(px(mediumTiming10, "HMM"), type = "b", col = "red",  lwd = 3.0)
 text(60, 1400, "Sequential code", cex = 1.8)
 text(80, 150, "Parallelized code", cex = 1.8)
 text(cbind(4, 0) + px(mediumTiming60, "HMM")[5, ], "60", col = "blue", adj = 0, cex = 1.9)
@@ -380,7 +380,7 @@ text(cbind(4, 0) + px(mediumTiming10, "HMM")[5, ], "10", col = "red", adj = 0, c
 
 par(mar = c(5, 0, 4, 0))
 plot(px(mediumTimingNone, "GLAD"),
-     ylim = ylim, lwd = 1.5, type = "b",
+     ylim = ylim, lwd = 3.0, type = "b",
      log = "y", xaxt = "n",
      xlab = "",
      ylab = "",
@@ -389,14 +389,14 @@ plot(px(mediumTimingNone, "GLAD"),
 box()
 axis(1, at = c(10, 20, 50, 100, 150), 
      labels = TRUE)
-points(px(mediumTiming60, "GLAD"), type = "b", col = "blue",  lwd = 1.5)
-points(px(mediumTiming30, "GLAD"), type = "b", col = "orange",  lwd = 1.5)
-points(px(mediumTiming10, "GLAD"), type = "b", col = "red",  lwd = 1.5)
+points(px(mediumTiming60, "GLAD"), type = "b", col = "blue",  lwd = 3.0)
+points(px(mediumTiming30, "GLAD"), type = "b", col = "orange",  lwd = 3.0)
+points(px(mediumTiming10, "GLAD"), type = "b", col = "red",  lwd = 3.0)
 
 
 par(mar = c(5, 0, 4, 0))
 plot(px(mediumTimingNone, "CBS"),
-     ylim = ylim, lwd = 1.5, type = "b",
+     ylim = ylim, lwd = 3.0, type = "b",
      log = "y", xaxt = "n",
      xlab = "",
      ylab = "",
@@ -405,14 +405,14 @@ plot(px(mediumTimingNone, "CBS"),
 box()
 axis(1, at = c(10, 20, 50, 100, 150),
      labels = TRUE)
-points(px(mediumTiming60, "CBS"), type = "b", col = "blue",  lwd = 1.5)
-points(px(mediumTiming30, "CBS"), type = "b", col = "orange",  lwd = 1.5)
-points(px(mediumTiming10, "CBS"), type = "b", col = "red",  lwd = 1.5)
+points(px(mediumTiming60, "CBS"), type = "b", col = "blue",  lwd = 3.0)
+points(px(mediumTiming30, "CBS"), type = "b", col = "orange",  lwd = 3.0)
+points(px(mediumTiming10, "CBS"), type = "b", col = "red",  lwd = 3.0)
 
 
 par(mar = c(5, 0, 4, 0))
 plot(px(mediumTimingNone, "BioHMM"),
-     ylim = ylim, lwd = 1.5, type = "b",
+     ylim = ylim, lwd = 3.0, type = "b",
      log = "y", xaxt = "n",
      xlab = "",
      ylab = "",
@@ -422,9 +422,9 @@ box()
 axis(1, at = c(10, 20, 50, 100, 150), 
      labels = TRUE)
 axis(4, at = c(5, 20, 50, 100, 300, 500, 1000, 2500, 5000, 10000))
-points(px(mediumTiming60, "BioHMM"), type = "b", col = "blue",  lwd = 1.5)
-points(px(mediumTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 1.5)
-points(px(mediumTiming10, "BioHMM"), type = "b", col = "red",  lwd = 1.5)
+points(px(mediumTiming60, "BioHMM"), type = "b", col = "blue",  lwd = 3.0)
+points(px(mediumTiming30, "BioHMM"), type = "b", col = "orange",  lwd = 3.0)
+points(px(mediumTiming10, "BioHMM"), type = "b", col = "red",  lwd = 3.0)
 
 mtext("20,000 genes", side = 3, outer = TRUE, line = 0.2, cex = 2.5)
 mtext("Number of arrays (samples)", side = 1, outer = TRUE, line = -2, cex = 2)

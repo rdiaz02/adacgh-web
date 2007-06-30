@@ -175,22 +175,22 @@ pdf(file = "talk_bench_web_medium.pdf", height = 9, width = 12,
 ##  par(las = 0)
 ##  mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 2.8, cex = 1.5)
 ##  par(new = TRUE)
-par(oma = c(3, 3, 4, 2))
+par(oma = c(3, 3.5, 4, 2))
 bwplot(timings ~ nusers | method, groups = nusers, data = medium.timings,
        xlab = "", ylab = "",
-       scales = list(cex = 1.2,
+       scales = list(cex = 0.8,
        y = list(log = TRUE,
        at = c(250, 500, 1000, 2000, 4000))),
        cex.lab = 1.5,
-       par.settings = list(fontsize = list(text = 30, points = 10)))
+       par.settings = list(fontsize = list(text = 30, points = 10)),
        panel = function(...) {
            panel.bwplot(fill = "gray", cex.lab = 1.5, ...)
        }
        )
 par(new = TRUE)
 mtext("15000 genes, 40 arrays", side = 3, outer = TRUE, line = 2.5, cex = 2)
-mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 1.5)
+mtext("Number of simultaneous users", side = 1, outer = TRUE, line = 1.5, cex = 2.5)
 par(las = 0)
-mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.5, cex = 1.5)
+mtext("User wall time (seconds)", side = 2, outer = TRUE, line = 1.2, cex = 2.5)
 dev.off()
 

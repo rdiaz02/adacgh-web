@@ -843,7 +843,7 @@ issue_echo('starting', tmpDir)
 NCPU, MAX_NUM_PROCS = set_defaults_lam(tmpDir)
 
 try:
-    counterApplications.add_to_log(application, tmpDir, socket.gethostname())
+    counterApplications.add_to_log('ADaCGH2', tmpDir, socket.gethostname())
 except:
     None
 

@@ -747,11 +747,12 @@ WaveletsDiagnosticPlots <- function(acghdata, chrom.numeric) {
     if(numarrays < 2) {
         stop("Only one array. No histogram possible")
     }
-    ncrom <- length(unique(chrom.numeric))
+    cnu <- unique(chrom.numeric)
+    ncrom <- length(cnu)
     dat <- as.matrix(acghdata)
     ar1s <- matrix(nrow = numarrays, ncol = ncrom)
     for(cn in 1:ncrom) { ## zz: parallelize this?
-        index.dat <- which(chrom.numeric == cn)
+        index.dat <- which(chrom.numeric == cnu[cn])
         for(subject in 1:numarrays) {
             trythis <- try(
             ar1s[subject, cn] <-
@@ -3006,8 +3007,8 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     col[which(res.dat == 1)] <- colors[2]
     nameIm <- main
     chrom.nums <- unique(chrom)
-    for(cnum in chrom.nums) {
-        indexchr <- which(chrom == cnum)
+    for(cnum in 1:length(chrom.nums)) {
+        indexchr <- which(chrom == chrom.nums[cnum])
         ccircle <- NULL
         environment(mapChromOpen) <- environment(plotChromWide) <- environment()
         im2 <- mapChromOpen()
@@ -3098,12 +3099,12 @@ plot.cw.superimp <- function(res, chrom,
     chrheight <- 500
     chrom.nums <- unique(chrom)
     ## this could be parallelized over chromosomes!! FIXME
-    for(cnum in chrom.nums) {
+    for(cnum in 1:length(chrom.nums)) {
         ccircle <- NULL
         environment(mapChromOpen) <- environment()
         im2 <- mapChromOpen()
 
-        indexchr <- which(chrom == cnum)
+        indexchr <- which(chrom == chrom.nums[cnum])
         
         nfig <- 1
         for(arraynum in 1:arraynums) { ## first, plot the points
@@ -3190,7 +3191,7 @@ plot.cw.superimpA <- function(res, chrom,
                                 geneNames = positions.merge1$name,
                                 idtype = idtype, organism = organism,
                                 geneLoc = NULL) {
-    
+#    on.exit(browser())
     ## For superimposed: one plot per chr
     pch <- ""
     arraynums <- length(res)
@@ -3200,8 +3201,8 @@ plot.cw.superimpA <- function(res, chrom,
     chrom.nums <- unique(chrom)
     ## this could be parallelized over chromosomes!! FIXME
     datalist <- list()
-    for(cnum in chrom.nums) {
-        indexchr <- which(chrom == cnum)
+    for(cnum in 1:length(chrom.nums)) {
+        indexchr <- which(chrom == chrom.nums[cnum])
         datalist[[cnum]] <- list()
         datalist[[cnum]]$indexchr <- indexchr
         datalist[[cnum]]$cnum <- cnum
@@ -3216,6 +3217,7 @@ plot.cw.superimpA <- function(res, chrom,
                          geneNames = geneNames)
     
     funp <- function(z) {
+        if(is.null(z)) return()
         indexchr <- z$indexchr
         ccircle <- NULL
         thiscn <- z$thiscn
@@ -3265,6 +3267,7 @@ mapChromOpenA <- function() {
     chrheight <- 500
     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
     chrwidth <- max(chrwidth, 800)
+   
     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                      height = chrheight, width = chrwidth,
                      ps = 12)

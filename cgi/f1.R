@@ -840,12 +840,15 @@ options(warn = -1)
 
 
 try({
-    mpiInit(universeSize =
-            min(numarrays * chromnum, mpi.universe.size()))
-    cat("\n\nAbout to print mpiOK file\n")
-    sink(file = "mpiOK")
-    cat("MPI started OK\n")
-    sink()
+  usize <- min(numarrays * chromnum, mpi.universe.size())
+  ## make sure at least two, o.w. rsprng won't work, and
+  ## we do not want to hack my mpiInit.
+  usize <- max(2, usize)
+  mpiInit(universeSize = usize)
+  cat("\n\nAbout to print mpiOK file\n")
+  sink(file = "mpiOK")
+  cat("MPI started OK\n")
+  sink()
 })
 
 

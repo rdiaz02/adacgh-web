@@ -530,6 +530,14 @@ positions.merge1$rank <- unlist(sapply(obs.per.chrom,
 positions.merge1$rank[positions.merge1$rank == 1] <- NA
 
 
+
+#### Bail out if only a single chrom and ACE
+
+if( (methodaCGH == "ACE") & (length(unique(positions.merge1$chrom.numeric)) == 1))
+  caughtOurError(paste("There is a bug in the code that does not allow ACE",
+                       "to run with only one chromosome. We are working on it."))
+
+
 #######################################################
 #######################################################
 #######################################################

@@ -2578,34 +2578,38 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
 	start <- mapply(function(start, called) { start[called]}, start=start, called=called)
 	end <- mapply(function(end, called) { end[called]}, end=end, called=called)
 	####Index for every cluster of genes
-	gene.clusters <- sapply(start, function(x) if(length(x)>0) 1:length(x))
-	altered <- mapply(function(start, end){ mapply(function(x,y)x:y, x=start, y=end) } , start=start, end=end)
-	gene.clusters <- mapply(function(start, end, gene.clusters) {
-				mapply(function(x,y,z) rep(z,length(x:y)), x=start, y=end, z=gene.clusters) },
-				start=start, end=end, gene.clusters=gene.clusters)
-	altered <- sapply(altered, unlist)
-	gene.clusters <- sapply(gene.clusters, function(x) as.vector(unlist(x)))
-	genes.altered <- mapply(function(x,y) {x<-rep(0, length(x)); x[y]<-1;x}, x=obs, y=altered)	
-	gene.clusters <- mapply(function(x,y,z) {w<-rep(NA, length(x));if(length(y)>0) w[y]<-z;w}, x=obs, y=altered, z=gene.clusters)
-	cluster.means <- mapply(function(x,y) sign(ave(x,y)), x=obs, y=gene.clusters)
-	size <- lapply(sapply(object,"[", 1), length)
-	Chrom <- mapply(function(x,y) rep(paste("Chrom", y),x), x=size, y=1:nchrom)
-	res <- mapply(function(x,y,z,w) data.frame(Chromosome=w, x,Gain.Loss=y*z), 
-			x=obs, y=genes.altered, z=cluster.means, w=Chrom, SIMPLIFY=FALSE)
+    gene.clusters <- sapply(start, function(x) if(length(x)>0) 1:length(x))
+    altered <- mapply(function(start, end){ mapply(function(x,y)x:y, x=start, y=end) } , start=start, end=end)
+    gene.clusters <- mapply(function(start, end, gene.clusters) {
+      mapply(function(x,y,z) rep(z,length(x:y)), x=start, y=end, z=gene.clusters) },
+                            start=start, end=end, gene.clusters=gene.clusters)
+    altered <- sapply(altered, unlist)
 
-        res <- do.call("rbind", res)
-        medians.gl <- tapply(res$x, res$Gain.Loss, median)
-        medians.state <- rep(NA, length(res$x))
-        medians.state[res$Gain.Loss == 1] <- medians.gl[3]
-        medians.state[res$Gain.Loss == 0] <- medians.gl[2]
-        medians.state[res$Gain.Loss == -1] <- medians.gl[1]
+    gene.clusters <- sapply(gene.clusters, function(x) as.vector(unlist(x)))
+    genes.altered <- mapply(function(x,y) {x<-rep(0, length(x)); x[y]<-1;x}, x=obs, y=altered)	
+    gene.clusters <- mapply(function(x,y,z) {w<-rep(NA, length(x));if(length(y)>0) w[y]<-z;w}, x=obs,
+                            y=altered, z=gene.clusters)
 
-        out <- list()
+    ## browser() ## the next one is the one that breaks when a single chromosome
+    ## because there is something weird with "gene.clusters".
+    cluster.means <- mapply(function(x,y) sign(ave(x,y)), x=obs, y=gene.clusters)
+    size <- lapply(sapply(object,"[", 1), length)
+    Chrom <- mapply(function(x,y) rep(paste("Chrom", y),x), x=size, y=1:nchrom)
+    res <- mapply(function(x,y,z,w) data.frame(Chromosome=w, x,Gain.Loss=y*z), 
+                  x=obs, y=genes.altered, z=cluster.means, w=Chrom, SIMPLIFY=FALSE)
+    
+    res <- do.call("rbind", res)
+    medians.gl <- tapply(res$x, res$Gain.Loss, median)
+    medians.state <- rep(NA, length(res$x))
+    medians.state[res$Gain.Loss == 1] <- medians.gl[3]
+    medians.state[res$Gain.Loss == 0] <- medians.gl[2]
+    medians.state[res$Gain.Loss == -1] <- medians.gl[1]
+    out <- list()
     out$segm <- list()
-        out$segm[[1]] <- cbind(Observed = res$x, Smoothed = medians.state,
-                          State = res$Gain.Loss)
-        out$chrom.numeric <- chrom.numeric
-        class(out) <- c("adacgh.generic.out", "summaryACE")
+    out$segm[[1]] <- cbind(Observed = res$x, Smoothed = medians.state,
+                           State = res$Gain.Loss)
+    out$chrom.numeric <- chrom.numeric
+    class(out) <- c("adacgh.generic.out", "summaryACE")
     attr(out, "aceFDR.for.output") <- aceFDR.for.output
     return(out)
         ##         class(res) <- c("summary.ACE", "CGH.ACE.summary")
@@ -3856,10 +3860,16 @@ combine.funcB <- function(diff,vecObs, vecPredNow, mnNow, mn1, mn2, pv.thres=0.0
 ################  Parallel over arrays only
 
 pSegmentHMM_A <- function(x, chrom.numeric, ...) {
+    ## The original HMM functions chocke if chromosome
+    ## is not a sequential integer starting at 1.
+    ## Non-present chrom. numbers or not starting at 1 bombs.
+    ## So recode
+    chrom.numeric.seq <- as.numeric(as.factor(chrom.numeric))
+    
     out <- papply(data.frame(x),
                   function(z) hmmWrapper_A(z, Chrom = slave_chrom),
                   papply_commondata = list(
-                  slave_chrom = chrom.numeric))
+                  slave_chrom = chrom.numeric.seq))
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric

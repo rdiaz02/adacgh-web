@@ -27,6 +27,13 @@ ROOT_TMP_DIR = "/http/adacgh2/www/tmp/"
 newDir = tmpDir.replace(ROOT_TMP_DIR, "")
 runningProcs = tmpDir.split('/tmp/')[0] + '/R.running.procs/'
 
+
+## I think we no longer check tmpDir is OK, because this is not launched
+## by the user, byt by the signsR.cgi file.
+
+
+
+
 ## procTable = tmpDir.split('/tmp/')[0] + '/R.running.procs/procTable'
 
 ## Must ensure the procTable exists and has a valid value
@@ -86,7 +93,6 @@ def kill_pid_machine(pid, machine):
     'as it says: to kill somehting somewhere'
     os.system('ssh ' + machine + ' "kill -s 9 ' + pid + '"')
 
-## For redirections, from Python Cookbook
 
 def results_print_general(outf, tmpDir, newDir, Rresults):
     outf.write('<h2>Segmented data plots <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#output">(help)</a></h2> \n')
@@ -248,6 +254,8 @@ def commonOutput():
     
 ## to keep executing myself:
 def relaunchCGI():
+    issue_echo('inside relaunchCGI', tmpDir)
+
     print "Content-type: text/html\n\n"
     print """
     <html>
@@ -261,6 +269,10 @@ def relaunchCGI():
     print 'If your browser does not autorefresh, the results will be kept for five days at</p>'
     print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html</a>.' 
     print '</p> </body> </html>'
+    issue_echo('end of relaunchCGI', tmpDir)
+    
+
+
     
 
 ## Output-generating functions
@@ -292,6 +304,7 @@ def printErrorRun(errorfile):
 
 
 def printOKRun():
+    issue_echo('starting printOKRun', tmpDir)
     Rresults = open(tmpDir + "/results.txt")
     resultsFile = Rresults.read()
     outf = open(tmpDir + "/pre-results.html", mode = "w")
@@ -508,12 +521,20 @@ def printMPITooBusy(tmpDir, MAX_DURATION_TRY, application = 'ADaCGH2'):
 
 def lamboot(lamSuffix, ncpu, runningProcs = runningProcs):
     'Boot a lam universe and leave a sentinel file behind'
+    issue_echo('before sentinel inside lamboot', tmpDir)
+    issue_echo('newDir is ' + newDir, tmpDir)
+    issue_echo('lamSuffix ' + lamSuffix, tmpDir)
+    issue_echo('runningProcs ' + runningProcs, tmpDir)
     sentinel = os.open(''.join([runningProcs, 'sentinel.lam.', newDir, '.', lamSuffix]),
                        os.O_RDWR | os.O_CREAT | os.O_NDELAY)
+    issue_echo('before fullCommand inside lamboot', tmpDir)
     fullCommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
                   '"; /http/mpi.log/tryBootLAM2.py ' + lamSuffix + \
                   ' ' + str(ncpu)
+    issue_echo('before os.system inside lamboot', tmpDir)
     lboot = os.system(fullCommand)
+    issue_echo('after lboot ---os.system--- inside lamboot. Exiting lamboot', tmpDir)
+
 
 def check_tping(lamSuffix, tmpDir, tsleep = 15, nc = 2):
     """ Use tping to verify LAM universe OK.
@@ -686,12 +707,12 @@ def did_run_out_of_time(tmpDir, R_MAX_time):
     """ Did the process run longer than allowed?"""
     issue_echo('did we run out of time?', tmpDir)
     if not os.path.exists(tmpDir + "/pid.txt"):
-        False
+        return False
     elif ((time.time() - os.path.getmtime(tmpDir + "/pid.txt")) > R_MAX_time) and \
        (status_run(tmpDir) == 'Running'):
-        True
+        return True
     else:
-        False
+        return False
                            
 
 def cleanups(tmpDir, newDir, newnamepid,
@@ -822,6 +843,7 @@ def my_queue(MAX_NUM_PROCS,
 	    issue_echo('     wait:  num_lamd = ' + str(num_lamd) + \
                        '; num_sentinel = ' + str(num_sentinel), tmpDir)
             time.sleep(CHECK_QUEUE + random.uniform(0.1, 5))
+    return out_value
 
 def generate_lam_suffix(tmpDir):
     """As it says. Generate and write it out"""
@@ -856,10 +878,13 @@ issue_echo('at 3', tmpDir)
 time.sleep(random.uniform(0.1, 15)) ## Break ties if starting at identical times
 
 check_room = my_queue(MAX_NUM_PROCS)
+issue_echo('after check_room', tmpDir)
+
 if check_room == 'Failed':
     printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
     sys.exit()
 
+issue_echo('before lamboot', tmpDir)
 lamboot(lamSuffix, NCPU)
 issue_echo('after lamboot', tmpDir)
 

@@ -1,0 +1,12 @@
+
+
+
+Minimal common regions
+  chromosome          samples mcr.start  mcr.end
+1          1   Fifth,Subject1  19413230 46986933
+2         10 Afourth,Subject1  53114789 60260082
+3         19   Fifth,Subject1   9816844 11415118
+4         19   Fifth,Subject1  11525521 17375378
+5         19   Fifth,Subject1  34079100 63761776
+6         21   Fifth,Subject1  21835056 35132416
+7         21   Fifth,Subject1  36365428 45728946

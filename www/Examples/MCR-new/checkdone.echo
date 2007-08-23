@@ -1,0 +1,57 @@
+##########   23 Aug 2007 11:44:14
+starting
+    
+##########   23 Aug 2007 11:44:14
+at 2
+    
+##########   23 Aug 2007 11:44:14
+at 3
+    
+##########   23 Aug 2007 11:44:24
+     inside my_queue 
+    
+##########   23 Aug 2007 11:44:24
+     OK; num_lamd = 0; num_sentinel = 0
+    
+##########   23 Aug 2007 11:44:24
+after check_room
+    
+##########   23 Aug 2007 11:44:24
+before lamboot
+    
+##########   23 Aug 2007 11:44:24
+before sentinel inside lamboot
+    
+##########   23 Aug 2007 11:44:24
+newDir is 4596220407152211878622541895
+    
+##########   23 Aug 2007 11:44:24
+lamSuffix 431187862254220631317
+    
+##########   23 Aug 2007 11:44:24
+runningProcs /http/adacgh2/www/R.running.procs/
+    
+##########   23 Aug 2007 11:44:24
+before fullCommand inside lamboot
+    
+##########   23 Aug 2007 11:44:24
+before os.system inside lamboot
+    
+##########   23 Aug 2007 11:44:28
+after lboot ---os.system--- inside lamboot. Exiting lamboot
+    
+##########   23 Aug 2007 11:44:28
+after lamboot
+    
+##########   23 Aug 2007 11:45:16
+did we run out of time?
+    
+##########   23 Aug 2007 11:45:16
+finished OK
+    
+##########   23 Aug 2007 11:45:17
+starting printOKRun
+    
+##########   23 Aug 2007 11:45:18
+at the very end!
+    

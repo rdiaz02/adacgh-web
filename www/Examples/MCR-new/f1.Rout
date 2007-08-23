@@ -1,0 +1,137 @@
+[1] "testing existence of indicator"
+[1] TRUE
+Hmisc library by Frank E Harrell Jr
+
+Type library(help='Hmisc'), ?Overview, or ?Hmisc.Overview')
+to see overall documentation.
+
+NOTE:Hmisc no longer redefines [.factor to drop unused levels when
+subsetting.  To get the old behavior of Hmisc type dropUnusedLevels().
+KernSmooth 2.22 installed
+Copyright M. P. Wand 1997
+[1] "Have fun with GLAD"
+
+ gc after reading xdata 
+
+ gc right after checkpoint 1 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 939501 50.2    1476915 78.9  1368491 73.1
+Vcells 695093  5.4    1300721 10.0  1300721 10.0
+	62 slaves are spawned successfully. 0 failed.
+master  (rank 0 , comm 1) of size 63 is running on: karl13 
+slave1  (rank 1 , comm 1) of size 63 is running on: karl13 
+slave2  (rank 2 , comm 1) of size 63 is running on: karl13 
+slave3  (rank 3 , comm 1) of size 63 is running on: karl14 
+slave4  (rank 4 , comm 1) of size 63 is running on: karl14 
+slave5  (rank 5 , comm 1) of size 63 is running on: karl15 
+slave6  (rank 6 , comm 1) of size 63 is running on: karl15 
+slave7  (rank 7 , comm 1) of size 63 is running on: karl16 
+slave8  (rank 8 , comm 1) of size 63 is running on: karl16 
+slave9  (rank 9 , comm 1) of size 63 is running on: karl17 
+slave10 (rank 10, comm 1) of size 63 is running on: karl17 
+slave11 (rank 11, comm 1) of size 63 is running on: karl18 
+slave12 (rank 12, comm 1) of size 63 is running on: karl18 
+slave13 (rank 13, comm 1) of size 63 is running on: karl19 
+slave14 (rank 14, comm 1) of size 63 is running on: karl19 
+slave15 (rank 15, comm 1) of size 63 is running on: karl20 
+slave16 (rank 16, comm 1) of size 63 is running on: karl20 
+slave17 (rank 17, comm 1) of size 63 is running on: karl21 
+slave18 (rank 18, comm 1) of size 63 is running on: karl21 
+slave19 (rank 19, comm 1) of size 63 is running on: karl22 
+slave20 (rank 20, comm 1) of size 63 is running on: karl22 
+slave21 (rank 21, comm 1) of size 63 is running on: karl23 
+slave22 (rank 22, comm 1) of size 63 is running on: karl23 
+slave23 (rank 23, comm 1) of size 63 is running on: karl24 
+slave24 (rank 24, comm 1) of size 63 is running on: karl24 
+slave25 (rank 25, comm 1) of size 63 is running on: karl25 
+slave26 (rank 26, comm 1) of size 63 is running on: karl25 
+slave27 (rank 27, comm 1) of size 63 is running on: karl26 
+slave28 (rank 28, comm 1) of size 63 is running on: karl26 
+slave29 (rank 29, comm 1) of size 63 is running on: karl27 
+slave30 (rank 30, comm 1) of size 63 is running on: karl27 
+slave31 (rank 31, comm 1) of size 63 is running on: karl28 
+slave32 (rank 32, comm 1) of size 63 is running on: karl28 
+slave33 (rank 33, comm 1) of size 63 is running on: karl29 
+slave34 (rank 34, comm 1) of size 63 is running on: karl29 
+slave35 (rank 35, comm 1) of size 63 is running on: karl30 
+slave36 (rank 36, comm 1) of size 63 is running on: karl30 
+slave37 (rank 37, comm 1) of size 63 is running on: karl31 
+slave38 (rank 38, comm 1) of size 63 is running on: karl31 
+slave39 (rank 39, comm 1) of size 63 is running on: karl01 
+slave40 (rank 40, comm 1) of size 63 is running on: karl01 
+slave41 (rank 41, comm 1) of size 63 is running on: karl02 
+slave42 (rank 42, comm 1) of size 63 is running on: karl02 
+slave43 (rank 43, comm 1) of size 63 is running on: karl03 
+slave44 (rank 44, comm 1) of size 63 is running on: karl03 
+slave45 (rank 45, comm 1) of size 63 is running on: karl04 
+slave46 (rank 46, comm 1) of size 63 is running on: karl04 
+slave47 (rank 47, comm 1) of size 63 is running on: karl05 
+slave48 (rank 48, comm 1) of size 63 is running on: karl05 
+slave49 (rank 49, comm 1) of size 63 is running on: karl06 
+slave50 (rank 50, comm 1) of size 63 is running on: karl06 
+slave51 (rank 51, comm 1) of size 63 is running on: karl07 
+slave52 (rank 52, comm 1) of size 63 is running on: karl07 
+slave53 (rank 53, comm 1) of size 63 is running on: karl08 
+slave54 (rank 54, comm 1) of size 63 is running on: karl08 
+slave55 (rank 55, comm 1) of size 63 is running on: karl09 
+slave56 (rank 56, comm 1) of size 63 is running on: karl09 
+slave57 (rank 57, comm 1) of size 63 is running on: karl10 
+slave58 (rank 58, comm 1) of size 63 is running on: karl10 
+slave59 (rank 59, comm 1) of size 63 is running on: karl11 
+slave60 (rank 60, comm 1) of size 63 is running on: karl11 
+slave61 (rank 61, comm 1) of size 63 is running on: karl12 
+slave62 (rank 62, comm 1) of size 63 is running on: karl12 
+
+
+About to print mpiOK file
+
+ gc right after checkpoint 2 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 941258 50.3    1476915 78.9  1476915 78.9
+Vcells 711908  5.5    1300721 10.0  1300721 10.0
+
+    running arr version 
+
+
+ Segmentation done 
+
+
+ gc right after checkpoint 3 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 941754 50.3    1476915 78.9  1476915 78.9
+Vcells 783847  6.0    1445757 11.1  1300721 10.0
+
+ gc right after checkpoint 4 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 944713 50.5    1476915 78.9  1476915 78.9
+Vcells 784244  6.0    1445757 11.1  1445060 11.1
+
+ gc after plot.adacgh.nonsuperimpose 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 945537 50.5    1476915 78.9  1476915 78.9
+Vcells 784440  6.0    1445757 11.1  1445060 11.1
+
+ gc after plot.cw.superimpose 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 946051 50.6    1476915 78.9  1476915 78.9
+Vcells 784501  6.0    1961413 15.0  1961413 15.0
+Closing PNG file All_arrays.png
+
+ gc after plot.adacgh.superimp 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 950101 50.8    1476915 78.9  1476915 78.9
+Vcells 785183  6.0    1961413 15.0  1961413 15.0
+
+
+ Plotting done 
+
+
+ gc right after plotting 
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 950024 50.8    1476915 78.9  1476915 78.9
+Vcells 785147  6.0    1961413 15.0  1961413 15.0
+[1] "Please use mpi.close.Rslaves() to close slaves."
+[1] "Please use mpi.quit() to quit R"
+
+
+ Normal termination

@@ -1,0 +1,229 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+<title>Chromosome view</title>
+<style type="text/css">
+
+.fixedtipdiv{
+position:absolute;
+padding: 0px;
+border:1px solid blue;
+font-family: Verdana,Arial,Helvetica;
+font-size: x-small;
+font-style: normal;
+color:#000000;
+line-height:18px; vertical-align:text-top;
+z-index:100;
+a:link{color: black;}
+}
+
+a.tip:link{color: black; text-align:right; vertical-align:top; display:block; padding-bottom:0px; padding-top:0px; font-size: small; text-decoration: none; font-weight: bolder; background-color:#FFFFFF;}
+a.tip2:link{color: black; padding-left:4px; padding-bottom:3px;text-decoration: none;}
+a.tip2:active{color: black; padding-left:4px;padding-bottom:3px;text-decoration: underline;font-weight: bolder;}
+a.tip2:visited{color: red; padding-left:4px;padding-bottom:3px;text-decoration: none;}
+
+
+
+</style>
+
+</head>
+
+
+<body>
+<script type="text/javascript">
+
+/**********************************************
+*  Original code taken from ToolTip script, by
+*  Dynamic Drive (see below). A few changes, additions, and
+*  deletions by us (Oscar Rueda Palacio and
+*  Ramon Diaz-Uriarte).  A few ideas taken from 
+*  overLIB.4.21, by Erik Bosrup.
+*
+**********************************************/
+
+
+/***********************************************
+* Fixed ToolTip script- copyright (c) Dynamic Drive (www.dynamicdrive.com)
+* This notice MUST stay intact for legal use
+* Visit http://www.dynamicdrive.com/ for full source code
+***********************************************/
+        
+var tipwidth='150px' //default tooltip width
+var tipbgcolor="#CCCCFF"  //tooltip bgcolor
+var disappeardelay=250  //tooltip disappear speed onMouseout (in miliseconds)
+var vertical_offset="0px" //horizontal offset of tooltip from anchor link
+var horizontal_offset="-1px" //horizontal offset of tooltip from anchor link
+
+/////No further editting needed
+
+var ie4=document.all
+var ns6=document.getElementById&&!document.all
+
+if (ie4||ns6)
+document.write('<div id="1" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="2" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="3" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="4" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="5" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="6" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="7" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="8" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="9" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="10" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="11" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="12" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="13" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="14" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="15" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="16" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="17" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="18" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="19" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="20" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="21" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="22" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="23" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="24" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="25" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="26" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="27" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="28" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="29" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="30" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="31" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="32" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="33" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="34" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="35" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="36" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="37" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="38" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="39" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="40" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="41" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="42" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="43" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="44" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="45" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="46" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="47" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="48" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="49" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="50" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="51" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="52" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="53" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="54" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="55" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="56" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="57" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="58" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="59" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="60" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="61" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="62" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="63" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="64" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="65" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="66" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="67" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="68" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="69" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="70" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="71" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="72" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="73" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="74" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="75" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="76" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="77" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="78" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="79" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+document.write('<div id="80" class="fixedtipdiv" style="visibility:hidden;width:'+tipwidth+';background-color:'+tipbgcolor+'" ></div>') 
+
+function getposOffset(what, offsettype){
+var totaloffset=(offsettype=="left")? what.offsetLeft : what.offsetTop;
+var parentEl=what.offsetParent;
+while (parentEl!=null){
+totaloffset=(offsettype=="left")? totaloffset+parentEl.offsetLeft : totaloffset+parentEl.offsetTop;
+parentEl=parentEl.offsetParent;
+}
+return totaloffset;
+}
+
+
+function showhide(obj, e, visible, hidden, tipwidth){
+if (ie4||ns6)
+dropmenuobj.style.left=dropmenuobj.style.top=-500
+if (tipwidth!=""){
+dropmenuobj.widthobj=dropmenuobj.style
+dropmenuobj.widthobj.width=tipwidth
+}
+if (e.type=="click" && obj.visibility==hidden || e.type=="mouseover")
+obj.visibility=visible
+else if (e.type=="click")
+obj.visibility=visible
+}
+
+function iecompattest(){
+return (document.compatMode && document.compatMode!="BackCompat")? document.documentElement : document.body
+}
+
+function clearbrowseredge(obj, whichedge){
+var edgeoffset=(whichedge=="rightedge")? parseInt(horizontal_offset)*-1 : parseInt(vertical_offset)*-1
+if (whichedge=="rightedge"){
+var windowedge=ie4 && !window.opera? iecompattest().scrollLeft+iecompattest().clientWidth-15 : window.pageXOffset+window.innerWidth-15
+dropmenuobj.contentmeasure=dropmenuobj.offsetWidth
+if (windowedge-dropmenuobj.x < dropmenuobj.contentmeasure)
+edgeoffset=dropmenuobj.contentmeasure-obj.offsetWidth
+}
+else{
+var windowedge=ie4 && !window.opera? iecompattest().scrollTop+iecompattest().clientHeight-15 : window.pageYOffset+window.innerHeight-18
+dropmenuobj.contentmeasure=dropmenuobj.offsetHeight
+if (windowedge-dropmenuobj.y < dropmenuobj.contentmeasure)
+edgeoffset=dropmenuobj.contentmeasure+obj.offsetHeight
+}
+return edgeoffset
+}
+
+function fixedtooltip(index, menucontents, obj, e, tipwidth){
+if (window.event) event.cancelBubble=true
+else if (e.stopPropagation) e.stopPropagation()
+clearhidetip()
+dropmenuobj=document.getElementById? document.getElementById(index) : fixedtipdiv
+dropmenuobj.innerHTML=menucontents
+
+if (ie4||ns6){
+showhide(dropmenuobj.style, e, "visible", "hidden", tipwidth)
+dropmenuobj.x=e.pageX
+dropmenuobj.y=e.pageY
+dropmenuobj.style.left=dropmenuobj.x-clearbrowseredge(obj, "rightedge")+"px"
+dropmenuobj.style.top=dropmenuobj.y-clearbrowseredge(obj, "bottomedge")
+}
+}
+
+function hidetip(index){
+if (typeof dropmenuobj!="undefined"){
+if (ie4||ns6)
+dropmenuobj=document.getElementById? document.getElementById(index) : fixedtipdiv
+dropmenuobj.style.visibility="hidden"
+}
+}
+
+function delayhidetip(){
+if (ie4||ns6)
+delayhide=setTimeout("hidetip()",disappeardelay)
+}
+
+function clearhidetip(){
+if (typeof delayhide!="undefined")
+clearTimeout(delayhide)
+}
+
+</script>
+<h1>Chromosome view: Chr22@Afourth</h1>
+<p></p><br /><img src="Chr22@Afourth.png"usemap="#Chr22@Afourth" ISMAP>
+<map name="Chr22@Afourth">
+<area shape="circle" coords="70 296 4" title="Hs.137400" href="#" onClick="fixedtooltip(1, '<a class=\'tip\' href=\'javascript:hidetip(1)\'>X</a><a class=\'tip2\'>Hs.137400</a>', this, event, '90px'); return false"  > <area shape="circle" coords="79 299 4" title="Hs.38260" href="#" onClick="fixedtooltip(2, '<a class=\'tip\' href=\'javascript:hidetip(2)\'>X</a><a class=\'tip2\'>Hs.38260</a>', this, event, '90px'); return false"  > <area shape="circle" coords="87 288 4" title="Hs.318898" href="#" onClick="fixedtooltip(3, '<a class=\'tip\' href=\'javascript:hidetip(3)\'>X</a><a class=\'tip2\'>Hs.318898</a>', this, event, '90px'); return false"  > <area shape="circle" coords="96 296 4" title="Hs.343874" href="#" onClick="fixedtooltip(4, '<a class=\'tip\' href=\'javascript:hidetip(4)\'>X</a><a class=\'tip2\'>Hs.343874</a>', this, event, '90px'); return false"  > <area shape="circle" coords="104 313 4" title="Hs.103978" href="#" onClick="fixedtooltip(5, '<a class=\'tip\' href=\'javascript:hidetip(5)\'>X</a><a class=\'tip2\'>Hs.103978</a>', this, event, '90px'); return false"  > <area shape="circle" coords="112 339 4" title="Hs.111024" href="#" onClick="fixedtooltip(6, '<a class=\'tip\' href=\'javascript:hidetip(6)\'>X</a><a class=\'tip2\'>Hs.111024</a>', this, event, '90px'); return false"  > <area shape="circle" coords="121 320 4" title="Hs.415735" href="#" onClick="fixedtooltip(7, '<a class=\'tip\' href=\'javascript:hidetip(7)\'>X</a><a class=\'tip2\'>Hs.415735</a>', this, event, '90px'); return false"  > <area shape="circle" coords="129 304 4" title="Hs.404525" href="#" onClick="fixedtooltip(8, '<a class=\'tip\' href=\'javascript:hidetip(8)\'>X</a><a class=\'tip2\'>Hs.404525</a>', this, event, '90px'); return false"  > <area shape="circle" coords="137 298 4" title="Hs.30868" href="#" onClick="fixedtooltip(9, '<a class=\'tip\' href=\'javascript:hidetip(9)\'>X</a><a class=\'tip2\'>Hs.30868</a>', this, event, '90px'); return false"  > <area shape="circle" coords="146 308 4" title="Hs.334874" href="#" onClick="fixedtooltip(10, '<a class=\'tip\' href=\'javascript:hidetip(10)\'>X</a><a class=\'tip2\'>Hs.334874</a>', this, event, '90px'); return false"  > <area shape="circle" coords="154 298 4" title="Hs.108104" href="#" onClick="fixedtooltip(11, '<a class=\'tip\' href=\'javascript:hidetip(11)\'>X</a><a class=\'tip2\'>Hs.108104</a>', this, event, '90px'); return false"  > <area shape="circle" coords="162 309 4" title="Hs.438587" href="#" onClick="fixedtooltip(12, '<a class=\'tip\' href=\'javascript:hidetip(12)\'>X</a><a class=\'tip2\'>Hs.438587</a>', this, event, '90px'); return false"  > <area shape="circle" coords="171 304 4" title="Hs.324473" href="#" onClick="fixedtooltip(13, '<a class=\'tip\' href=\'javascript:hidetip(13)\'>X</a><a class=\'tip2\'>Hs.324473</a>', this, event, '90px'); return false"  > <area shape="circle" coords="179 304 4" title="Hs.512814" href="#" onClick="fixedtooltip(14, '<a class=\'tip\' href=\'javascript:hidetip(14)\'>X</a><a class=\'tip2\'>Hs.512814</a>', this, event, '90px'); return false"  > <area shape="circle" coords="187 276 4" title="Hs.458453" href="#" onClick="fixedtooltip(15, '<a class=\'tip\' href=\'javascript:hidetip(15)\'>X</a><a class=\'tip2\'>Hs.458453</a>', this, event, '90px'); return false"  > <area shape="circle" coords="196 298 4" title="Hs.405944" href="#" onClick="fixedtooltip(16, '<a class=\'tip\' href=\'javascript:hidetip(16)\'>X</a><a class=\'tip2\'>Hs.405944</a>', this, event, '90px'); return false"  > <area shape="circle" coords="204 255 4" title="Hs.449579" href="#" onClick="fixedtooltip(17, '<a class=\'tip\' href=\'javascript:hidetip(17)\'>X</a><a class=\'tip2\'>Hs.449579</a>', this, event, '90px'); return false"  > <area shape="circle" coords="213 312 4" title="Hs.7094" href="#" onClick="fixedtooltip(18, '<a class=\'tip\' href=\'javascript:hidetip(18)\'>X</a><a class=\'tip2\'>Hs.7094</a>', this, event, '90px'); return false"  > <area shape="circle" coords="221 295 4" title="Hs.369557" href="#" onClick="fixedtooltip(19, '<a class=\'tip\' href=\'javascript:hidetip(19)\'>X</a><a class=\'tip2\'>Hs.369557</a>', this, event, '90px'); return false"  > <area shape="circle" coords="229 289 4" title="Hs.407693" href="#" onClick="fixedtooltip(20, '<a class=\'tip\' href=\'javascript:hidetip(20)\'>X</a><a class=\'tip2\'>Hs.407693</a>', this, event, '90px'); return false"  > <area shape="circle" coords="238 312 4" title="Hs.512700" href="#" onClick="fixedtooltip(21, '<a class=\'tip\' href=\'javascript:hidetip(21)\'>X</a><a class=\'tip2\'>Hs.512700</a>', this, event, '90px'); return false"  > <area shape="circle" coords="246 319 4" title="Hs.407995" href="#" onClick="fixedtooltip(22, '<a class=\'tip\' href=\'javascript:hidetip(22)\'>X</a><a class=\'tip2\'>Hs.407995</a>', this, event, '90px'); return false"  > <area shape="circle" coords="254 296 4" title="Hs.438649" href="#" onClick="fixedtooltip(23, '<a class=\'tip\' href=\'javascript:hidetip(23)\'>X</a><a class=\'tip2\'>Hs.438649</a>', this, event, '90px'); return false"  > <area shape="circle" coords="263 322 4" title="Hs.437638" href="#" onClick="fixedtooltip(24, '<a class=\'tip\' href=\'javascript:hidetip(24)\'>X</a><a class=\'tip2\'>Hs.437638</a>', this, event, '90px'); return false"  > <area shape="circle" coords="271 304 4" title="Hs.374477" href="#" onClick="fixedtooltip(25, '<a class=\'tip\' href=\'javascript:hidetip(25)\'>X</a><a class=\'tip2\'>Hs.374477</a>', this, event, '90px'); return false"  > <area shape="circle" coords="279 307 4" title="Hs.73088" href="#" onClick="fixedtooltip(26, '<a class=\'tip\' href=\'javascript:hidetip(26)\'>X</a><a class=\'tip2\'>Hs.73088</a>', this, event, '90px'); return false"  > <area shape="circle" coords="288 345 4" title="Hs.902" href="#" onClick="fixedtooltip(27, '<a class=\'tip\' href=\'javascript:hidetip(27)\'>X</a><a class=\'tip2\'>Hs.902</a>', this, event, '90px'); return false"  > <area shape="circle" coords="296 314 4" title="Hs.284292" href="#" onClick="fixedtooltip(28, '<a class=\'tip\' href=\'javascript:hidetip(28)\'>X</a><a class=\'tip2\'>Hs.284292</a>', this, event, '90px'); return false"  > <area shape="circle" coords="304 309 4" title="Hs.505587" href="#" onClick="fixedtooltip(29, '<a class=\'tip\' href=\'javascript:hidetip(29)\'>X</a><a class=\'tip2\'>Hs.505587</a>', this, event, '90px'); return false"  > <area shape="circle" coords="313 304 4" title="Hs.17958" href="#" onClick="fixedtooltip(30, '<a class=\'tip\' href=\'javascript:hidetip(30)\'>X</a><a class=\'tip2\'>Hs.17958</a>', this, event, '90px'); return false"  > <area shape="circle" coords="321 307 4" title="Hs.132037" href="#" onClick="fixedtooltip(31, '<a class=\'tip\' href=\'javascript:hidetip(31)\'>X</a><a class=\'tip2\'>Hs.132037</a>', this, event, '90px'); return false"  > <area shape="circle" coords="329 293 4" title="Hs.158783" href="#" onClick="fixedtooltip(32, '<a class=\'tip\' href=\'javascript:hidetip(32)\'>X</a><a class=\'tip2\'>Hs.158783</a>', this, event, '90px'); return false"  > <area shape="circle" coords="338 293 4" title="Hs.149098" href="#" onClick="fixedtooltip(33, '<a class=\'tip\' href=\'javascript:hidetip(33)\'>X</a><a class=\'tip2\'>Hs.149098</a>', this, event, '90px'); return false"  > <area shape="circle" coords="346 316 4" title="Hs.433156" href="#" onClick="fixedtooltip(34, '<a class=\'tip\' href=\'javascript:hidetip(34)\'>X</a><a class=\'tip2\'>Hs.433156</a>', this, event, '90px'); return false"  > <area shape="circle" coords="355 298 4" title="Hs.226755" href="#" onClick="fixedtooltip(35, '<a class=\'tip\' href=\'javascript:hidetip(35)\'>X</a><a class=\'tip2\'>Hs.226755</a>', this, event, '90px'); return false"  > <area shape="circle" coords="363 357 4" title="Hs.5912" href="#" onClick="fixedtooltip(36, '<a class=\'tip\' href=\'javascript:hidetip(36)\'>X</a><a class=\'tip2\'>Hs.5912</a>', this, event, '90px'); return false"  > <area shape="circle" coords="371 331 4" title="Hs.92260" href="#" onClick="fixedtooltip(37, '<a class=\'tip\' href=\'javascript:hidetip(37)\'>X</a><a class=\'tip2\'>Hs.92260</a>', this, event, '90px'); return false"  > <area shape="circle" coords="380 300 4" title="Hs.9482" href="#" onClick="fixedtooltip(38, '<a class=\'tip\' href=\'javascript:hidetip(38)\'>X</a><a class=\'tip2\'>Hs.9482</a>', this, event, '90px'); return false"  > <area shape="circle" coords="388 305 4" title="Hs.202833" href="#" onClick="fixedtooltip(39, '<a class=\'tip\' href=\'javascript:hidetip(39)\'>X</a><a class=\'tip2\'>Hs.202833</a>', this, event, '90px'); return false"  > <area shape="circle" coords="396 293 4" title="Hs.77171" href="#" onClick="fixedtooltip(40, '<a class=\'tip\' href=\'javascript:hidetip(40)\'>X</a><a class=\'tip2\'>Hs.77171</a>', this, event, '90px'); return false"  > <area shape="circle" coords="405 323 4" title="Hs.241535" href="#" onClick="fixedtooltip(41, '<a class=\'tip\' href=\'javascript:hidetip(41)\'>X</a><a class=\'tip2\'>Hs.241535</a>', this, event, '90px'); return false"  > <area shape="circle" coords="413 300 4" title="Hs.211929" href="#" onClick="fixedtooltip(42, '<a class=\'tip\' href=\'javascript:hidetip(42)\'>X</a><a class=\'tip2\'>Hs.211929</a>', this, event, '90px'); return false"  > <area shape="circle" coords="421 298 4" title="Hs.285401" href="#" onClick="fixedtooltip(43, '<a class=\'tip\' href=\'javascript:hidetip(43)\'>X</a><a class=\'tip2\'>Hs.285401</a>', this, event, '90px'); return false"  > <area shape="circle" coords="430 299 4" title="Hs.75596" href="#" onClick="fixedtooltip(44, '<a class=\'tip\' href=\'javascript:hidetip(44)\'>X</a><a class=\'tip2\'>Hs.75596</a>', this, event, '90px'); return false"  > <area shape="circle" coords="438 320 4" title="Hs.301175" href="#" onClick="fixedtooltip(45, '<a class=\'tip\' href=\'javascript:hidetip(45)\'>X</a><a class=\'tip2\'>Hs.301175</a>', this, event, '90px'); return false"  > <area shape="circle" coords="446 303 4" title="Hs.371768" href="#" onClick="fixedtooltip(46, '<a class=\'tip\' href=\'javascript:hidetip(46)\'>X</a><a class=\'tip2\'>Hs.371768</a>', this, event, '90px'); return false"  > <area shape="circle" coords="455 307 4" title="Hs.474799" href="#" onClick="fixedtooltip(47, '<a class=\'tip\' href=\'javascript:hidetip(47)\'>X</a><a class=\'tip2\'>Hs.474799</a>', this, event, '90px'); return false"  > <area shape="circle" coords="463 322 4" title="Hs.326372" href="#" onClick="fixedtooltip(48, '<a class=\'tip\' href=\'javascript:hidetip(48)\'>X</a><a class=\'tip2\'>Hs.326372</a>', this, event, '90px'); return false"  > <area shape="circle" coords="472 295 4" title="Hs.226117" href="#" onClick="fixedtooltip(49, '<a class=\'tip\' href=\'javascript:hidetip(49)\'>X</a><a class=\'tip2\'>Hs.226117</a>', this, event, '90px'); return false"  > <area shape="circle" coords="480 329 4" title="Hs.46405" href="#" onClick="fixedtooltip(50, '<a class=\'tip\' href=\'javascript:hidetip(50)\'>X</a><a class=\'tip2\'>Hs.46405</a>', this, event, '90px'); return false"  > <area shape="circle" coords="488 280 4" title="Hs.180871" href="#" onClick="fixedtooltip(51, '<a class=\'tip\' href=\'javascript:hidetip(51)\'>X</a><a class=\'tip2\'>Hs.180871</a>', this, event, '90px'); return false"  > <area shape="circle" coords="497 291 4" title="Hs.283677" href="#" onClick="fixedtooltip(52, '<a class=\'tip\' href=\'javascript:hidetip(52)\'>X</a><a class=\'tip2\'>Hs.283677</a>', this, event, '90px'); return false"  > <area shape="circle" coords="505 301 4" title="Hs.1976" href="#" onClick="fixedtooltip(53, '<a class=\'tip\' href=\'javascript:hidetip(53)\'>X</a><a class=\'tip2\'>Hs.1976</a>', this, event, '90px'); return false"  > <area shape="circle" coords="513 303 4" title="Hs.403927" href="#" onClick="fixedtooltip(54, '<a class=\'tip\' href=\'javascript:hidetip(54)\'>X</a><a class=\'tip2\'>Hs.403927</a>', this, event, '90px'); return false"  > <area shape="circle" coords="522 313 4" title="Hs.181243" href="#" onClick="fixedtooltip(55, '<a class=\'tip\' href=\'javascript:hidetip(55)\'>X</a><a class=\'tip2\'>Hs.181243</a>', this, event, '90px'); return false"  > <area shape="circle" coords="530 321 4" title="Hs.75527" href="#" onClick="fixedtooltip(56, '<a class=\'tip\' href=\'javascript:hidetip(56)\'>X</a><a class=\'tip2\'>Hs.75527</a>', this, event, '90px'); return false"  > <area shape="circle" coords="538 342 4" title="Hs.217292" href="#" onClick="fixedtooltip(57, '<a class=\'tip\' href=\'javascript:hidetip(57)\'>X</a><a class=\'tip2\'>Hs.217292</a>', this, event, '90px'); return false"  > <area shape="circle" coords="547 329 4" title="Hs.377199" href="#" onClick="fixedtooltip(58, '<a class=\'tip\' href=\'javascript:hidetip(58)\'>X</a><a class=\'tip2\'>Hs.377199</a>', this, event, '90px'); return false"  > <area shape="circle" coords="555 299 4" title="Hs.373992" href="#" onClick="fixedtooltip(59, '<a class=\'tip\' href=\'javascript:hidetip(59)\'>X</a><a class=\'tip2\'>Hs.373992</a>', this, event, '90px'); return false"  > <area shape="circle" coords="563 315 4" title="Hs.271730" href="#" onClick="fixedtooltip(60, '<a class=\'tip\' href=\'javascript:hidetip(60)\'>X</a><a class=\'tip2\'>Hs.271730</a>', this, event, '90px'); return false"  > <area shape="circle" coords="572 303 4" title="Hs.183800" href="#" onClick="fixedtooltip(61, '<a class=\'tip\' href=\'javascript:hidetip(61)\'>X</a><a class=\'tip2\'>Hs.183800</a>', this, event, '90px'); return false"  > <area shape="circle" coords="580 312 4" title="Hs.181159" href="#" onClick="fixedtooltip(62, '<a class=\'tip\' href=\'javascript:hidetip(62)\'>X</a><a class=\'tip2\'>Hs.181159</a>', this, event, '90px'); return false"  > <area shape="circle" coords="588 311 4" title="Hs.4994" href="#" onClick="fixedtooltip(63, '<a class=\'tip\' href=\'javascript:hidetip(63)\'>X</a><a class=\'tip2\'>Hs.4994</a>', this, event, '90px'); return false"  > <area shape="circle" coords="597 311 4" title="Hs.54751" href="#" onClick="fixedtooltip(64, '<a class=\'tip\' href=\'javascript:hidetip(64)\'>X</a><a class=\'tip2\'>Hs.54751</a>', this, event, '90px'); return false"  > <area shape="circle" coords="605 316 4" title="Hs.75835" href="#" onClick="fixedtooltip(65, '<a class=\'tip\' href=\'javascript:hidetip(65)\'>X</a><a class=\'tip2\'>Hs.75835</a>', this, event, '90px'); return false"  > <area shape="circle" coords="614 309 4" title="Hs.182255" href="#" onClick="fixedtooltip(66, '<a class=\'tip\' href=\'javascript:hidetip(66)\'>X</a><a class=\'tip2\'>Hs.182255</a>', this, event, '90px'); return false"  > <area shape="circle" coords="622 313 4" title="Hs.116419" href="#" onClick="fixedtooltip(67, '<a class=\'tip\' href=\'javascript:hidetip(67)\'>X</a><a class=\'tip2\'>Hs.116419</a>', this, event, '90px'); return false"  > <area shape="circle" coords="630 323 4" title="Hs.108689" href="#" onClick="fixedtooltip(68, '<a class=\'tip\' href=\'javascript:hidetip(68)\'>X</a><a class=\'tip2\'>Hs.108689</a>', this, event, '90px'); return false"  > <area shape="circle" coords="639 314 4" title="Hs.306083" href="#" onClick="fixedtooltip(69, '<a class=\'tip\' href=\'javascript:hidetip(69)\'>X</a><a class=\'tip2\'>Hs.306083</a>', this, event, '90px'); return false"  > <area shape="circle" coords="647 312 4" title="Hs.333497" href="#" onClick="fixedtooltip(70, '<a class=\'tip\' href=\'javascript:hidetip(70)\'>X</a><a class=\'tip2\'>Hs.333497</a>', this, event, '90px'); return false"  > <area shape="circle" coords="655 329 4" title="Hs.475033" href="#" onClick="fixedtooltip(71, '<a class=\'tip\' href=\'javascript:hidetip(71)\'>X</a><a class=\'tip2\'>Hs.475033</a>', this, event, '90px'); return false"  > <area shape="circle" coords="664 307 4" title="Hs.349111" href="#" onClick="fixedtooltip(72, '<a class=\'tip\' href=\'javascript:hidetip(72)\'>X</a><a class=\'tip2\'>Hs.349111</a>', this, event, '90px'); return false"  > <area shape="circle" coords="672 328 4" title="Hs.137432" href="#" onClick="fixedtooltip(73, '<a class=\'tip\' href=\'javascript:hidetip(73)\'>X</a><a class=\'tip2\'>Hs.137432</a>', this, event, '90px'); return false"  > <area shape="circle" coords="680 300 4" title="Hs.102336" href="#" onClick="fixedtooltip(74, '<a class=\'tip\' href=\'javascript:hidetip(74)\'>X</a><a class=\'tip2\'>Hs.102336</a>', this, event, '90px'); return false"  > <area shape="circle" coords="689 313 4" title="Hs.445240" href="#" onClick="fixedtooltip(75, '<a class=\'tip\' href=\'javascript:hidetip(75)\'>X</a><a class=\'tip2\'>Hs.445240</a>', this, event, '90px'); return false"  > <area shape="circle" coords="697 301 4" title="Hs.435832" href="#" onClick="fixedtooltip(76, '<a class=\'tip\' href=\'javascript:hidetip(76)\'>X</a><a class=\'tip2\'>Hs.435832</a>', this, event, '90px'); return false"  > <area shape="circle" coords="705 319 4" title="Hs.432642" href="#" onClick="fixedtooltip(77, '<a class=\'tip\' href=\'javascript:hidetip(77)\'>X</a><a class=\'tip2\'>Hs.432642</a>', this, event, '90px'); return false"  > <area shape="circle" coords="714 306 4" title="Hs.57732" href="#" onClick="fixedtooltip(78, '<a class=\'tip\' href=\'javascript:hidetip(78)\'>X</a><a class=\'tip2\'>Hs.57732</a>', this, event, '90px'); return false"  > <area shape="circle" coords="722 296 4" title="Hs.435067" href="#" onClick="fixedtooltip(79, '<a class=\'tip\' href=\'javascript:hidetip(79)\'>X</a><a class=\'tip2\'>Hs.435067</a>', this, event, '90px'); return false"  > <area shape="circle" coords="730 302 4" title="Hs.355874" href="#" onClick="fixedtooltip(80, '<a class=\'tip\' href=\'javascript:hidetip(80)\'>X</a><a class=\'tip2\'>Hs.355874</a>', this, event, '90px'); return false"  > </map> </body> </html>

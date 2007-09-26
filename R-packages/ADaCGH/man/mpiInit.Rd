@@ -27,7 +27,7 @@ mpiInit(wdir = getwd(), minUniverseSize = 15, universeSize = NULL)
 }
 \value{This function is used to create a cluster.}
 \references{
-Díaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
+Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
 web-based application for the analysis of aCGH data. Tech. report.
 \url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
 \url{http://adacgh.bioinfo.cnio.es}. }

@@ -1,0 +1,19 @@
+citHeader("ADaCGH should be cited as:")
+
+
+citEntry(entry="article",
+    title = "ADaCGH: a parallelized web-based application and R package for the analysis of aCGH data",
+    author = "Diaz-Uriarte, R. and Rueda, O. M",
+    year = "2007",
+    journal = "PLoS ONE",
+    number="2",
+    volume="8",
+    pages="e737",
+    
+textVersion =
+    paste("Diaz-Uriarte, R. and Rueda, O. M. (2007). ADaCGH: a parallelized web-based
+    application and R package for the analysis of aCGH data. PLoS ONE, 2 (8): e737.")
+    )
+
+citFooter("Please support our work on this open source software by citing
+the above paper if you use this package.")

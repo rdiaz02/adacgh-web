@@ -9,7 +9,7 @@
   status of each genes for the selected FDR.
 }
 \usage{
-summary.ACE(object, fdr = NULL, html = TRUE,
+\method{summary}{ACE}(object, fdr = NULL, html = TRUE,
             outhtml = "ace.fdrtable.html", ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -31,8 +31,8 @@ summary.ACE(object, fdr = NULL, html = TRUE,
   status (0 for no change, -1 for loss, +1 for gain).
 }
 \references{
-  Lingjærde OC, Baumbusch LO, Liestøl K, Glad I,
-Børresen-Dale AL. (2005). CGH-Explorer: a program for analysis of
+  Lingjaerde OC, Baumbusch LO, Liestol K, Glad I,
+Borresen-Dale AL. (2005). CGH-Explorer: a program for analysis of
 CGH-data. \emph{Bioinformatics}, \bold{21}: 821--822.
 
 Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and

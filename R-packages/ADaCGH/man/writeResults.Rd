@@ -23,19 +23,19 @@
 }
 \usage{
 writeResults(obj, ...)
-writeResults.CGH.PSW(obj, commondata, file = "PSW.output.txt", ...)
-writeResults.summaryACE(obj, acghdata, commondata, file = NULL, ...)
-writeResults.CGH.wave(obj, acghdata, commondata,
+\method{writeResults}{CGH.PSW}(obj, commondata, file = "PSW.output.txt", ...)
+\method{writeResults}{summaryACE}(obj, acghdata, commondata, file = NULL, ...)
+\method{writeResults}{CGH.wave}(obj, acghdata, commondata,
                      file = "wavelet.output.txt", ...)
-writeResults.DNAcopy(obj, acghdata, commondata, 
+\method{writeResults}{DNAcopy}(obj, acghdata, commondata, 
                      file = "CBS.output.txt", ...)
-writeResults.CGHseg(obj, acghdata, commondata, 
+\method{writeResults}{CGHseg}(obj, acghdata, commondata, 
                      file = "CGHseg.output.txt", ...)
-writeResults.mergedHMM(obj, acghdata, commondata, 
+\method{writeResults}{mergedHMM}(obj, acghdata, commondata, 
                      file = "HMM.output.txt", ...)
-writeResults.adacghGLAD(obj, acghdata, commondata,
+\method{writeResults}{adacghGLAD}(obj, acghdata, commondata,
                      file = "GLAD.output.txt", ...)
-writeResults.mergedBioHMM(obj, acghdata, commondata, 
+\method{writeResults}{mergedBioHMM}(obj, acghdata, commondata, 
                      file = "BioHMM.output.txt", ...)
 }
 %- maybe also 'usage' for other objects documented here.

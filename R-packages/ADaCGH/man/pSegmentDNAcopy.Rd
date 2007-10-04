@@ -282,8 +282,8 @@ Parallelization and other modifications and additions are by Ramon Diaz-Uriarte 
 setwd("/tmp/o3") ## all slaves need a common dir to read and write.
 mpiInit()}
 
-library(Rmpi)
-try(mpi.spawn.Rslaves(nslaves = 1), silent = TRUE)
+## library(Rmpi)
+## try(mpi.spawn.Rslaves(nslaves = 1), silent = TRUE)
 
 data(cghE1)
 tmpchr <- sub("chr", "", cghE1$Chromosome)

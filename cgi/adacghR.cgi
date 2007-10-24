@@ -126,6 +126,8 @@ def fileUpload(fieldName):
         print "<h1> ADaCGH ERROR </h1>"
         print "<p>", fieldName, " file has size 0 </p>"
         print "<p> Please enter a file with something in it.</p>"
+        print "<p> (Did you enter only a single file, but did not check 'One file'?\
+        If you are using only one file, the 'Two files' button should not be checked.)</p>"
         print "</body></html>"
         sys.exit()
 

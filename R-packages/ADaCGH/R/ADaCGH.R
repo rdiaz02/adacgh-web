@@ -16,7 +16,7 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 ###  Visible stuff
 
 mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
-                    universeSize = NULL) {
+                    universeSize = NULL, exit_on_fail = FALSE) {
     trythis <- try({
         if(! is.null(universeSize))
             minUniverseSize <- universeSize
@@ -40,7 +40,7 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
     })
     if(inherits(trythis, "try-error")) {
         cat("\nRmpi error\n", file = "Status.msg")
-        quit(save = "yes", status = 12, runLast = FALSE)
+        if(exit_on_fail) quit(save = "yes", status = 12, runLast = FALSE)
     }
 }
 

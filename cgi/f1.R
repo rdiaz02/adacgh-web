@@ -852,7 +852,7 @@ try({
   ## make sure at least two, o.w. rsprng won't work, and
   ## we do not want to hack my mpiInit.
   usize <- max(2, usize)
-  mpiInit(universeSize = usize)
+  mpiInit(universeSize = usize, exit_on_fail = TRUE)
   cat("\n\nAbout to print mpiOK file\n")
   sink(file = "mpiOK")
   cat("MPI started OK\n")

@@ -21,7 +21,7 @@
 
 ## rm(list = ls()) ## Just in case.
 
-
+version
 cat("\nRunning\n", file = "Status.msg")
 
 checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)
@@ -1061,7 +1061,13 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                   Start = positions.merge1$start,
                                   End = positions.merge1$end,
                                   MidPoint = positions.merge1$MidPoint)
-       
+        
+        ## re-hack. or re-do the kuldge:
+        if(is.null(dim(xcenter))) {
+            xcenter <- matrix(xcenter, ncol = 1)
+            colnames(xcenter) <- one.name
+        }
+
         trythis <- try(
                        writeResults(ACE.summ,
                                     acghdata = as.matrix(xcenter),
@@ -1072,11 +1078,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
             caughtOurError(paste("Function writeResults.summary.ACE.summary bombed unexpectedly with error",
                                  trythis, ". \n Please let us know so we can fix the code."))
         
-        ## re-hack. or re-do the kuldge:
-        if(is.null(dim(xcenter))) {
-            xcenter <- matrix(xcenter, ncol = 1)
-            colnames(xcenter) <- one.name
-        }
         
         save(file = "ace.RData", list = ls())
         

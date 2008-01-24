@@ -414,8 +414,8 @@ def printOKRun():
             thumb(tmpDir,  open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t'), outf, maxsthumb = 350)
             thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
             outf.write('<p>Inferred gains and losses available from file' +
-                       '<a href="./ACE.results.FDR=' + currentfdr + '.txt">' +
-                       '"ACE.results.FDR=' + currentfdr + '.txt"</a></p>')
+                       '<a href="./ACE.output.FDR=' + currentfdr + '.txt">' +
+                       '"ACE.output.FDR=' + currentfdr + '.txt"</a></p>')
             if os.path.exists(tmpDir + '/rerunACE.Rout'): os.remove(tmpDir + '/rerunACE.Rout')
             ##if os.path.exists(tmpDir + '/f1.R'): os.remove(tmpDir + '/f1.R')
             if os.path.exists(tmpDir + '/rerunACE.R'): os.remove(tmpDir + '/rerunACE.R')
@@ -593,11 +593,19 @@ def recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS, lamSuffix,
     os.remove(''.join([runningProcs, 'sentinel.lam.', newDir, '.', lamSuffix]))
     del_mpi_logs(tmpDir, machine_root)
     lam_crash_log(tmpDir, 'Crashed')
+    ## We need to halt the universe, or else we can keep a lamd with no R hanging from
+        ## it, but that leads to too many lamds, so it cannot start. Like a vicious circle
+    lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+    try:
+        os.system('export LAM_MPI_SESSION_SUFFIX=' + lamenv +
+                  '; lamhalt -H; lamwipe -H')
+    except:
+        None
+    issue_echo('inside recover_from_lam_crash: lamhalting', tmpDir)
     try:
         os.system('mv ' + tmpDir + '/mpiOK ' + tmpDir + '/previous_mpiOK')
     except:
         None
-
     check_room = my_queue(MAX_NUM_PROCS)
     if check_room == 'Failed':
         printMPITooBusy(tmpDir, MAX_DURATION_TRY = 5 * 3600)
@@ -613,7 +621,8 @@ def Rrun(tmpDir, lamSuffix):
     """ Launch R, after setting the lam stuff."""
     Rcommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
                '"; cd ' + tmpDir + \
-               '; sleep 1; /http/R-custom/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
+               '; sleep 1; /http/R-patched3/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
+##               '; sleep 1; /http/R-custom/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
     Rtorun = os.system(Rcommand)
     
 

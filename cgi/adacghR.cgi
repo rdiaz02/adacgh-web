@@ -47,7 +47,7 @@ MAX_covariate_size = 363948523L ## a 500 * 40000 array of floats
 
 acceptedMethodaCGH = ('Wavelets', 'PSW', 'DNAcopy', 'ACE', 'GLAD', 'HMM', 'BioHMM', 'CGHseg')
 acceptedMethodCentering = ('Median', 'Mean', 'None')
-acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')
+acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug', 'rsrna', 'rspeptide', 'hugo')
 acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
 
 

@@ -905,15 +905,15 @@ print.adacgh.generic.results <- function(res, xcenter,
         cols.look <- seq(from = 8, to = ncol(out), by = 3)
 
         Ids <- apply(out[, cols.look, drop = FALSE], 2,
-                     function(z) commondata$name[which( z == -1)])
+                     function(z) commondata$ID[which( z == -1)])
         writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
         
         Ids <- apply(out[, cols.look, drop = FALSE], 2,
-                     function(z) commondata$name[which( z == 1)])
+                     function(z) commondata$ID[which( z == 1)])
         writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
 
         Ids <- apply(out[, cols.look, drop = FALSE], 2,
-                     function(z) commondata$name[which( z != 0)])
+                     function(z) commondata$ID[which( z != 0)])
         writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
     }
 

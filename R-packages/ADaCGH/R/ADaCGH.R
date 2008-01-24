@@ -3319,7 +3319,7 @@ plotChromWideA <- function() {
 pngCircleRegionA <- function() {
     usr2pngCircle <- function(x, y, rr = 2, rmin = 4) {
         xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-        r <- min(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
+        r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
         return(c(xyrc[1, 1], xyrc[1, 2], r))
     } 
     ccircle <- cbind(ccircle,
@@ -3332,7 +3332,7 @@ pngCircleRegionA <- function() {
 pngCircleRegion <- function() {
     usr2pngCircle <- function(x, y, rr = 2, rmin = 4) {
         xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-        r <- min(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
+        r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
         return(c(xyrc[1, 1], xyrc[1, 2], r))
     } 
     ccircle <- cbind(ccircle,

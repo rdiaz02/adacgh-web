@@ -5,7 +5,8 @@
 Use Rmpi and papply, and set a cluster of workstations ready to run ADaCGH.
 }
 \usage{
-mpiInit(wdir = getwd(), minUniverseSize = 15, universeSize = NULL)
+mpiInit(wdir = getwd(), minUniverseSize = 15, universeSize = NULL,
+        exit_on_fail = FALSE)
 }
 \arguments{
 \item{wdir}{The common ---e.g., NFS mounted--- directory. We need a
@@ -17,7 +18,7 @@ mpiInit(wdir = getwd(), minUniverseSize = 15, universeSize = NULL)
 \item{universeSize}{Alternatively, you can specify the actual size of
   the LAM/MPI universe. If this many slaves cannot be started, the
   funcion will fail.}
-
+\item{exit_on_fail}{If TRUE, kills R session.}
   }
 %- maybe also 'usage' for other objects documented here.
 \details{

@@ -28,9 +28,9 @@ names.formals.changepoints <- c("genomdat",
                                 "tol")
 
 if(!identical(names.formals.changepoints, names(formals(changepoints)))) {
-    m1 <- "Arguments to DNAcopy function changepoints have changed."
-    m2 <- "Either your version of DNAcopy is newer than ours, or older."
-    m3 <- "If your version is newer than 1.13-3, please let us know of this problem."
+    m1 <- "Arguments to DNAcopy function changepoints have changed.\n"
+    m2 <- "Either your version of DNAcopy is newer than ours, or older.\n"
+    m3 <- "If your version is newer than 1.13-3, please let us know of this problem.\n"
     mm <- paste(m1, m2, m3)
     stop(mm)
 }

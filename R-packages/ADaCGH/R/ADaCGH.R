@@ -6,6 +6,34 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
     warningsForUsers <- warning
 }
 
+## BEWARE: at least with DNAcopy we use some non-user callable
+## functions, such as changepoints. If things do not work, check
+## arguments of functions match.
+
+names.formals.changepoints <- c("genomdat",
+                                "data.type",
+                                "alpha",
+                                "sbdry",
+                                "sbn",
+                                "nperm",
+                                "p.method",
+                                "kmax",
+                                "nmin",
+                                "trimmed.SD",
+                                "undo.splits",
+                                "undo.prune",
+                                "undo.SD",
+                                "verbose",
+                                "ngrid",
+                                "tol")
+
+if(!identical(names.formals.changepoints, names(formals(changepoints)))) {
+    m1 <- "Arguments to DNAcopy function changepoints have changed."
+    m2 <- "Either your version of DNAcopy is newer than ours, or older."
+    m3 <- "If your version is newer than 1.13-3, please let us know of this problem."
+    mm <- paste(m1, m2, m3)
+    stop(mm)
+}
 
 ## where do we live? to call the python script
 .python.toMap.py <- system.file("Python", "toMap.py", package = "ADaCGH")
@@ -21,8 +49,12 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
         if(! is.null(universeSize))
             minUniverseSize <- universeSize
         require(Rmpi)
+### FIXME: this should be a warning, and only an error on "exit_on_fail"
         if(mpi.universe.size() < minUniverseSize) {
-            stop("MPI problem: universe size < minUniverseSize")
+            if(exit_on_fail)
+                stop("MPI problem: universe size < minUniverseSize")
+            else
+                warning("MPI problem: universe size < minUniverseSize")
         }
         ##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
         if(! is.null(universeSize)) {
@@ -1445,10 +1477,17 @@ internalDNAcopy <- function(acghdata,
 
     genomdati <- genomdati[ina]
     trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
-    segci <- changepoints(genomdati, data.type = "logratio", alpha, 
-                          sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
-                          nmin, trimmed.SD, undo.splits, undo.prune,
-                          undo.SD, verbose = 2)
+    segci <- changepoints(genomdati, data.type = "logratio",
+                              alpha = alpha, sbdry = sbdry, sbn = sbn,
+                              nperm = nperm, p.method = p.method,
+##                               window.size = window.size, 
+##                               overlap = overlap,
+                              kmax = kmax, nmin = nmin,
+                              trimmed.SD = trimmed.SD,
+                              undo.splits = undo.splits,
+                              undo.prune = undo.prune,
+                              undo.SD = undo.SD, verbose = 2)
+
     sample.lsegs <- segci$lseg
     sample.segmeans <- segci$segmeans
     if(length(sample.lsegs) != length(sample.segmeans))
@@ -3979,24 +4018,25 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
                           slave_smooth       = smooth)
        
     papfunc <- function(data) {
+##         cat("\n DEBUG: STARTING PAPFUNC \n")
         if(slave_smooth)
             data <- internalSmoothCNA_A(data,
-                                      chrom.numeric = slave_cnum,
-                                      smooth.region = 2, outlier.SD.scale = 4,
-                                      smooth.SD.scale = 2, trim = 0.025)
+                                        chrom.numeric = slave_cnum,
+                                        smooth.region = 2, outlier.SD.scale = 4,
+                                        smooth.SD.scale = 2, trim = 0.025)
         outseg <-
             internalDNAcopy_A(data,
-                            chrom.numeric = slave_cnum,      
-                            alpha =         slave_alpha,     
-                            nperm =         slave_nperm,    
-                            kmax =          slave_kmax,      
-                            nmin =          slave_nmin,      
-                            overlap =       slave_overlap,   
-                            trim =          slave_trim,      
-                            undo.prune =    slave_undo.prune,
-                            undo.SD =       slave_undo.SD,   
-                            sbdry =         slave_sbdry,     
-                            sbn =           slave_sbn)
+                              chrom.numeric = slave_cnum,      
+                              alpha =         slave_alpha,     
+                              nperm =         slave_nperm,    
+                              kmax =          slave_kmax,      
+                              nmin =          slave_nmin,      
+                              overlap =       slave_overlap,   
+                              trim =          slave_trim,      
+                              undo.prune =    slave_undo.prune,
+                              undo.SD =       slave_undo.SD,   
+                              sbdry =         slave_sbdry,     
+                              sbn =           slave_sbn)
         if(!slave_merge) {
             return(outseg)
         } else {
@@ -4011,6 +4051,7 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
     papout <- papply(datalist,
                      papfunc,
                      papply_common)
+##                      do_trace = TRUE) ## DEBUG
    
     outl <- list()
     outl$segm <- papout
@@ -4026,34 +4067,41 @@ internalSmoothCNA_A <- function(acghdata, chrom.numeric,
                               smooth.SD.scale = 2, trim = 0.025) {
     ## this is just the original smoothCNA funct. adapted to use
     ## a single array and to be parallelized and fed to internalDNAcopy
-   chrom <- chrom.numeric
-   uchrom <- unique(chrom)
-   genomdat <- acghdata
-   ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
-   trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
-   outlier.SD <- outlier.SD.scale * trimmed.SD
-   smooth.SD <- smooth.SD.scale * trimmed.SD
-   k <- smooth.region
-   for (i in uchrom) {
-       ina <-
-           which(!is.na(genomdat) & !(abs(genomdat) == Inf) & chrom == i)
-       n <- length(genomdat[ina])
-       smoothed.data <-
-           sapply(1:n,
-                  function(i, x, n, nbhd, oSD, sSD) {
-                      xi <- x[i]
-                      nbhd <- i + nbhd
-                      xnbhd <- x[nbhd[nbhd > 0 & nbhd <= n]]
-                      if (xi > max(xnbhd) + oSD) 
-                          xi <- median(c(xi, xnbhd)) + sSD
-                      if (xi < min(xnbhd) - oSD) 
-                          xi <- median(c(xi, xnbhd)) - sSD
-                      xi
-                  },
-                  genomdat[ina], n, c(-k:-1, 1:k), outlier.SD, smooth.SD)
-       acghdata[ina] <- smoothed.data
-   }
-   acghdata
+##     cat("\n DEBUG: STARTING internalSmoothCNA_A \n")
+    
+    chrom <- chrom.numeric
+    uchrom <- unique(chrom)
+    genomdat <- acghdata
+    ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
+    trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
+    outlier.SD <- outlier.SD.scale * trimmed.SD
+    smooth.SD <- smooth.SD.scale * trimmed.SD
+    
+    k <- smooth.region
+##     cat("\n DEBUG: internalSmoothCNA_A: before loop uchrom \n")
+    
+    for (i in uchrom) {
+        ina <-
+            which(!is.na(genomdat) & !(abs(genomdat) == Inf) & chrom == i)
+        n <- length(genomdat[ina])
+        smoothed.data <-
+            sapply(1:n,
+                   function(i, x, n, nbhd, oSD, sSD) {
+                       xi <- x[i]
+                       nbhd <- i + nbhd
+                       xnbhd <- x[nbhd[nbhd > 0 & nbhd <= n]]
+                       if (xi > max(xnbhd) + oSD) 
+                           xi <- median(c(xi, xnbhd)) + sSD
+                       if (xi < min(xnbhd) - oSD) 
+                           xi <- median(c(xi, xnbhd)) - sSD
+                       xi
+                   },
+                   genomdat[ina], n, c(-k:-1, 1:k), outlier.SD, smooth.SD)
+        acghdata[ina] <- smoothed.data
+    }
+##     cat("\n DEBUG: internalSmoothCNA_A: after loop uchrom \n")
+
+    acghdata
 }
 
 
@@ -4080,7 +4128,7 @@ internalDNAcopy_A <- function(acghdata,
     undo.splits <- "none"
     genomdati <- acghdata
     ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
-
+    
     ## The code allows for dealing with NA and Inf, but would need to
     ## adjust other functions (as different arrays would have different
     ## length of pos, genenames, etc. So for now stop:
@@ -4092,14 +4140,30 @@ internalDNAcopy_A <- function(acghdata,
     chromi <- chrom.numeric[ina]
     sample.lsegs <- NULL
     sample.segmeans <- NULL
+##     cat("\n DEBUG: internalDNAcopy_A: before loop uchrom \n")
+
     for (ic in uchrom) {
-        segci <- changepoints(genomdati[chromi==ic], data.type = "logratio", alpha, 
-                              sbdry, sbn, nperm, p.method, window.size, overlap, kmax,
-                              nmin, trimmed.SD, undo.splits, undo.prune,
-                              undo.SD, verbose = 2)
+##         cat("\n DEBUG: internalDNAcopy_A: before changepoints \n")
+##         browser()
+        segci <- changepoints(genomdati[chromi==ic],
+                              data.type = "logratio",
+                              alpha = alpha, sbdry = sbdry, sbn = sbn,
+                              nperm = nperm, p.method = p.method,
+##                               window.size = window.size, 
+##                               overlap = overlap,
+                              kmax = kmax, nmin = nmin,
+                              trimmed.SD = trimmed.SD,
+                              undo.splits = undo.splits,
+                              undo.prune = undo.prune,
+                              undo.SD = undo.SD, verbose = 2)
+##         cat("\n DEBUG: internalDNAcopy_A: end of changepoints \n")
+
         sample.lsegs <- c(sample.lsegs, segci$lseg)
         sample.segmeans <- c(sample.segmeans, segci$segmeans)
+
     }
+##     cat("\n DEBUG: internalDNAcopy_A: after loop uchrom \n")
+
     if(length(sample.lsegs) != length(sample.segmeans))
         stop("Something terribly wrong: length(sample.lsegs) != length(sample.segmeans).")
     stretched.segmeans <- rep(sample.segmeans, sample.lsegs)

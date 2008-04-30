@@ -14,11 +14,12 @@ mpiInit(wdir = getwd(), minUniverseSize = 15, universeSize = NULL,
   same location.}
 \item{minUniverseSize}{The minimal LAM/MPI universe for the function to
   return successfully. If the function determines that the available
-  number of slaves is smaller than minUniverseSize it will fail.}
+  number of slaves is smaller than minUniverseSize it will fail (if
+  exit_on_fail = TRUE) or give a warning.}
 \item{universeSize}{Alternatively, you can specify the actual size of
   the LAM/MPI universe. If this many slaves cannot be started, the
   funcion will fail.}
-\item{exit_on_fail}{If TRUE, kills R session.}
+\item{exit_on_fail}{If TRUE, kills R session if it cannot run succesfully.}
   }
 %- maybe also 'usage' for other objects documented here.
 \details{

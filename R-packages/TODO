@@ -1,0 +1,22 @@
+Hi,
+
+I just would like to make a small suggestion on your CRAN package
+
+ http://cran.r-project.org/web/packages/ADaCGH/index.html
+
+ If a user will never use or has problems installing, say, GLAD, you
+ package still requires the user to have it.  If you instead put GLAD
+ under "Suggests:" and use
+
+  require("GLAD") || stop("Package not loaded: GLAD");
+
+  at the two of the wrapper function, the user can install your package
+  and use the other segmentation methods.
+
+  This might solve the problem of not having binaries for OSX/Windows, e.g.
+
+   http://www.r-project.org/nosvn/R.check/r-patched-macosx-ix86/ADaCGH-00check.html
+
+   Cheers
+
+   Henrik

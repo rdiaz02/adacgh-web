@@ -137,6 +137,7 @@ pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
 
 
 pSegmentGLAD <- function(x, chrom.numeric, ...) {
+    require("GLAD") || stop("Package not loaded: GLAD")
     out <- papply(data.frame(x),
                   function(z) gladWrapper(z,
                                           Chrom = slave_chrom),

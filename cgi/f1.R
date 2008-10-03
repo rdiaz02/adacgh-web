@@ -22,6 +22,7 @@
 ## rm(list = ls()) ## Just in case.
 
 version
+system("hostname")
 cat("\nRunning\n", file = "Status.msg")
 
 checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)

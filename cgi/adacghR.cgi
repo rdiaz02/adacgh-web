@@ -297,12 +297,13 @@ def restart_tryRrun(tmpDir, tsleep = 5, ntries = 5):
 
 ## Deleting tmp directories older than MAX_time
 ## NOT needed anymore; delete_old_dirs runs as cron job!
+#  YES: we are using it again!! cron-jobs are harder to keep track of
 currentTime = time.time()
-# currentTmp = dircache.listdir("/http/adacgh2/www/tmp")
-# for directory in currentTmp:
-#     tmpS = "/http/adacgh2/www/tmp/" + directory
-#     if (currentTime - os.path.getmtime(tmpS)) > MAX_time:
-#         shutil.rmtree(tmpS)
+currentTmp = dircache.listdir("/http/adacgh2/www/tmp")
+for directory in currentTmp:
+    tmpS = "/http/adacgh2/www/tmp/" + directory
+    if (currentTime - os.path.getmtime(tmpS)) > MAX_time:
+	shutil.rmtree(tmpS)
 
 
 ### Creating temporal directories
@@ -624,8 +625,13 @@ os.system('echo "' + str(run_and_check) + ' ' + socket.gethostname() +\
 ## If communication gets broken, there is always a results.html
 ## that will do the right thing.
 shutil.copy("/http/adacgh2/cgi/results-pre.html", tmpDir)
-os.system("cd " + tmpDir + "; /bin/sed 's/sustituyeme/" +
-          newDir + "/g' results-pre.html > results.html; rm results-pre.html")
+os.system("/bin/sed 's/sustituyeme/" + newDir + "/g' " +
+          tmpDir + "/results-pre.html > " +
+          tmpDir + "/results.html; rm " +
+          tmpDir +"/results-pre.html")
+
+# os.system("cd " + tmpDir + "; /bin/sed 's/sustituyeme/" +
+#           newDir + "/g' results-pre.html > results.html; rm results-pre.html")
 
 ##############    Redirect to results.html    ##################
 print "Location: "+ getQualifiedURL("/tmp/" + newDir + "/results.html"), "\n\n"

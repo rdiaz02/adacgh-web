@@ -17,7 +17,7 @@ sys.path = sys.path + ['/http/mpi.log']
 import counterApplications
 
 
-R_MAX_time = 36 * 3600 ## 12 hours is max duration allowd for any process
+R_MAX_time = 196 * 3600 ## 12 hours is max duration allowd for any process
 TIME_BETWEEN_CHECKS = 45
 MAX_MPI_CRASHES = 20
 
@@ -935,6 +935,7 @@ while True:
         count_mpi_crash += 1
         if count_mpi_crash > MAX_MPI_CRASHES:
             printMPIerror(tmpDir, MAX_MPI_CRASHES)
+            cleanups(tmpDir, newDir, 'MPIerror.pid.txt', lamSuffix)
             break
         else:
             recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS,

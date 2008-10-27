@@ -18,7 +18,7 @@ wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/cgh_*.gz
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/Hmisc_*.gz
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/rsprng_*.gz
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/combinat*.gz
-wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/snow*.gz
+wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/snow_*.gz
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/R2HTML*.gz
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/aws*.gz
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/pixmap_*.gz .

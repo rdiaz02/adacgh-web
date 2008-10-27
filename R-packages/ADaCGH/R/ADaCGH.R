@@ -17,6 +17,7 @@ names.formals.changepoints <- c("genomdat",
                                 "sbn",
                                 "nperm",
                                 "p.method",
+                                "min.width",
                                 "kmax",
                                 "nmin",
                                 "trimmed.SD",
@@ -30,8 +31,11 @@ names.formals.changepoints <- c("genomdat",
 if(!identical(names.formals.changepoints, names(formals(changepoints)))) {
     m1 <- "Arguments to DNAcopy function changepoints have changed.\n"
     m2 <- "Either your version of DNAcopy is newer than ours, or older.\n"
-    m3 <- "If your version is newer than 1.13-3, please let us know of this problem.\n"
-    mm <- paste(m1, m2, m3)
+    m3 <- "If your version is newer than 1.16.0, please let us know of this problem.\n"
+    m4 <- "We are assuming you are using DNAcopy version 1.16.0,\n"
+    m5 <- "the one for the current stable BioConductor release (v. 2.3).\n"
+    m6 <- paste("Your version of DNAcopy is ", packageDescription("DNAcopy")$Version, ".\n")
+    mm <- paste(m1, m2, m3, m4, m5, m6)
     stop(mm)
 }
 
@@ -1468,6 +1472,7 @@ internalDNAcopy <- function(acghdata,
     window.size <- NULL
     undo.splits <- "none"
     genomdati <- acghdata
+    min.width <- 2
     ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
 
     ## The code allows for dealing with NA and Inf, but would need to
@@ -1479,15 +1484,16 @@ internalDNAcopy <- function(acghdata,
     genomdati <- genomdati[ina]
     trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
     segci <- changepoints(genomdati, data.type = "logratio",
-                              alpha = alpha, sbdry = sbdry, sbn = sbn,
-                              nperm = nperm, p.method = p.method,
-##                               window.size = window.size, 
-##                               overlap = overlap,
-                              kmax = kmax, nmin = nmin,
-                              trimmed.SD = trimmed.SD,
-                              undo.splits = undo.splits,
-                              undo.prune = undo.prune,
-                              undo.SD = undo.SD, verbose = 2)
+                          alpha = alpha, sbdry = sbdry, sbn = sbn,
+                          nperm = nperm, p.method = p.method,
+                          ##                               window.size = window.size, 
+                          ##                               overlap = overlap,
+                          kmax = kmax, nmin = nmin,
+                          trimmed.SD = trimmed.SD,
+                          undo.splits = undo.splits,
+                          undo.prune = undo.prune,
+                          undo.SD = undo.SD, verbose = 2,
+                          min.width = min.width)
 
     sample.lsegs <- segci$lseg
     sample.segmeans <- segci$segmeans
@@ -4128,6 +4134,7 @@ internalDNAcopy_A <- function(acghdata,
     window.size <- NULL
     undo.splits <- "none"
     genomdati <- acghdata
+    min.width <- 2
     ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
     
     ## The code allows for dealing with NA and Inf, but would need to
@@ -4156,7 +4163,8 @@ internalDNAcopy_A <- function(acghdata,
                               trimmed.SD = trimmed.SD,
                               undo.splits = undo.splits,
                               undo.prune = undo.prune,
-                              undo.SD = undo.SD, verbose = 2)
+                              undo.SD = undo.SD, verbose = 2,
+                              min.width = min.width)
 ##         cat("\n DEBUG: internalDNAcopy_A: end of changepoints \n")
 
         sample.lsegs <- c(sample.lsegs, segci$lseg)

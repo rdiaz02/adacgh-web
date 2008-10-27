@@ -6,7 +6,7 @@
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/aws*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Rmpi*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/papply*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/sma*.gz 
+./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/sma_*.gz 
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/GDD*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/gridBase*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/convert*.gz   
@@ -17,8 +17,10 @@
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/DBI_*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/RSQLite_*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/xtable_*.gz
+./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/polynom_*.gz
 
 
+./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/IRanges*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Biobase*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/DynDoc*.gz 
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/widgetTools*.gz

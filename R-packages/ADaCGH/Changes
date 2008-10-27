@@ -1,3 +1,8 @@
+1.3-9	2008-10-27
+	- Changed call to changepoints of DNAcopy to allow usage with
+	v. 1.17.0 and 1.16.0 of DNAcopy. (First noticed by Sean Davis,
+	email 2008-10-07; later by Jian Li, email 2008-10-25).
+
 1.3-8	2008-10-03
 	- I finally included Henrik's suggestion for having GLAD
 	as suggested.

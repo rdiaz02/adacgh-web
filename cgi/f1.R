@@ -55,9 +55,10 @@ checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)
 }
 
 doCheckpoint <- function(num) {
-    save.image()
+  checkpoint.num.new <- num
+  save.image()
     checkpoint.num <<- num
-    sink("checkpoint.num")
+  sink("checkpoint.num")
     cat(num)
     sink()
 }

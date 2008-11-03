@@ -29,14 +29,14 @@ names.formals.changepoints <- c("genomdat",
                                 "tol")
 
 if(!identical(names.formals.changepoints, names(formals(changepoints)))) {
-    m1 <- "Arguments to DNAcopy function changepoints have changed.\n"
-    m2 <- "Either your version of DNAcopy is newer than ours, or older.\n"
-    m3 <- "If your version is newer than 1.16.0, please let us know of this problem.\n"
-    m4 <- "We are assuming you are using DNAcopy version 1.16.0,\n"
-    m5 <- "the one for the current stable BioConductor release (v. 2.3).\n"
-    m6 <- paste("Your version of DNAcopy is ", packageDescription("DNAcopy")$Version, ".\n")
-    mm <- paste(m1, m2, m3, m4, m5, m6)
-    stop(mm)
+  m1 <- "Arguments to DNAcopy function changepoints have changed.\n"
+  m2 <- "Either your version of DNAcopy is newer than ours, or older.\n"
+  m3 <- "If your version is newer than 1.16.0, please let us know of this problem.\n"
+  m4 <- "We are assuming you are using DNAcopy version 1.16.0,\n"
+  m5 <- "the one for the current stable BioConductor release (v. 2.3).\n"
+  m6 <- paste("Your version of DNAcopy is ", packageDescription("DNAcopy")$Version, ".\n")
+  mm <- paste(m1, m2, m3, m4, m5, m6)
+  stop(mm)
 }
 
 ## where do we live? to call the python script
@@ -3276,6 +3276,7 @@ plot.cw.superimpA <- function(res, chrom,
         environment(mapChromOpenA) <- environment()
         im2 <- mapChromOpenA()
         nfig <- 1
+        browser()
         for(arraynum in 1:arraynums) { ## first, plot the points
             logr <- z$resl[[arraynum]][, 1]
             res.dat <- z$resl[[arraynum]][, 3]

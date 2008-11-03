@@ -18,6 +18,7 @@
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/RSQLite_*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/xtable_*.gz
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/polynom_*.gz
+./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Matrix_*.gz
 
 
 ./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/IRanges*.gz

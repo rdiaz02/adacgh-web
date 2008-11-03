@@ -27,6 +27,7 @@ wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/xtable*.gz .
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/RSQLite_* .
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/DBI_* .
 wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/polynom* .
+wget ftp://ftp.stat.math.ethz.ch/Software/CRAN/src/contrib/Matrix_* .
 
 
 rsync -rtlv --delete bioconductor.org::2.3/bioc/src/contrib/IRanges*.gz .

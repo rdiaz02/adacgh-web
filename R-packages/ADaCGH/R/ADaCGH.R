@@ -3257,7 +3257,7 @@ plot.cw.superimpA <- function(res, chrom,
         datalist[[cnum]]$indexchr <- indexchr
         datalist[[cnum]]$cnum <- cnum
         datalist[[cnum]]$thiscn <- chrom.nums[cnum]
-        datalist[[cnum]]$resl <- lapply(res, function(w) w[indexchr, ])
+        datalist[[cnum]]$resl <- lapply(res, function(w) w[indexchr, , drop = FALSE])
         if(!is.null(geneLoc))
             datalist[[cnum]]$posn <- geneLoc[indexchr]
         else

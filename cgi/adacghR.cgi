@@ -303,7 +303,9 @@ currentTmp = dircache.listdir("/http/adacgh2/www/tmp")
 for directory in currentTmp:
     tmpS = "/http/adacgh2/www/tmp/" + directory
     if (currentTime - os.path.getmtime(tmpS)) > MAX_time:
-	shutil.rmtree(tmpS)
+        shutil.rmtree(tmpS)
+#       print("\n deleting directory " + tmpS + "\n")
+
 
 
 ### Creating temporal directories

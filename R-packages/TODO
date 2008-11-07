@@ -1,3 +1,11 @@
+- Detect and fail if a chromosome with a single point: suggest deleting that chromosome
+
+
+- CGHseg and other methods (DNAcopy is OK) with the example
+in single_point_chrom
+
+
+
 Hi,
 
 I just would like to make a small suggestion on your CRAN package

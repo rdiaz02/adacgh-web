@@ -15,7 +15,10 @@ doMCR(x, chrom.numeric, data, MCR.gapAllowed = 500,
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{x}{An object returned by our pSegment* functions, such as \code{\link{pSegmentDNAcopy}}}
+  \item{x}{The "segm" component of an object returned by our pSegment* functions, such as
+    \code{\link{pSegmentDNAcopy}}. For instance
+    \code{whatevername$semg}, where \code{whatevername} is the result of
+    a   previous invocation of \cdoe{pSegment}.}
   \item{chrom.numeric}{See \code{\link{pSegmentDNAcopy}}} 
   \item{data}{The original aCGH data;  genes in rows, subjects or arrays in
     columns. Data should be ordered by chromosome and position within chromosome.}

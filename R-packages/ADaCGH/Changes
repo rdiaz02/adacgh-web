@@ -1,5 +1,7 @@
 1.3-10
-        - Crashes in some figures when chromosomes had a single observation.
+       - Missing values caught early on
+       - Fix in SegmentPlotWrite when mergeSegs = FALSE
+       - Crashes in some figures when chromosomes had a single observation.
 
 1.3-9	2008-10-27
 	- Changed call to changepoints of DNAcopy to allow usage with

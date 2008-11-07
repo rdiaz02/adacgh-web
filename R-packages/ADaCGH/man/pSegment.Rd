@@ -1,4 +1,4 @@
-\name{pSegmentDNA}
+\name{pSegment}
 \alias{pSegmentDNAcopy}
 \alias{pSegmentACE}
 \alias{pSegmentHMM}

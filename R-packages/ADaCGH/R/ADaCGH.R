@@ -3304,7 +3304,7 @@ plot.cw.superimpA <- function(res, chrom,
         environment(mapChromOpenA) <- environment()
         im2 <- mapChromOpenA()
         nfig <- 1
-        browser()
+##        browser()
         for(arraynum in 1:arraynums) { ## first, plot the points
             logr <- z$resl[[arraynum]][, 1]
             res.dat <- z$resl[[arraynum]][, 3]
@@ -4372,15 +4372,78 @@ my.impute.lowess <- function (x,
 
 
 
-### Simple example of stochasticity of DNAcopy
-#set.seed(1)
-#cna.obj <- CNA(as.matrix(cghE1[, 5:7]),
-#               chrom = chrom.numeric,
-#               maploc = cghE1$UG.Start,
-#               data.type = "logratio")
-#smoothed <- smooth.CNA(cna.obj)
-#segmented1 <- segment(smoothed, undo.splits = "none", nperm = 10000)
-#segmented2 <- segment(smoothed, undo.splits = "none", nperm = 10000)
-#segmented3 <- segment(smoothed, undo.splits = "none", nperm = 10000)
-#segmented3$output[32:34, ]
-#segmented1$output[32:34, ]
+### Simple examples of stochasticity of methods and working of SegmentPlotWrite
+
+### library(ADaCGH)
+### data(cghE1)
+### tmpchr <- sub("chr", "", cghE1$Chromosome)
+### chrom.numeric <- as.numeric(as.character(tmpchr))
+### chrom.numeric[tmpchr == "X"] <- 23
+### chrom.numeric[tmpchr == "Y"] <- 24
+### rm(tmpchr)
+### ### we need the data ordered
+### reorder <- order(chrom.numeric,
+###                  cghE1$UG.Start,
+###                  cghE1$UG.End,
+###                  cghE1$Name)
+### cghE1 <- cghE1[reorder, ]
+### chrom.numeric <- chrom.numeric[reorder]
+
+
+
+### #### DNAcopy: differences between pSegmentDNA and
+### ##   SegmentPlotWrite: because DNAcopy is variable
+### set.seed(1)
+### cna.obj <- CNA(as.matrix(cghE1[, 5:7]),
+###               chrom = chrom.numeric,
+###               maploc = cghE1$UG.Start,
+###               data.type = "logratio")
+### smoothed <- smooth.CNA(cna.obj)
+### segmented1 <- segment(smoothed, undo.splits = "none", nperm = 10000)
+### segmented2 <- segment(smoothed, undo.splits = "none", nperm = 10000)
+### segmented3 <- segment(smoothed, undo.splits = "none", nperm = 10000)
+### segmented3$output[32:34, ]
+### segmented1$output[32:34, ]
+
+
+### #### HMM: this is highly variable
+
+### Clone <- 1:nrow(cghE1)
+### obj <- create.aCGH(data.frame(cghE1[, 5:7]), 
+###                    data.frame(Clone = Clone,
+###                               Chrom = chrom.numeric,
+###                               kb     = cghE1$UG.Start ))
+### set.seed(1)
+### res <- find.hmm.states(obj, aic = TRUE, bic = FALSE)
+### res2 <- find.hmm.states(obj, aic = TRUE, bic = FALSE)
+
+### res$states.hmm[[1]][1334:1342, 2 + 4]
+### res2$states.hmm[[1]][1334:1342, 2 + 4]
+
+
+
+### ### GLAD: no changes here between SegmentPlotWrite
+### ### and pSegmentGLAD
+### ## Note also that the testAdacghNum.py, with GALD, shows
+### ## perfect 
+
+### oGLAD <- pSegmentGLAD(cghE1[, 5:7],
+###                     chrom.numeric)
+### setwd("/tmp/mG")
+### SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
+###                  Pos = cghE1$UG.Start,
+###                  mergeSegs = FALSE,
+###                  idtype = "ug", organism = "Hs",
+###                  method = "GLAD",
+###                  geneNames = cghE1[, 1], commondata = cghE1[, 1:4])
+
+### spw.out <- read.table("/tmp/mG/GLAD.output.txt")
+
+### summary(oGLAD$segm$S1[, 2] - spw.out$S1.Smoothed)
+### summary(oGLAD$segm$S2[, 2] - spw.out$S2.Smoothed)
+### summary(oGLAD$segm$S3[, 2] - spw.out$S3.Smoothed)
+### summary(oGLAD$segm$S1[, 3] - spw.out$S1.Status)
+### summary(oGLAD$segm$S2[, 3] - spw.out$S2.Status)
+### summary(oGLAD$segm$S3[, 3] - spw.out$S3.Status)
+
+

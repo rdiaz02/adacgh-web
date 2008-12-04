@@ -3,6 +3,10 @@
 ## All this code is copyright Ramon Diaz-Uriarte.
 ## Released under the Affero GPL.
 
+
+## try to use add_to_MPIErrorLog and similar mechanisms for logging
+## MPI attempts
+
 import sys
 import os
 import cgi 
@@ -468,7 +472,8 @@ def printMPIerror(tmpDir, numtries, application = 'ADaCGH2'):
     if not os.path.exists('/http/mpi.log/' + application + 'ErrorLog'):
         os.system('touch /http/mpi.log/' + application + 'ErrorLog')
     outlog = open('/http/mpi.log/' + application + 'ErrorLog', mode = 'a')
-    outlog.write('MPI fails on ' + time.ctime(time.time()) +
+    outlog.write('MPI fails more than ' + numtries + 'numtries on ' +
+                 time.ctime(time.time()) +
                  ' Directory: ' + tmpDir + '\n')
     outlog.close()
     out1 = open(tmpDir + "/natural.death.pid.txt", mode = "w")
@@ -494,7 +499,7 @@ def printMPITooBusy(tmpDir, MAX_DURATION_TRY, application = 'ADaCGH2'):
     if not os.path.exists('/http/mpi.log/' + application + 'ErrorLog'):
         os.system('touch /http/mpi.log/' + application + 'ErrorLog')
     outlog = open('/http/mpi.log/' + application + 'ErrorLog', mode = 'a')
-    outlog.write('Something fails on ' + time.ctime(time.time()) +
+    outlog.write('MPI too busy on ' + time.ctime(time.time()) +
                  ' Directory: ' + tmpDir + '\n')
     outlog.close()
     out1 = open(tmpDir + "/natural.death.pid.txt", mode = "w")
@@ -856,8 +861,8 @@ def my_queue(MAX_NUM_PROCS,
 
 def generate_lam_suffix(tmpDir):
     """As it says. Generate and write it out"""
-    lamSuffix = str(random.randint(1, 99)) + str(int(time.time())) + \
-                str(os.getpid()) + str(random.randint(10, 9999))
+    lamSuffix = str(int(time.time())) + \
+                str(os.getpid()) + str(random.randint(10, 999999))
     lamenvfile = open(tmpDir + '/lamSuffix', mode = 'w')
     lamenvfile.write(lamSuffix)
     lamenvfile.flush()
@@ -897,6 +902,8 @@ issue_echo('before lamboot', tmpDir)
 lamboot(lamSuffix, NCPU)
 issue_echo('after lamboot', tmpDir)
 
+counterApplications.add_to_LAM_SUFFIX_LOG(lamSuffix, 'ADaCGH2', tmpDir,
+                                          socket.gethostname())
 
 Rrun(tmpDir, lamSuffix)
         
@@ -933,6 +940,9 @@ while True:
         break
     elif did_mpi_crash(tmpDir, machine_root = 'karl'):
         count_mpi_crash += 1
+        counterApplications.add_to_MPIErrorLog('ADaCGH2',
+                                               tmpDir, socket.gethostname(),
+                                               message = 'MPI crash')
         if count_mpi_crash > MAX_MPI_CRASHES:
             printMPIerror(tmpDir, MAX_MPI_CRASHES)
             cleanups(tmpDir, newDir, 'MPIerror.pid.txt', lamSuffix)

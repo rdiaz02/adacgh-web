@@ -76,6 +76,7 @@ doCheckpoint <- function(num) {
 
 ##startExecTime <- format(Sys.time())
 
+## why is this here and further down below?? FIXME
 pid <- Sys.getpid()
 write.table(file = "pid.txt", pid,
             row.names = FALSE,
@@ -170,8 +171,29 @@ write.table(file = "pid.txt", pid,
             col.names = FALSE)
 trylam <- try(
               lamSESSION <- scan("lamSuffix", sep = "\t",
+                                 what = "",
                                  strip.white = TRUE)
               )
+
+#################################################################
+## enter info into lam suffix log table
+
+tmpDir <- getwd()
+sed.command <- paste("sed -i 's/RprocessPid\t",
+                     lamSESSION, "\t", hostn, "/",
+                     pid, "\t",
+                     lamSESSION, "\t", hostn, "/' ",
+                     "/http/mpi.log/LAM_SUFFIX_Log",
+                     sep = "")
+## debugging:
+sed.command
+
+system(sed.command)
+
+
+
+
+
 
 
 png.width = 400

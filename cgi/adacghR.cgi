@@ -257,30 +257,30 @@ def radioUpload(fieldName, acceptedValues):
 
 
 
-def restart_tryRrun(tmpDir, tsleep = 5, ntries = 5):
-    """Verify if left track in ApplicationCounter log. Otherwise
-    call tryRrun again and leave a file in the tmpDir. """
+# def restart_tryRrun(tmpDir, tsleep = 5, ntries = 5):
+#     """Verify if left track in ApplicationCounter log. Otherwise
+#     call tryRrun again and leave a file in the tmpDir. """
     
-    for i in range(ntries + 1):
-        time.sleep(tsleep)
-        in_log = int(os.popen('grep "' + \
-                              tmpDir + \
-                              '" /http/mpi.log/ApplicationCounter | wc').readline().split()[0])
-        if in_log == 0:
-            leave_track = os.system('/bin/touch ' + tmpDir + \
-                                    '/had_to_restart_' + str(i + 1))
-            if i == ntries :
-                commonOutput()
-                print "<h1> ADaCGH problem: Can't start the application. </h1>"
-                print "<p> Please try again later and let us know.</p>"
-                print "<p> We apologize for the inconvenience.</p>"    
-                print "</body></html>"
-                sys.exit()
-            else:
-                tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
+#     for i in range(ntries + 1):
+#         time.sleep(tsleep)
+#         in_log = int(os.popen('grep "' + \
+#                               tmpDir + \
+#                               '" /http/mpi.log/ApplicationCounter | wc').readline().split()[0])
+#         if in_log == 0:
+#             leave_track = os.system('/bin/touch ' + tmpDir + \
+#                                     '/had_to_restart_' + str(i + 1))
+#             if i == ntries :
+#                 commonOutput()
+#                 print "<h1> ADaCGH problem: Can't start the application. </h1>"
+#                 print "<p> Please try again later and let us know.</p>"
+#                 print "<p> We apologize for the inconvenience.</p>"    
+#                 print "</body></html>"
+#                 sys.exit()
+#             else:
+#                 tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
                 
-        else:
-            break
+#         else:
+#             break
 
 
 

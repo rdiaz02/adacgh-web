@@ -2809,7 +2809,13 @@ PSWtoPaLS <- function(x = .__PSW_PALS.Lost_for_PaLS.txt,
 }
 
 
+##### FIXME: this is all VERY ugly. We should not have code here that refers
+##    to the web app, because it is a mess to change the web-app behavior, and
+##    that should not be retrofitted here.
 
+##    I do not want to break the old stuff for ADaCGH web app. So I call
+##    another function for the new server. This will allow smoother changes
+##    when we finally finish with the old ADaCGH web app.
 
 caughtOtherError <- function(message) {
     png.height <- 400
@@ -2833,6 +2839,9 @@ caughtOtherError <- function(message) {
         cat(message)
         sink()
         quit(save = "no", status = 11, runLast = TRUE)
+    } else if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
+        caughtOtherError.Web(message)
+
     } else {
         message <- paste(message, " ", collapse = " ")
         message <- paste("There is a possible problem: ", message)
@@ -2862,6 +2871,8 @@ caughtError <- function(message) {
         cat(message)
         sink()
         quit(save = "no", status = 11, runLast = TRUE)
+    } else if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
+        caughtOtherPackageError.Web(message)
     } else {
         message <- paste("This is a known problem in a package we depend upon. ", message)
         stop(message)
@@ -2896,6 +2907,8 @@ caughtOurError <- function(message) {
         cat(message)
         sink()
         quit(save = "no", status = 11, runLast = TRUE)
+    } else if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
+        caughtOurError.Web(message)
     } else {
         message <- paste("It looks like you found a bug. Please let us know. ", message)
         stop(message)

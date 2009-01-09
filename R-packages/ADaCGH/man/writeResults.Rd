@@ -67,7 +67,7 @@ writeResults(obj, ...)
 \code{\link{summary.ACE}}, 
  }
  \examples{
-## See examples under \code{\link{pSegmentDNAcopy}}
+## See examples under \link{pSegmentDNAcopy}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

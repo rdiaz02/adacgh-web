@@ -32,8 +32,6 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
   \item{numarrays}{ The number of arrays to plot. }
   \item{\dots}{ Other arguments, passed to the underlying plotting functions. }
 }
-\details{
-}
 \value{
   Used only for its side effects of producing plots. Beware that you
   will get from a few to a lot of HTML and png files writtend to your

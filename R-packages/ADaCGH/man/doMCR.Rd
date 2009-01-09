@@ -38,9 +38,6 @@ doMCR(x, chrom.numeric, data, MCR.gapAllowed = 500,
 }
 
 
-
-
-
 \references{
   Aguirre, Brennan, Bailey, Sinha, Feng, Leo, Zhang, Zhang, Gans,
 Bardeesy, Cauwels, Cordon-Cardo, Redston, Depinho,
@@ -60,8 +57,6 @@ adenocarcinoma genome. PNAS, 101: 9067--9072.
 
 \author{Ramon Diaz-Uriarte \email{rdiaz02@gmail.com} }
 \seealso{ \code{\link[cghMCR]{MCR}}}
-\examples{
-}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ IO }

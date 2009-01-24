@@ -570,14 +570,15 @@ arrayfile.close()
 if twofiles == "One.file":
     positionfile.close()
 
-## Get rid of quotes and double quotes:
+## Get rid of quotes and double quotes and also "/" in array 
+## names --leads to attempts to search for directories:
 tmp = os.system("cd " + tmpDir +  """; sed 's/"//g' geneNames > tmp234; mv tmp234 geneNames""")
 tmp = os.system("cd " + tmpDir + """; sed "s/'//g" geneNames > tmp234; mv tmp234 geneNames""")
 tmp = os.system("cd " + tmpDir +  """; sed 's/"//g' positionInfo > tmp234; mv tmp234 positionInfo""")
 tmp = os.system("cd " + tmpDir + """; sed "s/'//g" positionInfo > tmp234; mv tmp234 positionInfo""")
 tmp = os.system("cd " + tmpDir +  """; sed 's/"//g' arrayNames > tmp234; mv tmp234 arrayNames""")
 tmp = os.system("cd " + tmpDir + """; sed "s/'//g" arrayNames > tmp234; mv tmp234 arrayNames""")
-
+tmp = os.system("cd " + tmpDir + """; sed -i 's/\//_/g' arrayNames""")
 
 
 

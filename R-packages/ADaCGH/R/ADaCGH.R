@@ -561,7 +561,7 @@ segmentPlot <- function(x, geneNames,
                         organism = "Hs",
                         yminmax = NULL,
                         numarrays = NULL,
-                        colors = c("orange", "red", "green", "blue"),
+                        colors = c("orange", "red", "green", "blue", "black"),
                         html_js = TRUE,
                         superimp = TRUE,
                         ...) {
@@ -589,7 +589,7 @@ segmentPlot <- function(x, geneNames,
             segment.pos <- 2
         }
         if(inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))){
-            colors <- c(rep(colors[1], 3), colors[4])
+            colors <- c(rep(colors[1], 3), colors[4], colors[5])
         } 
         l1 <- list()
         for (i in 1:length(x$segm)) {
@@ -737,7 +737,7 @@ SegmentPlotWrite <- function(data, chrom,
                              method,
                              geneNames,
                              commondata,
-                             colors = c("orange", "red", "green", "blue"),
+                             colors = c("orange", "red", "green", "blue", "black"),
                              html_js = TRUE,
                              superimp = TRUE,
                              ...) {
@@ -3070,7 +3070,7 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
 
 plot.adacgh.genomewide <- function(res, chrom,
                                    main = NULL,
-                                   colors = c("orange", "red", "green", "blue"),
+                                   colors = c("orange", "red", "green", "blue", "black"),
                                    ylim = NULL,
                                    geneNames = positions.merge1$name,
                                    geneLoc = NULL) {
@@ -3101,7 +3101,7 @@ plot.adacgh.genomewide <- function(res, chrom,
     plotGenomeWide()
     im1 <- mapLinkChrom()
    
-    lines(smoothdat ~ simplepos, col="black",
+    lines(smoothdat ~ simplepos, col=colors[4],
           lwd = 2)
   
     mapGenomeWideClose(nameIm, im1)
@@ -3111,7 +3111,7 @@ plot.adacgh.genomewide <- function(res, chrom,
 
 plot.adacgh.chromosomewide <- function(res, chrom,
                                        main = NULL,
-                                       colors = c("orange", "red", "green", "blue"),
+                                       colors = c("orange", "red", "green", "blue", "black"),
                                        ylim = NULL,
                                        geneNames = positions.merge1$name,
                                        idtype = idtype,
@@ -3138,7 +3138,7 @@ plot.adacgh.chromosomewide <- function(res, chrom,
         plotChromWide()
 
         lines(smoothdat[indexchr] ~ simplepos[indexchr],
-              col = "black", lwd = 2, type = "l")
+              col = colors[4], lwd = 2, type = "l")
 
         environment(pngCircleRegion) <- environment()
         ccircle <- pngCircleRegion()
@@ -3151,7 +3151,7 @@ plot.adacgh.chromosomewide <- function(res, chrom,
 
 
 plot.gw.superimp <- function(res, chrom, main = NULL,
-                             colors = c("orange", "red", "green", "blue"),
+                             colors = c("orange", "red", "green", "blue", "black"),
                              ylim =c(ymin, ymax), 
                              geneNames = positions.merge1$name,
                              geneLoc = NULL) {
@@ -3188,7 +3188,7 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
         }
 
         lines(smoothdat ~ simplepos,
-              col = "black", lwd = 2, type = "l")
+              col = colors[4], lwd = 2, type = "l")
         nfig <- nfig + 1
         par(new = TRUE)
     }
@@ -3302,7 +3302,7 @@ plotChromWide <- function() {
          pch = pch, ylim = ylim)
     box()
     axis(2)
-    abline(h = 0, lty = 2, col = colors[4])
+    abline(h = 0, lty = 2, col = colors[5])
     rug(simplepos[indexchr], ticksize = 0.01)
 }
 
@@ -3312,7 +3312,7 @@ plotChromWide <- function() {
 
 plot.cw.superimpA <- function(res, chrom, 
                               main = "All_arrays",
-                              colors = c("orange", "red", "green", "blue"),
+                              colors = c("orange", "red", "green", "blue", "black"),
                               ylim =NULL, 
                               geneNames = positions.merge1$name,
                               idtype = idtype, organism = organism,
@@ -3377,7 +3377,7 @@ plot.cw.superimpA <- function(res, chrom,
                    cex = 1, pch = 20)
             
             lines(smoothdat ~ simplepos,
-                  col = "black", lwd = 2, type = "l")
+                  col = colors[4], lwd = 2, type = "l")
     
             nfig <- nfig + 1
         }
@@ -3437,7 +3437,7 @@ plotChromWideA <- function() {
          pch = pch, ylim = ylim)
     box()
     axis(2)
-    abline(h = 0, lty = 2, col = colors[4])
+    abline(h = 0, lty = 2, col = colors[5])
     rug(simplepos, ticksize = 0.01)
 }
 
@@ -3503,7 +3503,7 @@ plotGenomeWide <- function() {
     box()
     rug(simplepos, ticksize = 0.01)
     axis(2)
-    abline(h = 0, lty = 2, col = colors[4])
+    abline(h = 0, lty = 2, col = colors[5])
 }
 
 

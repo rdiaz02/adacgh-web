@@ -12,7 +12,7 @@ additional information. You need Python for all this to work.
 segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
             arraynames = NULL, idtype = "ug", organism = "Hs",
             yminmax = NULL, numarrays = NULL,
-            colors = c("orange", "red", "green", "blue"),
+            colors = c("orange", "red", "green", "blue", "black"),
             html_js = TRUE,
             superimp = TRUE,
             ...)
@@ -34,8 +34,9 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
   \item{yminmax}{ A vector of the form (min, max) for the minimum and
     maximum used in the figures. }
   \item{numarrays}{ The number of arrays to plot. }
-  \item{colors}{Colors used for plotting: a four element vector denoting
-    colors for non-altered points, gained, lost, and the smoothed line.}
+  \item{colors}{Colors used for plotting: a five element vector denoting
+    colors for non-altered points, gained, lost, the smoothed line and the
+    horizontal line at 0.}
   \item{html_js}{Produce the html figures including lots of Javascript?
     Default is TRUE.}
   \item{superimp}{Produce the figures that superimpose all arrays into a

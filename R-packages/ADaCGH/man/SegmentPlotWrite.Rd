@@ -7,7 +7,11 @@
 }
 \usage{
 SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
-                 organism, method, geneNames, commondata, ...)
+                 organism, method, geneNames, commondata,
+                 colors = c("orange", "red", "green", "blue"),
+                 html_js = TRUE,
+                 superimp = TRUE,
+                 ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -41,6 +45,13 @@ SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
     (often, the mid point or whatever you regard as appropriate
     representative of the "center" of the clone). But you can use
     something else.}
+    \item{colors}{Colors used for plotting: a four element vector denoting
+    colors for non-altered points, gained, lost, and the smoothed line.}
+  \item{html_js}{Produce the html figures including lots of Javascript?
+    Default is TRUE.}
+  \item{superimp}{Produce the figures that superimpose all arrays into a
+    single plot? Default is TRUE.}
+
   \item{\dots}{Additional arguments passed to the underlying pSegment*
     and segmentPlot functions.}
 }

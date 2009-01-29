@@ -11,7 +11,11 @@ additional information. You need Python for all this to work.
 \usage{
 segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
             arraynames = NULL, idtype = "ug", organism = "Hs",
-            yminmax = NULL, numarrays = NULL, ...)
+            yminmax = NULL, numarrays = NULL,
+            colors = c("orange", "red", "green", "blue"),
+            html_js = TRUE,
+            superimp = TRUE,
+            ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,11 +34,17 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
   \item{yminmax}{ A vector of the form (min, max) for the minimum and
     maximum used in the figures. }
   \item{numarrays}{ The number of arrays to plot. }
+  \item{colors}{Colors used for plotting: a four element vector denoting
+    colors for non-altered points, gained, lost, and the smoothed line.}
+  \item{html_js}{Produce the html figures including lots of Javascript?
+    Default is TRUE.}
+  \item{superimp}{Produce the figures that superimpose all arrays into a
+    single plot? Default is TRUE.}
   \item{\dots}{ Other arguments, passed to the underlying plotting functions. }
 }
 \value{
   Used only for its side effects of producing plots. Beware that you
-  will get from a few to a lot of HTML and png files writtend to your
+  will get from a few to a lot of HTML and png files written to your
   local file system.
 }
 \references{

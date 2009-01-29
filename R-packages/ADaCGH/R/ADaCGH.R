@@ -561,6 +561,9 @@ segmentPlot <- function(x, geneNames,
                         organism = "Hs",
                         yminmax = NULL,
                         numarrays = NULL,
+                        colors = c("orange", "red", "green", "blue"),
+                        html_js = TRUE,
+                        superimp = TRUE,
                         ...) {
     if(is.null(numarrays)) {
         if(!is.null(arraynames)) numarrays <- length(arraynames)
@@ -586,10 +589,8 @@ segmentPlot <- function(x, geneNames,
             segment.pos <- 2
         }
         if(inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))){
-            colors <- c(rep("orange", 3), "blue")
-        } else {
-            colors <- c("orange", "red", "green", "blue")
-        }
+            colors <- c(rep(colors[1], 3), colors[4])
+        } 
         l1 <- list()
         for (i in 1:length(x$segm)) {
             l1[[i]] <- list()
@@ -612,7 +613,8 @@ segmentPlot <- function(x, geneNames,
                                                   geneNames = geneNames,
                                                   idtype = idtype,
                                                   organism = organism,
-                                                  geneLoc = pos_slave)
+                                                  geneLoc = pos_slave,
+                                                  html_js = html_js)
                    },
                    papply_commondata =
                    list(cnum_slave= x$chrom.numeric,
@@ -622,30 +624,29 @@ segmentPlot <- function(x, geneNames,
                         organism = organism,
                         colors = colors,
                         pos_slave = geneLoc,
-                        yminmax = yminmax))
+                        yminmax = yminmax,
+                        html_js = html_js))
         cat("\n gc after plot.adacgh.nonsuperimpose \n")
         print(gc())
-##         if(controlMPI) {
-##             mpi.close.Rslaves()
-##             mpiInit(universeSize = length(unique(positions.merge1$chromosome)))
-##         }
-        plot.cw.superimpA(x$segm, x$chrom.numeric,  geneNames = geneNames,
-                             main = "All_arrays",
-                             colors = colors,
-                             ylim= yminmax,
-                             idtype = idtype, organism = organism,
+
+        if(superimp) {
+            plot.cw.superimpA(x$segm, x$chrom.numeric,  geneNames = geneNames,
+                              main = "All_arrays",
+                              colors = colors,
+                              ylim= yminmax,
+                              idtype = idtype, organism = organism,
+                              geneLoc = geneLoc,
+                              html_js = html_js)
+            cat("\n gc after plot.cw.superimpose \n")
+            print(gc())
+            
+            plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
+                             main = "All_arrays", colors = colors,
+                             ylim = yminmax, geneNames = geneNames,
                              geneLoc = geneLoc)
-##         if(controlMPI) mpi.close.Rslaves()
-        cat("\n gc after plot.cw.superimpose \n")
-        print(gc())
-
-        plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
-                         main = "All_arrays", colors = colors,
-                         ylim = yminmax, geneNames = geneNames,
-                         geneLoc = geneLoc)
-        cat("\n gc after plot.adacgh.superimp \n")
-        print(gc())
-
+            cat("\n gc after plot.gw.superimp \n")
+            print(gc())
+        }
     }  else if(inherits(x, "CGH.PSW")) {
         if(x$plotData[[1]]$sign < 0) {
             main <- "Losses."
@@ -673,23 +674,25 @@ segmentPlot <- function(x, geneNames,
                    function(z) {
                        cat("\n Doing sample ", z$arrayname, "\n")
                        sw.plot3(logratio = z$lratio,
-                                         sign = z$sign,
-                                         swt.perm = z$swt.perm,
-                                         rob = z$rob,
-                                         swt.run = z$swt.run,
-                                         p.crit = z$p.crit,
-                                         chrom = z$chrom,
-                                         main = paste(main_slave, z$arrayname, sep=""),
-                                         geneNames = geneNames,
-                                         idtype = idtype,
-                                         organism = organism)
+                                sign = z$sign,
+                                swt.perm = z$swt.perm,
+                                rob = z$rob,
+                                swt.run = z$swt.run,
+                                p.crit = z$p.crit,
+                                chrom = z$chrom,
+                                main = paste(main_slave, z$arrayname, sep=""),
+                                geneNames = geneNames,
+                                idtype = idtype,
+                                organism = organism,
+                                html_js = html_js)
                    },
                    papply_commondata = list(
                    main_slave = main,
                    arraynames = arraynames,
                    geneNames = geneNames,
                    idtype = idtype,
-                   organism = organism))
+                   organism = organism,
+                   html_js = html_js))
 ##         if(controlMPI) mpi.close.Rslaves()
     } else {
         stop("No plotting for this class of objects")
@@ -733,7 +736,11 @@ SegmentPlotWrite <- function(data, chrom,
                              idtype, organism,
                              method,
                              geneNames,
-                             commondata, ...) {
+                             commondata,
+                             colors = c("orange", "red", "green", "blue"),
+                             html_js = TRUE,
+                             superimp = TRUE,
+                             ...) {
     ymax <- max(data)
     ymin <- min(data)
     numarrays <- ncol(data)
@@ -767,7 +774,10 @@ SegmentPlotWrite <- function(data, chrom,
                                chrom.numeric = chrom,
                                cghdata = data,
                                idtype = idtype,
-                               organism = organism))
+                               organism = organism,
+                               colors = colors,
+                               html_js = html_js,
+                               superimp = superimp))
     if(inherits(tryPlot, "try-error"))
         caughtOurError(tryPlot)
     cat("\n\n Plotting done \n\n")
@@ -2134,8 +2144,9 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
                   file = paste("geneNamesChr_", nameChrIm, sep = ""))
             imClose(im2)
             ## call the Python function
-            system(paste(.python.toMap.py,  nameChrIm, 
-                 idtype, organism, sep = " "))
+            if(html_js)
+                system(paste(.python.toMap.py,  nameChrIm, 
+                             idtype, organism, sep = " "))
             
 
         } ## looping over chromosomes
@@ -3049,11 +3060,12 @@ createIM2 <- function(im, file = "", imgTags = list(),
 
 plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        ylim, geneNames, idtype, organism,
-                                       geneLoc) {
+                                       geneLoc, html_js) {
     plot.adacgh.genomewide(res, chrom,  main, colors,
                            ylim, geneNames, geneLoc)
     plot.adacgh.chromosomewide(res, chrom,  main, colors,
-                               ylim, geneNames, idtype, organism, geneLoc)
+                               ylim, geneNames, idtype, organism, geneLoc,
+                               html_js)
 }
 
 plot.adacgh.genomewide <- function(res, chrom,
@@ -3098,13 +3110,14 @@ plot.adacgh.genomewide <- function(res, chrom,
 
 
 plot.adacgh.chromosomewide <- function(res, chrom,
-                                    main = NULL,
-                                    colors = c("orange", "red", "green", "blue"),
-                                    ylim = NULL,
-                                    geneNames = positions.merge1$name,
-                                    idtype = idtype,
-                                    organism = organism,
-                                    geneLoc = NULL) {
+                                       main = NULL,
+                                       colors = c("orange", "red", "green", "blue"),
+                                       ylim = NULL,
+                                       geneNames = positions.merge1$name,
+                                       idtype = idtype,
+                                       organism = organism,
+                                       geneLoc = NULL,
+                                       html_js = html_js) {
 
     pch <- 20
     logr <- res[, 1]
@@ -3182,74 +3195,76 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
     mapGenomeWideClose(nameIm, im1)
 }
 
+## Looks like no longer being called
+## plot.adacgh.superimp <- function(res, chrom, main,  colors, ylim, geneNames,
+##                                  idtype, organism, geneLoc,
+##                                  html_js) {
+##     plot.gw.superimp(res, chrom, main,  colors, ylim, geneNames,
+##                      geneLoc)
+##     plot.cw.superimp(res, chrom, main,  colors, ylim, geneNames,
+##                      idtype, organism, geneLoc, html_js)
+## }
 
-plot.adacgh.superimp <- function(res, chrom, main,  colors, ylim, geneNames,
-                                 idtype, organism, geneLoc) {
-    plot.gw.superimp(res, chrom, main,  colors, ylim, geneNames,
-                     geneLoc)
-    plot.cw.superimp(res, chrom, main,  colors, ylim, geneNames,
-                     idtype, organism, geneLoc)
-}
 
-
-
-plot.cw.superimp <- function(res, chrom, 
-                                main = "All_arrays",
-                                colors = c("orange", "red", "green", "blue"),
-                                ylim =NULL, 
-                                geneNames = positions.merge1$name,
-                                idtype = idtype, organism = organism,
-                                geneLoc = NULL) {
+## Looks like no longer being called
+## plot.cw.superimp <- function(res, chrom, 
+##                              main = "All_arrays",
+##                              colors = c("orange", "red", "green", "blue"),
+##                              ylim =NULL, 
+##                              geneNames = positions.merge1$name,
+##                              idtype = idtype, organism = organism,
+##                              geneLoc = NULL,
+##                              html_js = html_js) {
     
-    ## For superimposed: one plot per chr
-    pch <- ""
-    arraynums <- length(res)
-    nameIm <- main
-    pixels.point <- 3
-    chrheight <- 500
-    chrom.nums <- unique(chrom)
-    ## this could be parallelized over chromosomes!! FIXME
-    for(cnum in 1:length(chrom.nums)) {
-        ccircle <- NULL
-        environment(mapChromOpen) <- environment()
-        im2 <- mapChromOpen()
+##     ## For superimposed: one plot per chr
+##     pch <- ""
+##     arraynums <- length(res)
+##     nameIm <- main
+##     pixels.point <- 3
+##     chrheight <- 500
+##     chrom.nums <- unique(chrom)
+##     ## this could be parallelized over chromosomes!! FIXME
+##     for(cnum in 1:length(chrom.nums)) {
+##         ccircle <- NULL
+##         environment(mapChromOpen) <- environment()
+##         im2 <- mapChromOpen()
 
-        indexchr <- which(chrom == chrom.nums[cnum])
+##         indexchr <- which(chrom == chrom.nums[cnum])
         
-        nfig <- 1
-        for(arraynum in 1:arraynums) { ## first, plot the points
-##            cat(" ........ for points doing arraynum ", arraynum, "\n")
+##         nfig <- 1
+##         for(arraynum in 1:arraynums) { ## first, plot the points
+## ##            cat(" ........ for points doing arraynum ", arraynum, "\n")
 
-            logr <- res[[arraynum]][, 1]
-            res.dat <- res[[arraynum]][, 3]
-            smoothdat <- res[[arraynum]][, 2]
-            col <- rep(colors[1],length(res.dat))
-            col[which(res.dat == -1)] <- colors[3]
-            col[which(res.dat == 1)] <- colors[2]
-            simplepos <- if(is.null(geneLoc)) (1:length(logr)) else geneLoc
+##             logr <- res[[arraynum]][, 1]
+##             res.dat <- res[[arraynum]][, 3]
+##             smoothdat <- res[[arraynum]][, 2]
+##             col <- rep(colors[1],length(res.dat))
+##             col[which(res.dat == -1)] <- colors[3]
+##             col[which(res.dat == 1)] <- colors[2]
+##             simplepos <- if(is.null(geneLoc)) (1:length(logr)) else geneLoc
             
-            if(nfig == 1) {
-                environment(plotChromWide) <- environment()
-                plotChromWide()
-            }
+##             if(nfig == 1) {
+##                 environment(plotChromWide) <- environment()
+##                 plotChromWide()
+##             }
             
-            environment(pngCircleRegion) <- environment()
-            ccircle <- pngCircleRegion()
+##             environment(pngCircleRegion) <- environment()
+##             ccircle <- pngCircleRegion()
 
-            ## we want all points, but only draw axes once
-            points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
-                   cex = 1, pch = 20)
+##             ## we want all points, but only draw axes once
+##             points(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr],
+##                    cex = 1, pch = 20)
             
-##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
-            lines(smoothdat[indexchr] ~ simplepos[indexchr],
-                  col = "black", lwd = 2, type = "l")
+## ##            cat(" ........ for segments doing arraynum ", arraynum, "\n")
+##             lines(smoothdat[indexchr] ~ simplepos[indexchr],
+##                   col = "black", lwd = 2, type = "l")
     
-            nfig <- nfig + 1
-        }
-        environment(mapCloseAndPythonChrom) <- environment()
-        mapCloseAndPythonChrom()
-    }
-}
+##             nfig <- nfig + 1
+##         }
+##         environment(mapCloseAndPythonChrom) <- environment()
+##         mapCloseAndPythonChrom()
+##     }
+## }
 
 
 
@@ -3270,8 +3285,9 @@ mapCloseAndPythonChrom <- function() {
     write(rep(as.character(geneNames[indexchr]), arraynums), 
           file = paste("geneNamesChr_", nameChrIm, sep = ""))
     imClose(im2)
-    system(paste(.python.toMap.py, nameChrIm, 
-                 idtype, organism, sep = " "))
+    if(html_js) 
+        system(paste(.python.toMap.py, nameChrIm, 
+                     idtype, organism, sep = " "))
 }
 
     
@@ -3295,12 +3311,13 @@ plotChromWide <- function() {
 
 
 plot.cw.superimpA <- function(res, chrom, 
-                                main = "All_arrays",
-                                colors = c("orange", "red", "green", "blue"),
-                                ylim =NULL, 
-                                geneNames = positions.merge1$name,
-                                idtype = idtype, organism = organism,
-                                geneLoc = NULL) {
+                              main = "All_arrays",
+                              colors = c("orange", "red", "green", "blue"),
+                              ylim =NULL, 
+                              geneNames = positions.merge1$name,
+                              idtype = idtype, organism = organism,
+                              geneLoc = NULL,
+                              html_js = html_js) {
 #    on.exit(browser())
     ## For superimposed: one plot per chr
     pch <- ""
@@ -3403,8 +3420,9 @@ mapCloseAndPythonChromA <- function() {
     write(rep(as.character(geneNames[indexchr]), arraynums), 
           file = paste("geneNamesChr_", nameChrIm, sep = ""))
     imClose(im2)
-    system(paste(.python.toMap.py, nameChrIm, 
-                 idtype, organism, sep = " "))
+    if(html_js)
+        system(paste(.python.toMap.py, nameChrIm, 
+                     idtype, organism, sep = " "))
 }
 
     

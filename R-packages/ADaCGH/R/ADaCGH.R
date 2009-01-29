@@ -3072,12 +3072,12 @@ createIM2 <- function(im, file = "", imgTags = list(),
 
 plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        ylim, geneNames, idtype, organism,
-                                       geneLoc, html_js) {
+                                       geneLoc, html_js, imgheight) {
     plot.adacgh.genomewide(res, chrom,  main, colors,
-                           ylim, geneNames, geneLoc)
+                           ylim, geneNames, geneLoc, imgheight)
     plot.adacgh.chromosomewide(res, chrom,  main, colors,
                                ylim, geneNames, idtype, organism, geneLoc,
-                               html_js)
+                               html_js, imgheight)
 }
 
 plot.adacgh.genomewide <- function(res, chrom,
@@ -3085,7 +3085,8 @@ plot.adacgh.genomewide <- function(res, chrom,
                                    colors = c("orange", "red", "green", "blue", "black"),
                                    ylim = NULL,
                                    geneNames = positions.merge1$name,
-                                   geneLoc = NULL) {
+                                   geneLoc = NULL,
+                                   imgheight = imgheight) {
     
     pch <- 20
     im1 <- mapGenomeWideOpen(main)
@@ -3129,7 +3130,8 @@ plot.adacgh.chromosomewide <- function(res, chrom,
                                        idtype = idtype,
                                        organism = organism,
                                        geneLoc = NULL,
-                                       html_js = html_js) {
+                                       html_js = html_js,
+                                       imgheight = imgheight) {
 
     pch <- 20
     logr <- res[, 1]
@@ -3166,7 +3168,7 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
                              colors = c("orange", "red", "green", "blue", "black"),
                              ylim =c(ymin, ymax), 
                              geneNames = positions.merge1$name,
-                             geneLoc = NULL) {
+                             geneLoc = NULL, imgheight = imgheight) {
 
     pch <- ""
     arraynums <- length(res)

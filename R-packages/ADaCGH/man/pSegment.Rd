@@ -60,7 +60,8 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
 \item{CGHseg.thres}{The threshold for the adaptive penalization in
   Picard et al.'s CGHseg. See p. 13 of the original paper. Must be a
   negative number.}
-\item{mergeSegs}{Merge (genome-wide) the resulting segments using \code{\link[aCGH]{mergeLevels}}?}
+\item{mergeSegs}{Merge (genome-wide) the resulting segments using
+  \code{\link[aCGH]{mergeLevels}}?. See details.}
   \item{common.data}{A data frame with columns that contain the common
     information about the clones/genes. For now, this is limited to five
     columns of data.   We do nothing with this, except
@@ -96,15 +97,24 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
 \details{
 
 In most cases, these are wrappers to the original code, with
-modifications for parallelization. For BioHMM and HMM the results are
-merged, by the mergeLevels algorithm, as recommended in
+modifications for parallelization. For CGHseg, BioHMM and HMM the
+results are merged, by the mergeLevels algorithm, as recommended in
 \cite{Willenbrock and Fridlyand, 2005}. Merging is also done in GLAD
 (with GLAD's own merging algorithm). Merging is the default for DNAcopy
 (but this can be set by the user). Merging can also be used with the
 wavelet-based method; please note that the later is an experimental
-feature implemented by us, and there is no evidence of its performance. 
+feature implemented by us, and there is no evidence of its performance.
 
 
+Using the output of mergeLevels, we then map the results to states of
+  "Alteration", so that we categorize each probe as taking one, and only
+  one, of three possible values, -1 (loss of genomic DNA), 0 (no change
+  in DNA content), +1 (gain of genomic DNA). We have made the
+  assumption, in this mapping, that the "no change" class is the one
+  that has the absolute value closest to zero, and any other classes are
+  either gains or losses. When the data are normalized, the "no change"
+  class should be the most common one.
+  
 
 For PSW, the method implemented here is a small departure from the one
 described originally in Price et al.: here we use all the data for a

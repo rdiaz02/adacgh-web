@@ -2022,7 +2022,9 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
                       geneNames,
                       html = TRUE,
                       nameIm = NULL,
-                      idtype = idtype, organism = organism) {   
+                      idtype = idtype,
+                      organism = organism,
+                      html_js = html_js) {   
     ## this puts the chr call
     ## geneNames often = positions.merge1$name
 

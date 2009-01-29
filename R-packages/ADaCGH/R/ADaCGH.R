@@ -2042,7 +2042,7 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
     if(html) {
 ##        imheight <- imgheight
         imwidth <- 1600
-        im1 <- imagemap3(nameIm, height = imheight,
+        im1 <- imagemap3(nameIm, height = imgheight,
                          width = imwidth, ps = 12)
     }
 
@@ -3498,9 +3498,9 @@ mapChromOpen <- function() {
 
 mapGenomeWideOpen <- function(main) {
     nameIm <- main
-#    imheight <- 500
+    imgheight <- 500
     imwidth <- 1600
-    im1 <- imagemap3(nameIm, height = imheight,
+    im1 <- imagemap3(nameIm, height = imgheight,
                      width = imwidth, ps = 12)
     return(im1)
 }

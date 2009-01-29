@@ -127,6 +127,11 @@ library("waveslim", verbose = FALSE) ## we will have to load ADaCGH soon,
 library(ADaCGH, verbose = FALSE)
 
 
+cat("\nADaCGH Version :")
+packageDescription("ADaCGH")$Version
+
+cat("\n\n")
+
 
 ## I am not sure this is really needed, since we do check this things elsewhere too,
 ## when we start the MPI universe from Python.

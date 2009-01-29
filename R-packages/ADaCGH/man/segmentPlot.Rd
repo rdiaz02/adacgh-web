@@ -15,6 +15,7 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
             colors = c("orange", "red", "green", "blue", "black"),
             html_js = TRUE,
             superimp = TRUE,
+            imgheight = 500,
             ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -41,6 +42,7 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
     Default is TRUE.}
   \item{superimp}{Produce the figures that superimpose all arrays into a
     single plot? Default is TRUE.}
+  \item{imgheight}{The image height when generating png. Default is 500.}
   \item{\dots}{ Other arguments, passed to the underlying plotting functions. }
 }
 \value{

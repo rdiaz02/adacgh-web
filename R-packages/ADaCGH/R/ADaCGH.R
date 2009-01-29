@@ -564,6 +564,7 @@ segmentPlot <- function(x, geneNames,
                         colors = c("orange", "red", "green", "blue", "black"),
                         html_js = TRUE,
                         superimp = TRUE,
+                        imgheight = 500,
                         ...) {
     if(is.null(numarrays)) {
         if(!is.null(arraynames)) numarrays <- length(arraynames)
@@ -614,7 +615,8 @@ segmentPlot <- function(x, geneNames,
                                                   idtype = idtype,
                                                   organism = organism,
                                                   geneLoc = pos_slave,
-                                                  html_js = html_js)
+                                                  html_js = html_js,
+                                                  imgheight = imgheight)
                    },
                    papply_commondata =
                    list(cnum_slave= x$chrom.numeric,
@@ -625,7 +627,8 @@ segmentPlot <- function(x, geneNames,
                         colors = colors,
                         pos_slave = geneLoc,
                         yminmax = yminmax,
-                        html_js = html_js))
+                        html_js = html_js,
+                        imgheight = imgheight))
         cat("\n gc after plot.adacgh.nonsuperimpose \n")
         print(gc())
 
@@ -636,14 +639,16 @@ segmentPlot <- function(x, geneNames,
                               ylim= yminmax,
                               idtype = idtype, organism = organism,
                               geneLoc = geneLoc,
-                              html_js = html_js)
+                              html_js = html_js,
+                              imgheight = imgheight)
             cat("\n gc after plot.cw.superimpose \n")
             print(gc())
             
             plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
                              main = "All_arrays", colors = colors,
                              ylim = yminmax, geneNames = geneNames,
-                             geneLoc = geneLoc)
+                             geneLoc = geneLoc,
+                             imgheight = imgheight)
             cat("\n gc after plot.gw.superimp \n")
             print(gc())
         }
@@ -684,15 +689,17 @@ segmentPlot <- function(x, geneNames,
                                 geneNames = geneNames,
                                 idtype = idtype,
                                 organism = organism,
-                                html_js = html_js)
+                                html_js = html_js,
+                                imgheight = imgheight)
                    },
                    papply_commondata = list(
-                   main_slave = main,
-                   arraynames = arraynames,
-                   geneNames = geneNames,
-                   idtype = idtype,
-                   organism = organism,
-                   html_js = html_js))
+                     main_slave = main,
+                     arraynames = arraynames,
+                     geneNames = geneNames,
+                     idtype = idtype,
+                     organism = organism,
+                     html_js = html_js,
+                     imgheight = imgheight))
 ##         if(controlMPI) mpi.close.Rslaves()
     } else {
         stop("No plotting for this class of objects")
@@ -740,6 +747,7 @@ SegmentPlotWrite <- function(data, chrom,
                              colors = c("orange", "red", "green", "blue", "black"),
                              html_js = TRUE,
                              superimp = TRUE,
+                             imgheight = 500,
                              ...) {
     ymax <- max(data)
     ymin <- min(data)
@@ -777,7 +785,8 @@ SegmentPlotWrite <- function(data, chrom,
                                organism = organism,
                                colors = colors,
                                html_js = html_js,
-                               superimp = superimp))
+                               superimp = superimp,
+                               imgheight = imgheight))
     if(inherits(tryPlot, "try-error"))
         caughtOurError(tryPlot)
     cat("\n\n Plotting done \n\n")
@@ -2024,13 +2033,14 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
                       nameIm = NULL,
                       idtype = idtype,
                       organism = organism,
-                      html_js = html_js) {   
+                      html_js = html_js,
+                      imgheight = imgheight) {   
     ## this puts the chr call
     ## geneNames often = positions.merge1$name
 
     if(is.null(nameIm)) nameIm <- main
     if(html) {
-        imheight <- 500
+##        imheight <- imgheight
         imwidth <- 1600
         im1 <- imagemap3(nameIm, height = imheight,
                          width = imwidth, ps = 12)
@@ -2091,14 +2101,14 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
 
     if(html) { ## here is chromosome specific code
         pixels.point <- 3
-        chrheight <- 500
+##        imgheight <- imgheight
         for(cnum in 1:length(chrom.nums)) {
 ##            cat("\n .... doing chromosome ", cnum, ": ")
             indexchr <- which(chrom == chrom.nums[cnum])
             chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
             chrwidth <- max(chrwidth, 800)
             im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                             height = chrheight, width = chrwidth,
+                             height = imgheight, width = chrwidth,
                              ps = 12)
 
             ## The following seems needed (also inside sw.plot2) for the coords.
@@ -3319,14 +3329,15 @@ plot.cw.superimpA <- function(res, chrom,
                               geneNames = positions.merge1$name,
                               idtype = idtype, organism = organism,
                               geneLoc = NULL,
-                              html_js = html_js) {
+                              html_js = html_js,
+                              imgheight = imgheight) {
 #    on.exit(browser())
     ## For superimposed: one plot per chr
     pch <- ""
     arraynums <- length(res)
     nameIm <- main
     pixels.point <- 3
-    chrheight <- 500
+#    imgheight <- imgheight
     chrom.nums <- unique(chrom)
     ## this could be parallelized over chromosomes!! FIXME
     datalist <- list()
@@ -3394,12 +3405,12 @@ mapChromOpenA <- function() {
 ##    cat(" .... doing chromosome ", cnum, "\n")
     nameIm <- main
     pixels.point <- 3
-    chrheight <- 500
+##    imgheight <- imgheight
     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
     chrwidth <- max(chrwidth, 800)
    
     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     height = chrheight, width = chrwidth,
+                     height = imgheight, width = chrwidth,
                      ps = 12)
     return(im2)
 }
@@ -3473,19 +3484,19 @@ mapChromOpen <- function() {
 ##    cat(" .... doing chromosome ", cnum, "\n")
     nameIm <- main
     pixels.point <- 3
-    chrheight <- 500
+#    imgheight <- 500
     indexchr <- which(chrom == chrom.nums[cnum])
     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
     chrwidth <- max(chrwidth, 800)
     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     height = chrheight, width = chrwidth,
+                     height = imgheight, width = chrwidth,
                      ps = 12)
     return(im2)
 }
 
 mapGenomeWideOpen <- function(main) {
     nameIm <- main
-    imheight <- 500
+#    imheight <- 500
     imwidth <- 1600
     im1 <- imagemap3(nameIm, height = imheight,
                      width = imwidth, ps = 12)

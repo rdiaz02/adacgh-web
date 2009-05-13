@@ -7,15 +7,17 @@
 \alias{pSegmentCGHseg}
 \alias{pSegmentPSW}
 \alias{pSegmentWavelets}
+\alias{pSegmentHaarSeg}
 \alias{pSegment}
 
 
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{ Parallelized versions of several aCGH segementation algorithms/methods}
+\title{ Parallelized/"unified" versions of several aCGH segementation algorithms/methods}
 
 \description{
-  These functions parallelize several segmentation algorithms. is a parallelized version (using papply and Rmpi) of
-\code{\link[DNAopy]{segment}}.  }
+  These functions parallelize several segmentation algorithms or (for
+  HaarSeg) make their calling use the same conventions as for other methods.
+ }
 
 
 \usage{
@@ -42,6 +44,12 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
                 minMergeDiff = 0.05,
                 thrLvl = 3, initClusterLevels = 10, ...)
 
+pSegmentHaarSeg(x, chrom.numeric, m = 3,
+                W = vector(),
+                rawI = vector(), 
+                breaksFdrQ = 0.001,			  
+                haarStartLevel = 1,
+                haarEndLevel = 5, ...)
 
 
 }
@@ -89,6 +97,26 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
   as many initial levels as there are points). }
   \item{thrLvl}{ The level used for the wavelet thresholding.}
   \item{initClusterLevels}{The initial number of clusters to form. }
+  \item{m}{For HaarSeg the value such that all segments with a smoothed
+    value > m*MAD will be declared aberrant ---see p. i141 of Ben-Yaacov
+    and Eldar}
+  \item{W}{For HaarSeg:  Weight matrix, corresponding to quality of measurment. 
+    Insert 1/(sigma**2) as weights if your platform output sigma as
+    the quality of measurment. W must have the same size as I.}
+  \item{rawI}{For HaarSeg. Mininum of the raw red and raw green measurment, before the log.
+    rawI is used for the non-stationary variance compensation. 
+    rawI must have the same size as I. }
+  \item{breaksFdrQ}{For HaarSeg.  The FDR q parameter. Common used
+    values are 0.05, 0.01, 0.001. Default value is 0.001.}
+  \item{haarStartLevel}{For HaarSeg.  The detail subband from which we
+    start to detect peaks. The higher  this value is, the less sensitive
+    we are to short segments. The default is value is 1, corresponding to
+    segments of 2 probes.}
+  \item{haarEndLevel}{For HaarSeg. The detail subband until which we
+    use to detect peaks. The higher  this value is, the more sensitive we
+    re to large trends in the data. This value DOES NOT indicate the
+    largest possible segment that can be detected. The default is value is
+    5, corresponding to step of 32 probes in each direction.}
   \item{...}{Additional arguments; not used.}
 }
 
@@ -102,9 +130,9 @@ results are merged, by the mergeLevels algorithm, as recommended in
 \cite{Willenbrock and Fridlyand, 2005}. Merging is also done in GLAD
 (with GLAD's own merging algorithm). Merging is the default for DNAcopy
 (but this can be set by the user). Merging can also be used with the
-wavelet-based method; please note that the later is an experimental
-feature implemented by us, and there is no evidence of its performance.
-
+wavelet-based method of Liu et al.; please note that the later is an
+experimental feature implemented by us, and there is no evidence of its
+performance. 
 
 Using the output of mergeLevels, we then map the results to states of
   "Alteration", so that we categorize each probe as taking one, and only
@@ -115,7 +143,12 @@ Using the output of mergeLevels, we then map the results to states of
   either gains or losses. When the data are normalized, the "no change"
   class should be the most common one.
   
+For HaarSeg, we use the approach in page i141 of Ben-Yaacov
+and Eldar, section 2.3, "Determining aberrant intervals": a MAD (per
+their definition) is computed and any segment with absolute value larger
+than m * MAD is considered aberrant.
 
+  
 For PSW, the method implemented here is a small departure from the one
 described originally in Price et al.: here we use all the data for a
 subject/array for the thresholding, but subsequent analyses (finding
@@ -159,7 +192,7 @@ smoothing is carried out, which affects the timmed.SD used.
 
 
   The \code{segm} component is a list, with as many components as
-  subjects or arrays. Each of this lists is a matrix with three
+  subjects or arrays. Each of these lists is a matrix with three
   columns. The first are the observed data, the second the
   predicted/smoothed/merged data, and the third the state/alteration. When
   the method performs a merging
@@ -191,6 +224,7 @@ smoothing is carried out, which affects the timmed.SD used.
 
 \references{
 
+  
 
 Fridlyand, Jane   and Snijders, Antoine  M.  and Pinkel, Dan   and
 Albertson, Donna  G. (2004). Hidden Markov models approach to the
@@ -254,6 +288,9 @@ comparative genome hybridization data. \emph{Nucleic Acids Res.},
   web-based application for the analysis of aCGH data. Tech. report.
   \url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
   \url{http://adacgh.bioinfo.cnio.es}.
+
+  Ben-Yaacov, E. and Eldar, Y.C. (2008). A Fast and Flexible Method for
+the Segmentation of aCGH Data, \emph{Bioinformatics}, \bold{24}: i139-i145.
 
 }
 
@@ -319,13 +356,16 @@ wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
 cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
 cbs.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, smooth = FALSE)
+haar.out <- pSegmentHaarSeg(cghE1[, 5:7], chrom.numeric)
+
 ## Next onew we try, as it could fail when it should not.
 try(psw.pos.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = 1))
 try(psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1))
 
 ## BioHMM is the only one that uses distances
 ## it is the slowest, so do only two
-biohmm.out <- pSegmentBioHMM(cghE1[, 5:6], chrom.numeric, cghE1$UG.Start)
+## We use try, as snapCGH sometimes fails and does not load its compiled C code
+try(biohmm.out <- pSegmentBioHMM(cghE1[, 5:6], chrom.numeric, cghE1$UG.Start))
 
 ## With ACE we need to choose fdr
 ace.out.sum <- summary(ace.out)
@@ -339,9 +379,11 @@ writeResults(ace.out.sum, cghE1[, 5:7], common)
 writeResults(wave.out, cghE1[, 5:7], common)
 writeResults(wave.nm.out, cghE1[, 5:7], common)
 writeResults(cbs.out, cghE1[, 5:7], common)
+writeResults(haar.out, cghE1[, 5:7], common)
+
 try(writeResults(psw.pos.out, common))
 try(writeResults(psw.neg.out, common))
-writeResults(biohmm.out, cghE1[, 5:6], common)
+try(writeResults(biohmm.out, cghE1[, 5:6], common))
 
 
 
@@ -381,7 +423,14 @@ segmentPlot(wave.out,
             idtype = "ug",
             organism = "Hs")
 
-segmentPlot(wave.nm.out,
+segmentPlot(wave.out, 
+            geneNames = cghE1[, 1],
+            chrom.numeric = chrom.numeric,
+            cghdata = cghE1[, 5:7],
+            idtype = "ug",
+            organism = "Hs")
+
+segmentPlot(haar.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],

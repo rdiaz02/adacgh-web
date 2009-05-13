@@ -34,7 +34,7 @@ SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
     corresponding, respectively, to None, Homo sapiens, Mus musculus
     (mouse) and Rattus norvegicus (rat). }
   \item{method}{The segmentation method. One of "ACE", "HMM", "BioHMM",
-    "GLAD", "DNAcopy", "CGHseg", "PSW", "Wavelets".}
+    "GLAD", "DNAcopy", "CGHseg", "PSW", "Wavelets", "HaarSeg".}
   \item{geneNames}{A vector with the names of the genes or probes, as
     you want to use them to label figures and output.}
   \item{commondata}{A data frame with columns that contain the common
@@ -114,7 +114,7 @@ SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
 
 
 ## all other methods except PSW and ACE
-for(mm in c("DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg")) {
+for(mm in c("DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg", "HaarSeg")) {
 
     cat("\n\n mm is ", mm, "\n\n")
     SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,

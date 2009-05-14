@@ -82,13 +82,14 @@ Just a convenience wrapper.
 }
 
 \examples{
-{%\dontrun
+\dontrun{
 ## This will not work unless you have a working Python installation
 
 ##setwd("/tmp/o3") ## all slaves need a common dir to read and write.
 ## all slaves need a common dir to read and write.
 dir.to.create <- tempdir2()
 setwd(dir.to.create)
+dir.to.create
 mpiInit()
 
 data(cghE1)
@@ -105,11 +106,10 @@ cghE1 <- cghE1[reorder, ]
 chrom.numeric <- chrom.numeric[reorder]
 
 
-## to make it run fuster, sample from those
-
-si <- sort(sample(1:length(chrom.numeric), 500))
-cghE1 <- cghE1[si, ]
-chrom.numeric <- chrom.numeric[si]
+## to make it run fuster, use just the first two chromosomes
+si <- cumsum(table(chrom.numeric))[2]
+cghE1 <- cghE1[1:si, ]
+chrom.numeric <- chrom.numeric[1:si]
 
 
 ## one example

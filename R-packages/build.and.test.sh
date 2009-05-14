@@ -54,7 +54,14 @@ cd ../../
 R CMD build ADaCGH
 R CMD check ADaCGH_$VERSION.tar.gz
 
-echo "\n\nAny errors in full run?"
+echo " "
+echo " "
+echo "Any errors in full run?"
 grep ERROR ./ADaCGH.Rcheck.all.run/00check.log
-echo "\n\nAny errors in run for CRAN?"
+
+echo " "
+echo " "
+echo "Any errors in run for CRAN?"
 grep ERROR ./ADaCGH.Rcheck/00check.log
+echo " "
+echo " "

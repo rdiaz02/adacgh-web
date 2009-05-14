@@ -143,6 +143,7 @@ pSegmentHaarSeg <- function(x, chrom.numeric, m = 3,
                             haarEndLevel = 5, ...) {
   stop.na.inf(x)
   stop.na.inf(chrom.numeric)
+  warn.too.few.in.chrom(chrom.numeric)
   rle.chr <- rle(chrom.numeric)
   chr.end <- cumsum(rle.chr$lengths)
   chr.start <- c(1, chr.end[-length(chr.end)] + 1)
@@ -178,6 +179,7 @@ pSegmentHaarSeg <- function(x, chrom.numeric, m = 3,
 pSegmentACE <- function(x, chrom.numeric, parall = "auto", ...) {
   stop.na.inf(x)
   stop.na.inf(chrom.numeric)
+  warn.too.few.in.chrom(chrom.numeric)
   if (parall == "auto")
         parall <- ifelse(ncol(x) > 75, "axc", "chr")
     if (parall == "chr") {
@@ -195,6 +197,8 @@ pSegmentACE <- function(x, chrom.numeric, parall = "auto", ...) {
 pSegmentHMM <- function(x, chrom.numeric, parall = "auto", ...) {
   stop.na.inf(x)
   stop.na.inf(chrom.numeric)
+  warn.too.few.in.chrom(chrom.numeric)
+
   if (parall == "auto") parall <- "arr"
     if (parall == "arr") {
         cat("\n    running arr version \n")
@@ -241,6 +245,7 @@ pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
 pSegmentGLAD <- function(x, chrom.numeric, ...) {
   stop.na.inf(x)
   stop.na.inf(chrom.numeric)
+  warn.too.few.in.chrom(chrom.numeric)
 
     require("GLAD") || stop("Package not loaded: GLAD")
     out <- papply(data.frame(x),
@@ -261,6 +266,7 @@ pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
   stop.na.inf(x)
   stop.na.inf(chrom.numeric)
   stop.na.inf(Pos)
+  warn.too.few.in.chrom(chrom.numeric)
 
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 110, "arr", "axc")
@@ -327,6 +333,7 @@ pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
 pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres = -0.05, ...) {
   stop.na.inf(x)
   stop.na.inf(chrom.numeric)
+  warn.too.few.in.chrom(chrom.numeric)
 
     ## Beware: we parallelize over subjects
  
@@ -370,6 +377,8 @@ pSegmentPSW <- function(x, chrom.numeric, common.data,
                         name = NULL, ...) {
   stop.na.inf(chrom.numeric)
   stop.na.inf(x)
+  warn.too.few.in.chrom(chrom.numeric)
+
   numarrays <- ncol(x)
     ncrom <- length(unique(chrom.numeric))
     out <- list()
@@ -449,7 +458,8 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
                              thrLvl = 3, initClusterLevels = 10, ...) {
   stop.na.inf(chrom.numeric)
   stop.na.inf(x)
-
+  warn.too.few.in.chrom(chrom.numeric)
+  
 ##     ncloneschrom <- tapply(x[, 1], chrom.numeric, function(x) length(x))
 ##     if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
 ##         warningsForUsers <-
@@ -529,6 +539,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 pSegmentDNAcopy <- function(x, chrom.numeric, parall = "arr", ...) {
   stop.na.inf(chrom.numeric)
   stop.na.inf(x)
+  warn.too.few.in.chrom(chrom.numeric)
 
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 75, "arr", "axc")
@@ -4662,6 +4673,17 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
 
 
 #### Utility functions
+
+warn.too.few.in.chrom <- function(x, min.num.chrom = 20) {
+  ## if too few samples, somethin funny is going on
+  tt <- table(x)
+  if(any(tt < min.num.chrom))
+    warning("There are fewer than ", min.num.chrom, " observations",
+            "in some group of ", deparse(substitute(x)),
+            "!!!!!!!!!!. \n This is unlikely to make sense.\n",
+            "Note that you can get weird errors, or no output at all,", 
+            "if you are running parallelized with certaind methods.")
+}
 
 stop.na.inf <- function(x) {
   ## The code for many functions allows for dealing with NA and Inf, but

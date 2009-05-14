@@ -328,10 +328,11 @@ Parallelization and other modifications and additions are by Ramon Diaz-Uriarte 
 
 
  \examples{
-{%\dontrun
+\dontrun{
 ## all slaves need a common dir to read and write.
 dir.to.create <- tempdir2()
 setwd(dir.to.create)
+dir.to.create
 mpiInit()  ## this is used in SegmentPlotWrite, which is run first.
 }
 
@@ -356,10 +357,11 @@ chrom.numeric <- chrom.numeric[reorder]
 ## run all methods
 cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
 cbs.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, smooth = FALSE)
-hmm.out <- pSegmentHMM(cghE1[, 5:7], chrom.numeric)
 glad.out <- pSegmentGLAD(cghE1[, 5:7], chrom.numeric)
 cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric, CGHseg.thres = -0.05)
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
+
+hmm.out <- pSegmentHMM(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
 
@@ -398,7 +400,7 @@ try(writeResults(biohmm.out, cghE1[, 5:6], common))
 
 ### plot all
 
-{%\dontrun
+\dontrun{
 
 ## This will not work unless you have a working Python installation
 

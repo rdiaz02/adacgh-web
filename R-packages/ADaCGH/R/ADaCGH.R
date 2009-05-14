@@ -324,7 +324,7 @@ pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
 
 
 
-pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres, ...) {
+pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres = -0.05, ...) {
   stop.na.inf(x)
   stop.na.inf(chrom.numeric)
 
@@ -4753,6 +4753,27 @@ my.impute.lowess <- function (x,
     data.imp
 }
 
+
+the.time.with.ms <- function() {
+    uu <- as.POSIXlt(Sys.time())
+    return(paste(uu$hour, uu$min,
+                 paste(unlist(strsplit(as.character(uu$sec), "\\.")),
+                       collapse = ""), sep = ""))
+}
+
+tempdir2 <- function() {
+    direxists <- TRUE
+    while(direxists) {
+        p1 <-  paste(round(runif(1, 1, 9999)),
+                     the.time.with.ms(), sep = "_")
+        p1 <- paste(tempfile(pattern = "tmpdir_ADaCGH_",
+                             tmpdir = "."),
+                    p1, sep = "_")
+        if(!file.exists(p1)) direxists <- FALSE
+    }
+    dir.create(p1)
+    return(p1)
+}
 
 
 

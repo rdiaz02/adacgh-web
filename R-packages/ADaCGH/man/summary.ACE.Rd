@@ -44,7 +44,7 @@ Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
 
 \seealso{ \code{\link{pSegmentACE}}, \code{\link{segmentPlot}} }
 \examples{
-\dontrun{
+{%\dontrun
 data(cghMCRe)
 chrom.numeric <- as.numeric(as.character(cghMCRe$Chromosome))
 chrom.numeric[cghMCRe$Chromosome == "X"] <- 23

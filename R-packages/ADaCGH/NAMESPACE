@@ -14,7 +14,8 @@ export("mpiInit",
        "segmentPlot",
        "writeResults",
        "SegmentPlotWrite",
-       "doMCR")
+       "doMCR",
+       "tempdir2")
 
 
 

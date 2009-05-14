@@ -82,10 +82,13 @@ Just a convenience wrapper.
 }
 
 \examples{
-\dontrun{
+{%\dontrun
 ## This will not work unless you have a working Python installation
 
-setwd("/tmp/o3") ## all slaves need a common dir to read and write.
+##setwd("/tmp/o3") ## all slaves need a common dir to read and write.
+## all slaves need a common dir to read and write.
+dir.to.create <- tempdir2()
+setwd(dir.to.create)
 mpiInit()
 
 data(cghE1)
@@ -102,6 +105,12 @@ cghE1 <- cghE1[reorder, ]
 chrom.numeric <- chrom.numeric[reorder]
 
 
+## to make it run fuster, sample from those
+
+si <- sort(sample(1:length(chrom.numeric), 500))
+cghE1 <- cghE1[si, ]
+chrom.numeric <- chrom.numeric[si]
+
 
 ## one example
 SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
@@ -113,11 +122,12 @@ SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
 
 
 
-## all other methods except PSW and ACE
-for(mm in c("DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg", "HaarSeg")) {
+## all other methods except PSW and ACE and BioHMM (this fails because
+## of a problem in the library)
+for(mm in c("DNAcopy", "GLAD", "HMM", "CGHseg", "HaarSeg")) {
 
     cat("\n\n mm is ", mm, "\n\n")
-    SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
+    SegmentPlotWrite(cghE1[, 5:6], chrom.numeric,
                      merge = TRUE, Pos = cghE1$UG.Start,
                      idtype = "ug", organism = "Hs",
                      method = mm,
@@ -125,7 +135,14 @@ for(mm in c("DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg", "HaarSeg")) {
                      commondata = cghE1[, 1:4])
 }
 
+## Now try BioHMM
 
+try(SegmentPlotWrite(cghE1[, 5:6], chrom.numeric,
+                     merge = TRUE, Pos = cghE1$UG.Start,
+                     idtype = "ug", organism = "Hs",
+                     method = "BioHMM",
+                     geneNames = cghE1[, 1],
+                     commondata = cghE1[, 1:4]))
 }
 
 }

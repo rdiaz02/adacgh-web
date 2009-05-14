@@ -32,7 +32,7 @@ pSegmentGLAD(x, chrom.numeric, ...)
 
 pSegmentBioHMM(x, chrom.numeric, Pos, parall = "auto", ...)
 
-pSegmentCGHseg(x, chrom.numeric, CGHseg.thres, ...)
+pSegmentCGHseg(x, chrom.numeric, CGHseg.thres = -0.05, ...)
 
 pSegmentPSW(x, chrom.numeric, common.data,
             sign = -1,
@@ -67,7 +67,10 @@ pSegmentHaarSeg(x, chrom.numeric, m = 3,
   HMM, BioHMM.}
 \item{CGHseg.thres}{The threshold for the adaptive penalization in
   Picard et al.'s CGHseg. See p. 13 of the original paper. Must be a
-  negative number.}
+  negative number. The default value used in the original reference
+  is -0.5. However, our experience with the simulated data in
+  Willenbrock and Fridlyand (2005) indicates that for those data
+  values around -0.005 are more appropriate. We use here -0.05 as default.}
 \item{mergeSegs}{Merge (genome-wide) the resulting segments using
   \code{\link[aCGH]{mergeLevels}}?. See details.}
   \item{common.data}{A data frame with columns that contain the common
@@ -325,9 +328,12 @@ Parallelization and other modifications and additions are by Ramon Diaz-Uriarte 
 
 
  \examples{
-\dontrun{
-setwd("/tmp/o3") ## all slaves need a common dir to read and write.
-mpiInit()}
+{%\dontrun
+## all slaves need a common dir to read and write.
+dir.to.create <- tempdir2()
+setwd(dir.to.create)
+mpiInit()  ## this is used in SegmentPlotWrite, which is run first.
+}
 
 ## library(Rmpi)
 ## try(mpi.spawn.Rslaves(nslaves = 1), silent = TRUE)
@@ -348,14 +354,15 @@ chrom.numeric <- chrom.numeric[reorder]
 
 
 ## run all methods
+cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
+cbs.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, smooth = FALSE)
 hmm.out <- pSegmentHMM(cghE1[, 5:7], chrom.numeric)
 glad.out <- pSegmentGLAD(cghE1[, 5:7], chrom.numeric)
 cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric, CGHseg.thres = -0.05)
 ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
 wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
 wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
-cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
-cbs.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, smooth = FALSE)
+
 haar.out <- pSegmentHaarSeg(cghE1[, 5:7], chrom.numeric)
 
 ## Next onew we try, as it could fail when it should not.
@@ -391,7 +398,7 @@ try(writeResults(biohmm.out, cghE1[, 5:6], common))
 
 ### plot all
 
-\dontrun{
+{%\dontrun
 
 ## This will not work unless you have a working Python installation
 
@@ -444,26 +451,27 @@ segmentPlot(cbs.out,
             idtype = "ug",
             organism = "Hs")
 
-segmentPlot(psw.pos.out,
+try(segmentPlot(psw.pos.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
             idtype = "ug",
-            organism = "Hs")
+            organism = "Hs"))
 
-segmentPlot(psw.neg.out,
+try(segmentPlot(psw.neg.out,
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:7],
             idtype = "ug",
-            organism = "Hs")
+            organism = "Hs"))
 
-segmentPlot(biohmm.out, 
+try(segmentPlot(biohmm.out, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             cghdata = cghE1[, 5:6],
             idtype = "ug",
-            organism = "Hs")
+            organism = "Hs"))
+
 segmentPlot(ace.out.sum, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,

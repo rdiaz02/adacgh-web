@@ -44,7 +44,7 @@ pSegmentWavelets(x, chrom.numeric, mergeSegs = TRUE,
                 minMergeDiff = 0.05,
                 thrLvl = 3, initClusterLevels = 10, ...)
 
-pSegmentHaarSeg(x, chrom.numeric, m = 3,
+pSegmentHaarSeg(x, chrom.numeric, HaarSeg.m = 3,
                 W = vector(),
                 rawI = vector(), 
                 breaksFdrQ = 0.001,			  
@@ -98,11 +98,11 @@ pSegmentHaarSeg(x, chrom.numeric, m = 3,
   \code{mergeLevels}  approach, but an initial collapsing of very close
   values is performed (otherwise, we could end up passing to mergeLevels
   as many initial levels as there are points). }
-  \item{thrLvl}{ The level used for the wavelet thresholding.}
+  \item{thrLvl}{ The level used for the wavelet thresholding in Hsu et al.}
   \item{initClusterLevels}{The initial number of clusters to form. }
-  \item{m}{For HaarSeg the value such that all segments with a smoothed
-    value > m*MAD will be declared aberrant ---see p. i141 of Ben-Yaacov
-    and Eldar}
+  \item{HaarSeg.m}{For HaarSeg the value such that all segments where
+    abs(smoothed value)  > m*MAD will be declared aberrant
+    ---see p. i141 of Ben-Yaacov  and Eldar}
   \item{W}{For HaarSeg:  Weight matrix, corresponding to quality of measurment. 
     Insert 1/(sigma**2) as weights if your platform output sigma as
     the quality of measurment. W must have the same size as I.}
@@ -133,7 +133,7 @@ results are merged, by the mergeLevels algorithm, as recommended in
 \cite{Willenbrock and Fridlyand, 2005}. Merging is also done in GLAD
 (with GLAD's own merging algorithm). Merging is the default for DNAcopy
 (but this can be set by the user). Merging can also be used with the
-wavelet-based method of Liu et al.; please note that the later is an
+wavelet-based method of Hsu et al.; please note that the later is an
 experimental feature implemented by us, and there is no evidence of its
 performance. 
 

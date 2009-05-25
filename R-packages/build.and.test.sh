@@ -1,5 +1,10 @@
 #!/bin/sh
 
+## change the R we are using, if needed
+RDIR="/Part-ramon/sources.programs/R-tests/R-patched"
+alias R=$RDIR/bin/R
+
+
 VERSION=$(grep Version ./ADaCGH/DESCRIPTION | sed 's/Version: //')
 SRCDIR=$(pwd)
 
@@ -8,6 +13,14 @@ rm -r -f ADaCGH.Rcheck.all.run
 
 rm ./ADaCGH/src/*.so
 rm ./ADaCGH/src/*.o
+
+
+## we need to install the package, so that mpiInit works
+## when multiple node tests
+R CMD build ADaCGH
+R CMD check ADaCGH_$VERSION.tar.gz
+R CMD INSTALL ADaCGH_$VERSION.tar.gz
+
 
 ## Run all, including the dontrun, as it should work in my machine
 cd ./ADaCGH/man
@@ -41,6 +54,13 @@ echo " "
 echo "  Halt lamuniverse"
 lamhalt
 lamwipe
+
+## delete the directory of library, so we can
+## emulate CRAN's behavior properly
+
+rm -r -f $RDIR/library/ADaCGH
+
+
 echo " "
 echo " "
 echo "*********** STARTING CHECK FOR CRAN "

@@ -85,8 +85,11 @@ if(!identical(names.formals.changepoints, names(formals(adacgh_changepoints)))) 
 
 ## As of v. 1.12 at least snapCGH finally has a namespace. So now we have
 ## to do
-if(package_version(packageDescription("snapCGH")$Version) > "1.11")
+if(package_version(packageDescription("snapCGH")$Version) > "1.11") {
   myfit.model <- snapCGH:::fit.model
+} else {
+  myfit.model <- fit.model
+}
 ## becasue even if fit.model is documented, it is NOT exported.
 ## Well, they get away with it because there are no executable examples
 ## in the help for fit.model.
@@ -124,7 +127,10 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
         mpi.setup.sprng()
         mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
         require(papply)
-        mpi.remote.exec(require(ADaCGH, quietly = TRUE))
+##        mpi.remote.exec(require(ADaCGH, quietly = TRUE))
+## Note that if ADaCGH is NOT already installed, such as in R CMD check
+        ### a new, with multiple nodes, this will fail!!!!
+        mpi.remote.exec(library(ADaCGH, verbose = TRUE))
         mpi.bcast.Robj2slave(wdir)
         mpi.remote.exec(setwd(wdir))    
     })
@@ -135,7 +141,7 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
 }
 
 
-pSegmentHaarSeg <- function(x, chrom.numeric, m = 3,
+pSegmentHaarSeg <- function(x, chrom.numeric, HaarSeg.m = 3,
                             W = vector(),
                             rawI = vector(), 
                             breaksFdrQ = 0.001,			  
@@ -160,7 +166,7 @@ pSegmentHaarSeg <- function(x, chrom.numeric, m = 3,
                           haarStartLevel = haarStartLevel,
                           haarEndLevel = haarEndLevel)[[2]]
     mad.subj <- median(abs(x[, subj] - haarout))/0.6745
-    thresh <- m * mad.subj
+    thresh <- HaarSeg.m * mad.subj
     ## alteration <- rep(0, nvalues)
     ## alteration[haarout > thresh] <- 1
     ## alteration[haarout < -thresh] <- -1

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## change the R we are using, if needed
-RDIR="/Part-ramon/sources.programs/R-tests/R-patched"
+RDIR="/Part-ramon/sources.programs/R-tests/R-devel"
 alias R=$RDIR/bin/R
 
 
@@ -18,7 +18,6 @@ rm ./ADaCGH/src/*.o
 ## we need to install the package, so that mpiInit works
 ## when multiple node tests
 R CMD build ADaCGH
-R CMD check ADaCGH_$VERSION.tar.gz
 R CMD INSTALL ADaCGH_$VERSION.tar.gz
 
 

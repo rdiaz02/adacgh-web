@@ -643,161 +643,289 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
 }
 
 
-
-
-
-segmentPlot <- function(x, geneNames,
-                        chrom.numeric = NULL,
-                        cghdata = NULL,
-                        arraynames = NULL,
-                        idtype = "ug",
-                        organism = "Hs",
-                        yminmax = NULL,
-                        numarrays = NULL,
-                        colors = c("orange", "red", "green", "blue", "black"),
-                        html_js = TRUE,
-                        superimp = TRUE,
-                        imgheight = 500,
-                        ...) {
-    if(is.null(numarrays)) {
-        if(!is.null(arraynames)) numarrays <- length(arraynames)
-        if(!is.null(cghdata)) numarrays <- ncol(cghdata)
+segmentPlot <- function (x, geneNames, chrom.numeric = NULL, cghdata = NULL, 
+                         arraynames = NULL, idtype = "ug", organism = "Hs",
+                         yminmax = NULL, 
+                         ## numarrays = NULL,
+                         chroms = NULL,
+                         colors = c("orange", "red", "green", "blue", 
+                           "black"), html_js = FALSE, superimp = FALSE,
+                         imgheight = 500,
+                         genomewide_plot = FALSE,
+                         ...) {
+  ## FIXME: some very ugly things here:
+  ## arraynames: now it should be same size as original dimensions of things.
+  ## EVEN if you use only some arrays.
+  ## we will fix this later, and have arraynames incorporated in x object itself.
+  
+  if (is.null(numarrays)) {
+    ## if (!is.null(arraynames)) 
+    ##   numarrays <- 1:length(arraynames)
+    ##else
+    if (!is.null(cghdata)) 
+      numarrays <- 1:ncol(cghdata)
+    else
+      numarrays <- 1:length(x$segm)
+  }
+  if (is.null(yminmax)) {
+    if (is.null(cghdata)) 
+      stop("At least one of yminmax or cghdata has to be specified")
+    yminmax <- c(min(as.matrix(cghdata)), max(as.matrix(cghdata)))
+  }
+  if (is.null(arraynames)) 
+    arraynames <- colnames(cghdata)
+  if (is.null(arraynames)) 
+    arraynames <- paste("sample.", numarrays, sep = "")
+  if (inherits(x, c("adacgh.generic.out"))) {
+    geneLoc <- if (inherits(x, "mergedBioHMM")) x$pos else NULL
+    if (inherits(x, "CGH.ACE.summary")) {
+      original.pos <- 2
+      segment.pos <- NULL
     }
-    if(is.null(yminmax)) {
-        if(is.null(cghdata))
-            stop("At least one of yminmax or cghdata has to be specified")
-        yminmax <- c(min(as.matrix(cghdata)),
-                     max(as.matrix(cghdata)))
+    else {
+      original.pos <- 1
+      segment.pos <- 2
+    }
+    if (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))) {
+      colors <- c(rep(colors[1], 3), colors[4], colors[5])
     }
     
-    if(is.null(arraynames)) arraynames <- colnames(cghdata)
-    if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
-
-    if(inherits(x, c("adacgh.generic.out"))) {
-        geneLoc <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
-        if(inherits(x, "CGH.ACE.summary")) {
-            original.pos <- 2
-            segment.pos  <- NULL
-        } else {
-            original.pos <- 1
-            segment.pos <- 2
-        }
-        if(inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))){
-            colors <- c(rep(colors[1], 3), colors[4], colors[5])
-        } 
-        l1 <- list()
-        for (i in 1:length(x$segm)) {
-            l1[[i]] <- list()
-            l1[[i]]$res <- x$segm[[i]]
-            l1[[i]]$mainname <- arraynames[i]
-        }
-##         if(controlMPI) {
-##             try(mpi.close.Rslaves())
-##             mpiInit(universeSize = numarrays)
-##         }
-        tmp_papout <-
-            papply(l1,
-                   function(z) {
-                       cat("\n Doing sample ", z$mainname, "\n")
-                       plot.adacgh.nonsuperimpose(res = z$res,
-                                                  chrom = cnum_slave,
-                                                  main = z$mainname,
-                                                  colors = colors,
-                                                  ylim = yminmax,
-                                                  geneNames = geneNames,
-                                                  idtype = idtype,
-                                                  organism = organism,
-                                                  geneLoc = pos_slave,
-                                                  html_js = html_js,
-                                                  imgheight = imgheight)
-                   },
-                   papply_commondata =
-                   list(cnum_slave= x$chrom.numeric,
-                        arraynames = arraynames,
-                        geneNames = geneNames,
-                        idtype = idtype,
-                        organism = organism,
-                        colors = colors,
-                        pos_slave = geneLoc,
-                        yminmax = yminmax,
-                        html_js = html_js,
-                        imgheight = imgheight))
-        cat("\n gc after plot.adacgh.nonsuperimpose \n")
-        print(gc())
-
-        if(superimp) {
-            plot.cw.superimpA(x$segm, x$chrom.numeric,  geneNames = geneNames,
-                              main = "All_arrays",
-                              colors = colors,
-                              ylim= yminmax,
-                              idtype = idtype, organism = organism,
-                              geneLoc = geneLoc,
-                              html_js = html_js,
-                              imgheight = imgheight)
-            cat("\n gc after plot.cw.superimpose \n")
-            print(gc())
-            
-            plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
-                             main = "All_arrays", colors = colors,
-                             ylim = yminmax, geneNames = geneNames,
-                             geneLoc = geneLoc,
-                             imgheight = imgheight)
-            cat("\n gc after plot.gw.superimp \n")
-            print(gc())
-        }
-    }  else if(inherits(x, "CGH.PSW")) {
-        if(x$plotData[[1]]$sign < 0) {
-            main <- "Losses."
-        } else {
-            main <- "Gains."
-        }
-        l1 <- list()
-        for (i in 1:length(x$plotData)) {
-            l1[[i]] <- list()
-            l1[[i]]$lratio <- x$plotData[[i]]$logratio
-            l1[[i]]$sign <- x$plotData[[i]]$sign
-            l1[[i]]$swt.perm <- x$plotData[[i]]$swt.perm
-            l1[[i]]$rob <- x$plotData[[i]]$rob
-            l1[[i]]$swt.run <- x$plotData[[i]]$swt.run
-            l1[[i]]$p.crit <- x$plotData[[i]]$p.crit.bonferroni
-            l1[[i]]$chrom <- x$plotData[[i]]$chrom
-            l1[[i]]$arrayname <- arraynames[i]
-        }
-##         if(controlMPI){
-##             try(mpi.close.Rslaves())
-##             mpiInit(universeSize = numarrays)
-##         }
-        tmp_papout <-
-            papply(l1,
-                   function(z) {
-                       cat("\n Doing sample ", z$arrayname, "\n")
-                       sw.plot3(logratio = z$lratio,
-                                sign = z$sign,
-                                swt.perm = z$swt.perm,
-                                rob = z$rob,
-                                swt.run = z$swt.run,
-                                p.crit = z$p.crit,
-                                chrom = z$chrom,
-                                main = paste(main_slave, z$arrayname, sep=""),
-                                geneNames = geneNames,
-                                idtype = idtype,
-                                organism = organism,
-                                html_js = html_js,
-                                imgheight = imgheight)
-                   },
-                   papply_commondata = list(
-                     main_slave = main,
-                     arraynames = arraynames,
-                     geneNames = geneNames,
-                     idtype = idtype,
-                     organism = organism,
-                     html_js = html_js,
-                     imgheight = imgheight))
-##         if(controlMPI) mpi.close.Rslaves()
-    } else {
-        stop("No plotting for this class of objects")
+    if (superimp) {
+      ## Does not use numarrays or chrom parameters
+      ## The superimp option will soon be deprecated
+      ## I move it here to feel free to delete stuff later
+      plot.cw.superimpA(x$segm, x$chrom.numeric, geneNames = geneNames, 
+                        main = "All_arrays", colors = colors, ylim = yminmax, 
+                        idtype = idtype, organism = organism, geneLoc = geneLoc, 
+                        html_js = html_js, imgheight = imgheight)
+      cat("\n gc after plot.cw.superimpose \n")
+      print(gc())
+      plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric, 
+                       main = "All_arrays", colors = colors, ylim = yminmax, 
+                       geneNames = geneNames, geneLoc = geneLoc, imgheight = imgheight)
+      cat("\n gc after plot.gw.superimp \n")
+      print(gc())
     }
+
+    ## this involves duplicating objects, but right now I do not see an easy
+    ## way of passing the arraynames
+    
+    l1 <- list()
+    for (i in 1:length(numarrays)) {
+      l1[[i]] <- list()
+      l1[[i]]$res <- x$segm[[numarrays[i]]]
+      l1[[i]]$mainname <- arraynames[numarrays[i]]
+    }
+    
+    ## names(x$segm)[numarrays] <- arraynames
+    
+    tmp_papout <- papply(l1, function(z) {
+      cat("\n Doing sample ", z$mainname, "\n")
+      plot.adacgh.nonsuperimpose(res = z$res, chrom = cnum_slave, 
+                                 main = z$mainname, colors = colors, ylim = yminmax, 
+                                 geneNames = geneNames, idtype = idtype, organism = organism, 
+                                 geneLoc = pos_slave, html_js = html_js, imgheight = imgheight)
+    }, papply_commondata = list(cnum_slave = x$chrom.numeric, 
+         arraynames = arraynames, geneNames = geneNames, idtype = idtype, 
+         organism = organism, colors = colors, pos_slave = geneLoc, 
+         yminmax = yminmax, html_js = html_js, imgheight = imgheight))
+    cat("\n gc after plot.adacgh.nonsuperimpose \n")
+    print(gc())
+    
+  }
+  else if (inherits(x, "CGH.PSW")) {
+    if (x$plotData[[1]]$sign < 0) {
+      main <- "Losses."
+    }
+    else {
+      main <- "Gains."
+    }
+    l1 <- list()
+    for (i in 1:length(x$plotData)) {
+      l1[[i]] <- list()
+      l1[[i]]$lratio <- x$plotData[[i]]$logratio
+      l1[[i]]$sign <- x$plotData[[i]]$sign
+      l1[[i]]$swt.perm <- x$plotData[[i]]$swt.perm
+      l1[[i]]$rob <- x$plotData[[i]]$rob
+      l1[[i]]$swt.run <- x$plotData[[i]]$swt.run
+      l1[[i]]$p.crit <- x$plotData[[i]]$p.crit.bonferroni
+      l1[[i]]$chrom <- x$plotData[[i]]$chrom
+      l1[[i]]$arrayname <- arraynames[i]
+    }
+    tmp_papout <- papply(l1, function(z) {
+      cat("\n Doing sample ", z$arrayname, "\n")
+      sw.plot3(logratio = z$lratio, sign = z$sign, swt.perm = z$swt.perm, 
+               rob = z$rob, swt.run = z$swt.run, p.crit = z$p.crit, 
+               chrom = z$chrom, main = paste(main_slave, z$arrayname, 
+                                  sep = ""), geneNames = geneNames, idtype = idtype, 
+               organism = organism, html_js = html_js, imgheight = imgheight)
+    }, papply_commondata = list(main_slave = main, arraynames = arraynames, 
+         geneNames = geneNames, idtype = idtype, organism = organism, 
+         html_js = html_js, imgheight = imgheight))
+  }
+  else {
+    stop("No plotting for this class of objects")
+  }
 }
+
+
+
+
+## segmentPlot <- function(x, geneNames,
+##                         chrom.numeric = NULL,
+##                         cghdata = NULL,
+##                         arraynames = NULL,
+##                         idtype = "ug",
+##                         organism = "Hs",
+##                         yminmax = NULL,
+##                         numarrays = NULL,
+##                         colors = c("orange", "red", "green", "blue", "black"),
+##                         html_js = TRUE,
+##                         superimp = TRUE,
+##                         imgheight = 500,
+##                         genomewide_plot = FALSE,
+##                         ...) {
+##     if(is.null(numarrays)) {
+##         if(!is.null(arraynames)) numarrays <- length(arraynames)
+##         if(!is.null(cghdata)) numarrays <- ncol(cghdata)
+##     }
+##     if(is.null(yminmax)) {
+##         if(is.null(cghdata))
+##             stop("At least one of yminmax or cghdata has to be specified")
+##         yminmax <- c(min(as.matrix(cghdata)),
+##                      max(as.matrix(cghdata)))
+##     }
+    
+##     if(is.null(arraynames)) arraynames <- colnames(cghdata)
+##     if(is.null(arraynames)) arraynames <- paste("sample.", 1:numarrays, sep = "")
+
+##     if(inherits(x, c("adacgh.generic.out"))) {
+##         geneLoc <- if(inherits(x, "mergedBioHMM")) x$pos else NULL
+##         if(inherits(x, "CGH.ACE.summary")) {
+##             original.pos <- 2
+##             segment.pos  <- NULL
+##         } else {
+##             original.pos <- 1
+##             segment.pos <- 2
+##         }
+##         if(inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))){
+##             colors <- c(rep(colors[1], 3), colors[4], colors[5])
+##         } 
+##         l1 <- list()
+##         for (i in 1:length(x$segm)) {
+##             l1[[i]] <- list()
+##             l1[[i]]$res <- x$segm[[i]]
+##             l1[[i]]$mainname <- arraynames[i]
+##         }
+## ##         if(controlMPI) {
+## ##             try(mpi.close.Rslaves())
+## ##             mpiInit(universeSize = numarrays)
+## ##         }
+##         tmp_papout <-
+##             papply(l1,
+##                    function(z) {
+##                        cat("\n Doing sample ", z$mainname, "\n")
+##                        plot.adacgh.nonsuperimpose(res = z$res,
+##                                                   chrom = cnum_slave,
+##                                                   main = z$mainname,
+##                                                   colors = colors,
+##                                                   ylim = yminmax,
+##                                                   geneNames = geneNames,
+##                                                   idtype = idtype,
+##                                                   organism = organism,
+##                                                   geneLoc = pos_slave,
+##                                                   html_js = html_js,
+##                                                   imgheight = imgheight,
+##                                                   genomewide_plot = genomewide_plot)
+##                    },
+##                    papply_commondata =
+##                    list(cnum_slave= x$chrom.numeric,
+##                         arraynames = arraynames,
+##                         geneNames = geneNames,
+##                         idtype = idtype,
+##                         organism = organism,
+##                         colors = colors,
+##                         pos_slave = geneLoc,
+##                         yminmax = yminmax,
+##                         html_js = html_js,
+##                         imgheight = imgheight,
+##                         genomewide_plot = genomewide_plot))
+##         cat("\n gc after plot.adacgh.nonsuperimpose \n")
+##         print(gc())
+
+##         if(superimp) {
+##             plot.cw.superimpA(x$segm, x$chrom.numeric,  geneNames = geneNames,
+##                               main = "All_arrays",
+##                               colors = colors,
+##                               ylim= yminmax,
+##                               idtype = idtype, organism = organism,
+##                               geneLoc = geneLoc,
+##                               html_js = html_js,
+##                               imgheight = imgheight)
+##             cat("\n gc after plot.cw.superimpose \n")
+##             print(gc())
+            
+##             plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
+##                              main = "All_arrays", colors = colors,
+##                              ylim = yminmax, geneNames = geneNames,
+##                              geneLoc = geneLoc,
+##                              imgheight = imgheight)
+##             cat("\n gc after plot.gw.superimp \n")
+##             print(gc())
+##         }
+##     }  else if(inherits(x, "CGH.PSW")) {
+##         if(x$plotData[[1]]$sign < 0) {
+##             main <- "Losses."
+##         } else {
+##             main <- "Gains."
+##         }
+##         l1 <- list()
+##         for (i in 1:length(x$plotData)) {
+##             l1[[i]] <- list()
+##             l1[[i]]$lratio <- x$plotData[[i]]$logratio
+##             l1[[i]]$sign <- x$plotData[[i]]$sign
+##             l1[[i]]$swt.perm <- x$plotData[[i]]$swt.perm
+##             l1[[i]]$rob <- x$plotData[[i]]$rob
+##             l1[[i]]$swt.run <- x$plotData[[i]]$swt.run
+##             l1[[i]]$p.crit <- x$plotData[[i]]$p.crit.bonferroni
+##             l1[[i]]$chrom <- x$plotData[[i]]$chrom
+##             l1[[i]]$arrayname <- arraynames[i]
+##         }
+## ##         if(controlMPI){
+## ##             try(mpi.close.Rslaves())
+## ##             mpiInit(universeSize = numarrays)
+## ##         }
+##         tmp_papout <-
+##             papply(l1,
+##                    function(z) {
+##                        cat("\n Doing sample ", z$arrayname, "\n")
+##                        sw.plot3(logratio = z$lratio,
+##                                 sign = z$sign,
+##                                 swt.perm = z$swt.perm,
+##                                 rob = z$rob,
+##                                 swt.run = z$swt.run,
+##                                 p.crit = z$p.crit,
+##                                 chrom = z$chrom,
+##                                 main = paste(main_slave, z$arrayname, sep=""),
+##                                 geneNames = geneNames,
+##                                 idtype = idtype,
+##                                 organism = organism,
+##                                 html_js = html_js,
+##                                 imgheight = imgheight)
+##                    },
+##                    papply_commondata = list(
+##                      main_slave = main,
+##                      arraynames = arraynames,
+##                      geneNames = geneNames,
+##                      idtype = idtype,
+##                      organism = organism,
+##                      html_js = html_js,
+##                      imgheight = imgheight))
+## ##         if(controlMPI) mpi.close.Rslaves()
+##     } else {
+##         stop("No plotting for this class of objects")
+##     }
+## }
 
 
 
@@ -858,6 +986,7 @@ SegmentPlotWrite <- function(data, chrom,
     cat("\n\n Segmentation done \n\n")
 
     save.image()
+    cat("\n\n Saving segmentation results as segmres.RData \n\n")
     save(segmres, file = "segmres.RData")
 
     tryMCR <- try(doMCR(segmres$segm, chrom.numeric = chrom,
@@ -3173,12 +3302,15 @@ createIM2 <- function(im, file = "", imgTags = list(),
 
 plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        ylim, geneNames, idtype, organism,
-                                       geneLoc, html_js, imgheight) {
+                                       geneLoc, html_js, imgheight,
+                                       genomewide_plot= FALSE) {
+  if(genomewide_plot) {
     plot.adacgh.genomewide(res, chrom,  main, colors,
                            ylim, geneNames, geneLoc, imgheight)
-    plot.adacgh.chromosomewide(res, chrom,  main, colors,
-                               ylim, geneNames, idtype, organism, geneLoc,
-                               html_js, imgheight)
+  }
+  plot.adacgh.chromosomewide(res, chrom,  main, colors,
+                             ylim, geneNames, idtype, organism, geneLoc,
+                             html_js, imgheight)
 }
 
 plot.adacgh.genomewide <- function(res, chrom,

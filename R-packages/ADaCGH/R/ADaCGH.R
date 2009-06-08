@@ -668,8 +668,8 @@ segmentPlot <- function (x, geneNames, yminmax,
   ## EVEN if you use only some arrays.
   ## we will fix this later, and have arraynames incorporated in x object itself.
   
-  if (is.null(numarrays)) {
-      numarrays <- 1:length(x$segm)
+  if (is.null(arrays)) {
+      arrays <- 1:length(x$segm)
   }
   if (inherits(x, c("adacgh.generic.out"))) {
     geneLoc <- if (inherits(x, "mergedBioHMM")) x$pos else NULL
@@ -686,7 +686,7 @@ segmentPlot <- function (x, geneNames, yminmax,
     }
     
     if (superimp) {
-      ## Does not use numarrays or chrom parameters
+      ## Does not use arrays or chroms parameters
       ## The superimp option will soon be deprecated
       ## I move it here to feel free to delete stuff later
       plot.cw.superimpA(x$segm, x$chrom.numeric, geneNames = geneNames, 
@@ -714,7 +714,7 @@ segmentPlot <- function (x, geneNames, yminmax,
     
     ## names(x$segm)[numarrays] <- arraynames
     
-    tmp_papout <- papply(x$segm[numarrays], function(z) {
+    tmp_papout <- papply(x$segm[arrays], function(z) {
 ##      cat("\n Doing sample ", attributes(z)$ArrayName, "\n")
       plot.adacgh.nonsuperimpose(res = z, chrom = cnum_slave, 
                                  main = attributes(z)$ArrayName,
@@ -972,7 +972,7 @@ SegmentPlotWrite <- function(data, chrom,
                              ...) {
     ymax <- max(data)
     ymin <- min(data)
-    numarrays <- ncol(data)
+    # numarrays <- ncol(data)
     
     fseg <- get(paste("pSegment", method, sep = ""))
     trySegment <- try(
@@ -3518,38 +3518,38 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
 
 
 
-mapCloseAndPythonChrom <- function() {
-    nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
-    write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
-          sep ="\t", ncolumns = 3)
-    calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
-    if(!exists("arraynums")) arraynums <- 1
-    if(calcnarrays != arraynums)
-        stop("Serious problem: number of arrays does not match")
+## mapCloseAndPythonChrom <- function() {
+##     nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
+##     write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
+##           sep ="\t", ncolumns = 3)
+##     calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
+##     if(!exists("arraynums")) arraynums <- 1
+##     if(calcnarrays != arraynums)
+##         stop("Serious problem: number of arrays does not match")
     
-    write(rep(as.character(geneNames[indexchr]), arraynums), 
-          file = paste("geneNamesChr_", nameChrIm, sep = ""))
-    imClose(im2)
-    if(html_js) 
-        system(paste(.python.toMap.py, nameChrIm, 
-                     idtype, organism, sep = " "))
-}
+##     write(rep(as.character(geneNames[indexchr]), arraynums), 
+##           file = paste("geneNamesChr_", nameChrIm, sep = ""))
+##     imClose(im2)
+##     if(html_js) 
+##         system(paste(.python.toMap.py, nameChrIm, 
+##                      idtype, organism, sep = " "))
+## }
 
     
 
-plotChromWide <- function() {
-    par(xaxs = "i")
-    par(mar = c(5, 5, 5, 5))
-    par(oma = c(0, 0, 0, 0))
-    plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
-         xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
-         main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-         pch = pch, ylim = ylim)
-    box()
-    axis(2)
-    abline(h = 0, lty = 2, col = colors[5])
-    rug(simplepos[indexchr], ticksize = 0.01)
-}
+## plotChromWide <- function() {
+##     par(xaxs = "i")
+##     par(mar = c(5, 5, 5, 5))
+##     par(oma = c(0, 0, 0, 0))
+##     plot(logr[indexchr] ~ simplepos[indexchr], col=col[indexchr], cex = 1,
+##          xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+##          main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+##          pch = pch, ylim = ylim)
+##     box()
+##     axis(2)
+##     abline(h = 0, lty = 2, col = colors[5])
+##     rug(simplepos[indexchr], ticksize = 0.01)
+## }
 
 
 
@@ -3634,19 +3634,19 @@ plot.cw.superimpA <- function(res, chrom,
 }
 
 
-mapChromOpenA <- function() {
-##    cat(" .... doing chromosome ", cnum, "\n")
-    nameIm <- main
-    pixels.point <- 3
-##    imgheight <- imgheight
-    chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-    chrwidth <- max(chrwidth, 800)
+## mapChromOpenA <- function() {
+## ##    cat(" .... doing chromosome ", cnum, "\n")
+##     nameIm <- main
+##     pixels.point <- 3
+## ##    imgheight <- imgheight
+##     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+##     chrwidth <- max(chrwidth, 800)
    
-    im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     height = imgheight, width = chrwidth,
-                     ps = 12)
-    return(im2)
-}
+##     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+##                      height = imgheight, width = chrwidth,
+##                      ps = 12)
+##     return(im2)
+## }
 
 
 mapCloseAndPythonChromA <- function() {
@@ -3700,32 +3700,32 @@ pngCircleRegionA <- function() {
 }
 
 
-pngCircleRegion <- function() {
-    usr2pngCircle <- function(x, y, rr = 2, rmin = 4) {
-        xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-        r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
-        return(c(xyrc[1, 1], xyrc[1, 2], r))
-    } 
-    ccircle <- cbind(ccircle,
-                     mapply(usr2pngCircle, simplepos[indexchr],
-                            logr[indexchr]))
-    return(ccircle)
-}
+## pngCircleRegion <- function() {
+##     usr2pngCircle <- function(x, y, rr = 2, rmin = 4) {
+##         xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+##         r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
+##         return(c(xyrc[1, 1], xyrc[1, 2], r))
+##     } 
+##     ccircle <- cbind(ccircle,
+##                      mapply(usr2pngCircle, simplepos[indexchr],
+##                             logr[indexchr]))
+##     return(ccircle)
+## }
 
 
-mapChromOpen <- function() {
-##    cat(" .... doing chromosome ", cnum, "\n")
-    nameIm <- main
-    pixels.point <- 3
-#    imgheight <- 500
-    indexchr <- which(chrom == chrom.nums[cnum])
-    chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-    chrwidth <- max(chrwidth, 800)
-    im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     height = imgheight, width = chrwidth,
-                     ps = 12)
-    return(im2)
-}
+## mapChromOpen <- function() {
+## ##    cat(" .... doing chromosome ", cnum, "\n")
+##     nameIm <- main
+##     pixels.point <- 3
+## #    imgheight <- 500
+##     indexchr <- which(chrom == chrom.nums[cnum])
+##     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+##     chrwidth <- max(chrwidth, 800)
+##     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+##                      height = imgheight, width = chrwidth,
+##                      ps = 12)
+##     return(im2)
+## }
 
 
 

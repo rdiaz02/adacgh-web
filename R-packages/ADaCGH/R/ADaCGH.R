@@ -724,7 +724,7 @@ segmentPlot <- function (x, geneNames, yminmax,
                                  genomewide_plot = genomewide_plot,
                                  chromsplot = chromsplot)
     }, papply_commondata = list(cnum_slave = x$chrom.numeric, 
-       arraynames = arraynames, geneNames = geneNames, idtype = idtype, 
+       geneNames = geneNames, idtype = idtype, 
        organism = organism, colors = colors, pos_slave = geneLoc, 
        yminmax = yminmax, html_js = html_js, imgheight = imgheight,
        genomewide_plot = genomewide_plot, chromsplot = chroms))
@@ -759,7 +759,7 @@ segmentPlot <- function (x, geneNames, yminmax,
                chrom = z$chrom, main = paste(main_slave, z$arrayname, 
                                   sep = ""), geneNames = geneNames, idtype = idtype, 
                organism = organism, html_js = html_js, imgheight = imgheight)
-    }, papply_commondata = list(main_slave = main, arraynames = arraynames, 
+    }, papply_commondata = list(main_slave = main,  
          geneNames = geneNames, idtype = idtype, organism = organism, 
          html_js = html_js, imgheight = imgheight))
   }
@@ -999,10 +999,12 @@ SegmentPlotWrite <- function(data, chrom,
       warning("Forcing plotting of DNAcopy object with merge = FALSE.",
               " But this might not be what you want.")
     }
+    yminmax <- c(min(as.matrix(data)),
+                 max(as.matrix(data)))
     tryPlot <- try(segmentPlot(segmres,
                                geneNames = geneNames,
                                chrom.numeric = chrom,
-                               cghdata = data,
+                               yminmax = yminmax,
                                idtype = idtype,
                                organism = organism,
                                colors = colors,
@@ -3440,7 +3442,14 @@ plot.adacgh.chromosomewide <- function(res, chrom,
                                         #         ccircle <- cbind(ccircle,
                                         #                          mapply(usr2pngCircle, simplepos[indexchr],
                                         #                                 logr[indexchr]))
-        ccircle <- mapply(usr2pngCircleNew, simplepos,
+
+
+        usr2pngCircleNew2 <- function(x, y, rr = 2, rmin = 4) {
+            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+            r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
+            return(c(xyrc[1, 1], xyrc[1, 2], r))
+        } 
+        ccircle <- mapply(usr2pngCircleNew2, simplepos,
                           res[indexchr, 1])
 
         ## Formerly mapCloseAndPythonChrom()
@@ -3462,11 +3471,8 @@ plot.adacgh.chromosomewide <- function(res, chrom,
 }
 
 
-usr2pngCircleNew <- function(x, y, rr = 2, rmin = 4, im2 = im2) {
-    xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-    r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
-    return(c(xyrc[1, 1], xyrc[1, 2], r))
-} 
+
+
 
 
 plot.gw.superimp <- function(res, chrom, main = NULL,
@@ -3634,19 +3640,19 @@ plot.cw.superimpA <- function(res, chrom,
 }
 
 
-## mapChromOpenA <- function() {
-## ##    cat(" .... doing chromosome ", cnum, "\n")
-##     nameIm <- main
-##     pixels.point <- 3
-## ##    imgheight <- imgheight
-##     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-##     chrwidth <- max(chrwidth, 800)
+mapChromOpenA <- function() {
+##    cat(" .... doing chromosome ", cnum, "\n")
+    nameIm <- main
+    pixels.point <- 3
+##    imgheight <- imgheight
+    chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
+    chrwidth <- max(chrwidth, 800)
    
-##     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-##                      height = imgheight, width = chrwidth,
-##                      ps = 12)
-##     return(im2)
-## }
+    im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+                     height = imgheight, width = chrwidth,
+                     ps = 12)
+    return(im2)
+}
 
 
 mapCloseAndPythonChromA <- function() {

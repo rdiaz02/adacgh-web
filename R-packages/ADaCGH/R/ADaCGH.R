@@ -656,8 +656,7 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
 segmentPlot <- function (x, geneNames, yminmax,
                          chrom.numeric = NULL,  
                          idtype = "ug", organism = "Hs",
-                         yminmax = NULL, 
-                         ## numarrays = NULL,
+                         arrays = NULL,
                          chroms = NULL,
                          colors = c("orange", "red", "green", "blue", 
                            "black"), html_js = FALSE, superimp = FALSE,
@@ -722,12 +721,13 @@ segmentPlot <- function (x, geneNames, yminmax,
                                  colors = colors, ylim = yminmax, 
                                  geneNames = geneNames, idtype = idtype, organism = organism, 
                                  geneLoc = pos_slave, html_js = html_js, imgheight = imgheight,
-                                 genomewide_plot = genomewide_plot)
+                                 genomewide_plot = genomewide_plot,
+                                 chromsplot = chromsplot)
     }, papply_commondata = list(cnum_slave = x$chrom.numeric, 
        arraynames = arraynames, geneNames = geneNames, idtype = idtype, 
        organism = organism, colors = colors, pos_slave = geneLoc, 
        yminmax = yminmax, html_js = html_js, imgheight = imgheight,
-       genomewide_plot = genomewide_plot))
+       genomewide_plot = genomewide_plot, chromsplot = chroms))
     cat("\n gc after plot.adacgh.nonsuperimpose \n")
     print(gc())
     
@@ -2899,6 +2899,11 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
 
     chrom.numeric <- object$chrom.numeric
     object$chrom.numeric <- NULL
+    array.names <- object$array.names
+    object$array.names <- NULL
+ 
+
+    
 	nchrom <- length(object)
 	FDR.table <- get.FDR(object, nchrom)
 
@@ -2956,7 +2961,7 @@ summary.ACE <- function(object, fdr=NULL, html = TRUE,
     out$segm[[1]] <- cbind(Observed = res$x, Smoothed = medians.state,
                            State = res$Gain.Loss)
     out$chrom.numeric <- chrom.numeric
-    out <- add.names.as.attr(out, object$array.names)
+    out <- add.names.as.attr(out, array.names)
 
     class(out) <- c("adacgh.generic.out", "summaryACE")
     attr(out, "aceFDR.for.output") <- aceFDR.for.output
@@ -2978,7 +2983,10 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
                               outhtml ="ace.fdrtable.html", ...) {
 
     chrom.numeric <- object$chrom.numeric
+    array.names <- object$array.names
     object$chrom.numeric <- NULL
+    object$array.names <- NULL
+    
     nchrom <- length(object[[1]])
                                         #Recalculate FDR for multiple arrays
     FDR.table <- lapply(object, get.FDR, nchrom=nchrom)
@@ -3055,7 +3063,7 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
         ##         class(res) <- c("summary.ACE.array", "CGH.ACE.summary", "adacgh.generic.out")
         ##         res
        out$chrom.numeric <- chrom.numeric
-    out <- add.names.as.attr(out, object$array.names)
+    out <- add.names.as.attr(out, array.names)
 
         class(out) <- c("adacgh.generic.out", "summaryACE")
     attr(out, "aceFDR.for.output") <- aceFDR.for.output
@@ -3310,7 +3318,8 @@ createIM2 <- function(im, file = "", imgTags = list(),
 plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        ylim, geneNames, idtype, organism,
                                        geneLoc, html_js, imgheight,
-                                       genomewide_plot= FALSE) {
+                                       genomewide_plot= FALSE,
+                                       chromsplot = NULL) {
     cat("\n plot.adacgh.nonsuperimpose: Doing sample ", main, "\n")
   if(genomewide_plot) {
     plot.adacgh.genomewide(res, chrom,  main, colors,
@@ -3318,7 +3327,7 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
   }
   plot.adacgh.chromosomewide(res, chrom,  main, colors,
                              ylim, geneNames, idtype, organism, geneLoc,
-                             html_js, imgheight)
+                             html_js, imgheight, chromsplot = chromsplot)
 }
 
 plot.adacgh.genomewide <- function(res, chrom,
@@ -3374,7 +3383,8 @@ plot.adacgh.chromosomewide <- function(res, chrom,
                                        organism = organism,
                                        geneLoc = NULL,
                                        html_js = html_js,
-                                       imgheight = imgheight) {
+                                       imgheight = imgheight,
+                                       chromsplot = NULL) {
 
     pixels.point <- 3
     pch <- 20
@@ -3388,7 +3398,9 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     col[which(res[, 3] == -1)] <- colors[3]
     col[which(res[, 3] == 1)] <- colors[2]
     nameIm <- main
-    chrom.nums <- unique(chrom)
+    if(is.null(chromsplot)) chrom.nums <- unique(chrom)
+    else chrom.nums <- chromsplot
+    
     cat("\n  plot.adacgh.chromosomewide: doing sample ", main, "\n")
 
     
@@ -4467,7 +4479,7 @@ pSegmentHMM_A <- function(x, chrom.numeric, ...) {
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
-    out <- add.names.as.attr(out, colnames(x))
+    outl <- add.names.as.attr(outl, colnames(x))
     class(outl) <- c("adacgh.generic.out","mergedHMM")
     return(outl)
 }

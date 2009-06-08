@@ -9,22 +9,25 @@ produces html files (and associated png) with an image map with links to
 additional information. You need Python for all this to work.
 }
 \usage{
-segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
-            arraynames = NULL, idtype = "ug", organism = "Hs",
-            yminmax = NULL, numarrays = NULL,
+segmentPlot(x, geneNames, yminmax, chrom.numeric = NULL, 
+            idtype = "ug", organism = "Hs",
+            arrays = NULL, chroms = NULL,
             colors = c("orange", "red", "green", "blue", "black"),
-            html_js = TRUE,
-            superimp = TRUE,
+            html_js = FALSE,
+            superimp = FALSE,
             imgheight = 500,
+            genomewide_plot = FALSE,
             ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{ The fitted object of the appropriate class. }
   \item{geneNames}{ A vector of gene names. }
+    \item{yminmax}{ A vector of the form (min, max) for the minimum and
+    maximum used in the figures. }
   \item{chrom.numeric}{ A (numeric) vector of chromosome indicators. }
-  \item{cghdata}{ The aCGH data. }
-  \item{arraynames}{ A vector of array names. }
+%   \item{cghdata}{ The aCGH data. }
+%  \item{arraynames}{ A vector of array names. }
   \item{idtype}{ The type of id of the gene name; one of
     ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug')
     corresponding, respectively to None, CNIO ID, Affymetrix, Clone ID,
@@ -32,17 +35,22 @@ segmentPlot(x, geneNames, chrom.numeric = NULL, cghdata = NULL,
   \item{organism}{ The organism; one of ('None', 'Hs', 'Mm', 'Rn')
     corresponding, respectively, to None, Homo sapiens, Mus musculus
     (mouse) and Rattus norvegicus (rat). }
-  \item{yminmax}{ A vector of the form (min, max) for the minimum and
-    maximum used in the figures. }
-  \item{numarrays}{ The number of arrays to plot. }
+  \item{arrays}{ The arrays to plot (a vector with the numbers, the
+    indices, of the arrays), or NULL for plotting all arrays.}
+  \item{chroms}{ The chromosomes to plot (a vector with the numbers, the
+    indices, of the chromsomes), or NULL for plotting all chromosomes.}
+  
   \item{colors}{Colors used for plotting: a five element vector denoting
     colors for non-altered points, gained, lost, the smoothed line and the
     horizontal line at 0.}
   \item{html_js}{Produce the html figures including lots of Javascript?
-    Default is TRUE.}
+    Default is FALSE.}
   \item{superimp}{Produce the figures that superimpose all arrays into a
-    single plot? Default is TRUE.}
-  \item{imgheight}{The image height when generating png. Default is 500.}
+    single plot? Default is FALSE. Superimposed plots will soon NOT be available!}
+  \item{imgheight}{The image height when generating png. Default is
+    500.}
+  \item{genomewide_plot}{Do a genomewide plot. Default is
+    FALSE. Genomewide plots will soon NOT be available.}
   \item{\dots}{ Other arguments, passed to the underlying plotting functions. }
 }
 \value{

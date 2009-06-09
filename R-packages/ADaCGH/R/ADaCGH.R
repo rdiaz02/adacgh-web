@@ -3419,7 +3419,9 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     for(cnum in 1:length(chrom.nums)) {
         cat("\n        plot.adacgh.chromosomewide: doing chromosome  ", cnum, "\n")
         mydcat(".......................... mydcat        1               ")
-        print(gc())
+##        print(gc())
+        mydcat(".......................... mydcat        1b               ")
+
         indexchr <- which(chrom == chrom.nums[cnum])
         ccircle <- NULL
 
@@ -3468,13 +3470,24 @@ plot.adacgh.chromosomewide <- function(res, chrom,
         mydcat(".......................... mydcat        6               ")
 
 
+## do we really need all the usr2pngCircleNew2?? or just coordinates??
+        usr2pngCircleNew3 <- function(x, y, rr = 2) {
+            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+            return(c(xyrc[1, 1], xyrc[1, 2], 4)) ## as code elow depends
+            ## on number of clumns
+        }
+        
         usr2pngCircleNew2 <- function(x, y, rr = 2, rmin = 4) {
             xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
             r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
             return(c(xyrc[1, 1], xyrc[1, 2], r))
-        } 
+        }
+  ##      mydcat("..............................    gc before ccircle ")
+  ##      print(gc())
         ccircle <- mapply(usr2pngCircleNew2, simplepos,
                           res[indexchr, 1])
+  ##      mydcat("..............................    gc after ccircle ")
+  ##      print(gc())
 
         mydcat(".......................... mydcat        7               ")
 

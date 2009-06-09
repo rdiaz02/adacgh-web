@@ -50,10 +50,12 @@ SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
     colors for non-altered points, gained, lost, the smoothed line and the
     horizontal line at 0.}
   \item{html_js}{Produce the html figures including lots of Javascript?
-    Default is TRUE.}
+    Default is FALSE.}
   \item{superimp}{Produce the figures that superimpose all arrays into a
-    single plot? Default is TRUE.}
+    single plot? Default is FALSE. Superimposed plots will soon NOT be available!}
   \item{imgheight}{The image height when generating png. Default is 500.}
+  \item{genomewide_plot}{Do a genomewide plot. Default is
+    FALSE. Genomewide plots will soon NOT be available.}
 
   \item{\dots}{Additional arguments passed to the underlying pSegment*
     and segmentPlot functions.}

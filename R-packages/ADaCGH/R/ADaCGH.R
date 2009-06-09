@@ -966,8 +966,9 @@ SegmentPlotWrite <- function(data, chrom,
                              geneNames,
                              commondata,
                              colors = c("orange", "red", "green", "blue", "black"),
-                             html_js = TRUE,
-                             superimp = TRUE,
+                             html_js = FALSE,
+                             superimp = FALSE,
+                             genomewide_plot = FALSE,
                              imgheight = 500,
                              ...) {
     ymax <- max(data)
@@ -1009,8 +1010,9 @@ SegmentPlotWrite <- function(data, chrom,
                                organism = organism,
                                colors = colors,
                                html_js = html_js,
-                               superimp = superimp,
-                               imgheight = imgheight))
+                               superimp = superimp,                               
+                               imgheight = imgheight,
+                               genomewide_plot = genomewide_plot))
     if(inherits(tryPlot, "try-error"))
         caughtOurError(tryPlot)
     cat("\n\n Plotting done \n\n")
@@ -3342,6 +3344,7 @@ plot.adacgh.genomewide <- function(res, chrom,
     warning(paste("This function is likely to be soon deprecated.",
             "With huge arrays, genomewide plots make little sense."))
     
+    cat("\n        plot.adacgh.genomewide: Doing sample ", main, "\n")
     pch <- 20
     im1 <- mapGenomeWideOpen(main)
     nameIm <- main
@@ -3488,6 +3491,7 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
     nfig <- 1
      
     for (arraynum in 1:arraynums) {
+        cat("\n      plot.gw.superimp: doing array ", arraynum, "\n")
         logr <- res[[arraynum]][, 1]
         smoothdat <- res[[arraynum]][, 2]
         if(is.null(geneLoc)) {
@@ -3607,6 +3611,8 @@ plot.cw.superimpA <- function(res, chrom,
         nfig <- 1
 ##        browser()
         for(arraynum in 1:arraynums) { ## first, plot the points
+            cat("\n      plot.cw.superimpA: doing array ", arraynum, "\n")
+            
             logr <- z$resl[[arraynum]][, 1]
             res.dat <- z$resl[[arraynum]][, 3]
             smoothdat <- z$resl[[arraynum]][, 2]

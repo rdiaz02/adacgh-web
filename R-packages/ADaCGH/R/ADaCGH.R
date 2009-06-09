@@ -11,6 +11,11 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 ## arguments of functions match.
 
 
+mydcat <- function(x) {
+  cat("\n", x, "\n")
+}
+
+## mydcat <- function(x){}
 
 
 names.formals.changepoints.1.17 <- c("genomdat",
@@ -3329,6 +3334,8 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
     plot.adacgh.genomewide(res, chrom,  main, colors,
                            ylim, geneNames, geneLoc, imgheight)
   }
+    mydcat(".......................... mydcat        00               ")
+
   plot.adacgh.chromosomewide(res, chrom,  main, colors,
                              ylim, geneNames, idtype, organism, geneLoc,
                              html_js, imgheight, chromsplot = chromsplot)
@@ -3411,6 +3418,7 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     
     for(cnum in 1:length(chrom.nums)) {
         cat("\n        plot.adacgh.chromosomewide: doing chromosome  ", cnum, "\n")
+        mydcat(".......................... mydcat        1               ")
         print(gc())
         indexchr <- which(chrom == chrom.nums[cnum])
         ccircle <- NULL
@@ -3420,9 +3428,15 @@ plot.adacgh.chromosomewide <- function(res, chrom,
         ## Formerly mapChromOpen
         chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
         chrwidth <- max(chrwidth, 800)
+
+        mydcat(".......................... mydcat        2               ")
+
         im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                          height = imgheight, width = chrwidth,
                          ps = 12)
+        
+        mydcat(".......................... mydcat        3               ")
+
         ##
         ## Formerly plotChromWide()
         par(xaxs = "i")
@@ -3432,10 +3446,14 @@ plot.adacgh.chromosomewide <- function(res, chrom,
              xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
              main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
              pch = pch, ylim = ylim)
+        mydcat(".......................... mydcat        4               ")
+
         box()
         axis(2)
         abline(h = 0, lty = 2, col = colors[5])
         rug(simplepos, ticksize = 0.01)
+        mydcat(".......................... mydcat        5               ")
+
         ##
         
         lines(res[indexchr, 2] ~ simplepos,
@@ -3447,6 +3465,8 @@ plot.adacgh.chromosomewide <- function(res, chrom,
                                         #                          mapply(usr2pngCircle, simplepos[indexchr],
                                         #                                 logr[indexchr]))
 
+        mydcat(".......................... mydcat        6               ")
+
 
         usr2pngCircleNew2 <- function(x, y, rr = 2, rmin = 4) {
             xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
@@ -3456,10 +3476,14 @@ plot.adacgh.chromosomewide <- function(res, chrom,
         ccircle <- mapply(usr2pngCircleNew2, simplepos,
                           res[indexchr, 1])
 
+        mydcat(".......................... mydcat        7               ")
+
         ## Formerly mapCloseAndPythonChrom()
         nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
         write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
               sep ="\t", ncolumns = 3)
+        mydcat(".......................... mydcat        8               ")
+
         calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
         ## what are the next three lines for here?? FIXME
         if(!exists("arraynums")) arraynums <- 1
@@ -3467,11 +3491,18 @@ plot.adacgh.chromosomewide <- function(res, chrom,
             stop("Serious problem: number of arrays does not match")
         write(rep(as.character(geneNames[indexchr]), arraynums), 
               file = paste("geneNamesChr_", nameChrIm, sep = ""))
+        mydcat(".......................... mydcat        9               ")
+
         imClose3(im2)
+        mydcat(".......................... mydcat        10               ")
+
         if(html_js) 
             system(paste(.python.toMap.py, nameChrIm, 
                          idtype, organism, sep = " "))
-    }        ## looping over chromosomes
+
+      }        ## looping over chromosomes
+    mydcat(".......................... mydcat        11               ")
+
 }
 
 

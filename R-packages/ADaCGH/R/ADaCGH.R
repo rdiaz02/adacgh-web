@@ -2330,7 +2330,7 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
         for(ll in 1:length(rectslist))
             addRegion(im1) <- rectslist[[ll]]
         createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-        imClose(im1)
+        imClose3(im1)
     }
 
     if(html) { ## here is chromosome specific code
@@ -2388,7 +2388,7 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
                   sep ="\t", ncolumns = 3)
             write(as.character(geneNames[indexchr]),
                   file = paste("geneNamesChr_", nameChrIm, sep = ""))
-            imClose(im2)
+            imClose3(im2)
             ## call the Python function
             if(html_js)
                 system(paste(.python.toMap.py,  nameChrIm, 
@@ -3249,7 +3249,7 @@ my.html.data.frame <- function (object, first.col = "Name",
 #########  Imagemap stuff
 
 
-imClose <- function (im) {
+imClose3 <- function (im) {
     ## prevent all the "Closing PNG device ..."
     dev.off(im$Device)
 }
@@ -3411,6 +3411,7 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     
     for(cnum in 1:length(chrom.nums)) {
         cat("\n        plot.adacgh.chromosomewide: doing chromosome  ", cnum, "\n")
+        print(gc())
         indexchr <- which(chrom == chrom.nums[cnum])
         ccircle <- NULL
 
@@ -3466,7 +3467,7 @@ plot.adacgh.chromosomewide <- function(res, chrom,
             stop("Serious problem: number of arrays does not match")
         write(rep(as.character(geneNames[indexchr]), arraynums), 
               file = paste("geneNamesChr_", nameChrIm, sep = ""))
-        imClose(im2)
+        imClose3(im2)
         if(html_js) 
             system(paste(.python.toMap.py, nameChrIm, 
                          idtype, organism, sep = " "))
@@ -3677,7 +3678,7 @@ mapCloseAndPythonChromA <- function() {
     }
     write(rep(as.character(geneNames[indexchr]), arraynums), 
           file = paste("geneNamesChr_", nameChrIm, sep = ""))
-    imClose(im2)
+    imClose3(im2)
     if(html_js)
         system(paste(.python.toMap.py, nameChrIm, 
                      idtype, organism, sep = " "))
@@ -3752,7 +3753,7 @@ mapGenomeWideOpen <- function(main) {
 
 mapGenomeWideClose <- function(nameIm, im1) {
     createIM2(im1, file = paste(nameIm, ".html", sep = ""))
-    imClose(im1)
+    imClose3(im1)
 }
 
 plotGenomeWide <- function() {

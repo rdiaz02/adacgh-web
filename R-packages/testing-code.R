@@ -1,11 +1,11 @@
 ### Some code for testing and checking and catching bugs
-
+rm(list = ls())
 library(ADaCGH)
 load("p1.RData")  ## run the code in SegmentPlotWirte, and save it here
-## dir.to.create <- tempdir2()
-## setwd(dir.to.create)
-## dir.to.create
-## mpiInit()
+dir.to.create <- tempdir2()
+setwd(dir.to.create)
+dir.to.create
+mpiInit()
 
 
 yminmax <- c(min(as.matrix(cghE1[, 5:7])),
@@ -34,13 +34,6 @@ segmentPlot(glad.out,
             organism = "Hs")
 
 segmentPlot(cghseg.out,
-            geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(wave.out, 
             geneNames = cghE1[, 1],
             chrom.numeric = chrom.numeric,
             yminmax = yminmax,
@@ -91,7 +84,6 @@ segmentPlot(ace.out.sum,
             organism = "Hs")
 
 
-
 SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
                  merge = FALSE, Pos = cghE1$UG.Start,
                  idtype = "ug", organism = "Hs",
@@ -138,4 +130,3 @@ try(SegmentPlotWrite(cghE1[, 5:6], chrom.numeric,
                      method = "BioHMM",
                      geneNames = cghE1[, 1],
                      commondata = cghE1[, 1:4]))
-}

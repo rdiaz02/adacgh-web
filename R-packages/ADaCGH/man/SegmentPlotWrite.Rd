@@ -9,8 +9,9 @@
 SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
                  organism, method, geneNames, commondata,
                  colors = c("orange", "red", "green", "blue", "black"),
-                 html_js = TRUE,
-                 superimp = TRUE,
+                 html_js = FALSE,
+                 superimp = FALSE,
+                 genomewide_plot = FALSE,
                  imgheight = 500,
                  ...)
 }

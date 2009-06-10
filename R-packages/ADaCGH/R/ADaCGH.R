@@ -3471,21 +3471,28 @@ plot.adacgh.chromosomewide <- function(res, chrom,
 
 
 ## do we really need all the usr2pngCircleNew2?? or just coordinates??
-        usr2pngCircleNew3 <- function(x, y, rr = 2) {
-            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-            return(c(xyrc[1, 1], xyrc[1, 2], 4)) ## as code elow depends
-            ## on number of clumns
-        }
+##         usr2pngCircleNew3 <- function(x, y, rr = 2) {
+##             xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+##             return(c(xyrc[1, 1], xyrc[1, 2], 4)) ## as code elow depends
+##             ## on number of clumns
+##         }
         
-        usr2pngCircleNew2 <- function(x, y, rr = 2, rmin = 4) {
-            xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-            r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
-            return(c(xyrc[1, 1], xyrc[1, 2], r))
-        }
+##         usr2pngCircleNew2 <- function(x, y, rr = 2, rmin = 4) {
+##             xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
+##             r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
+##             return(c(xyrc[1, 1], xyrc[1, 2], r))
+##         }
   ##      mydcat("..............................    gc before ccircle ")
   ##      print(gc())
-        ccircle <- mapply(usr2pngCircleNew2, simplepos,
-                          res[indexchr, 1])
+
+        cc1 <- t(usr2png(cbind(simplepos, res[indexchr, 1]), im2))
+        dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
+        cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
+        ccircle <- rbind(cc1, rep(cc1.r, ncol(cc1)))
+       
+                         
+##         ccircle <- mapply(usr2pngCircleNew2, simplepos,
+##                           res[indexchr, 1])
   ##      mydcat("..............................    gc after ccircle ")
   ##      print(gc())
 

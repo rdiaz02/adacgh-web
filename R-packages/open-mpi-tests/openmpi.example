@@ -1,0 +1,42 @@
+mpicc.openmpi -o mpihello mpihello.c
+
+orterun -np 2 --hostfile openmpi.config.1 mpihello
+
+
+# orterun -np 4 --hostfile openmpi.config.1 R --slave < rmpi.openmpi.minitest.R
+
+
+orterun -np 1 --hostfile openmpi.config.1 R --no-save
+library(Rmpi)
+mpi.spawn.Rslaves(nslaves = 4)
+
+library(papply)
+l1 <- list();for(i in 1:10) l1[[i]] <- i
+papply(l1, function(x) return(2 * x))
+
+orterun -n 4 -H ron,joe
+
+
+orterun -bynode -np 1 -H hermes R --vanilla
+
+
+ -e'library(snow); cl <- makeCluster(4, "MPI"); 
+res <- clusterCall(cl, function() Sys.info()["nodename"]); print(do.call(rbind, res))' 
+
+
+
+#################################
+
+
+Issues with Rmpi and cluster, etc:
+
+a) if anything leads to an error (e.g., library(somehitng.does.not.exist)
+) you are kicked out, and the session aborted!!
+
+
+b) the host file does not seem to be honored. 
+
+
+
+
+

@@ -3442,9 +3442,18 @@ plot.adacgh.chromosomewide <- function(res, chrom,
         ##
         ## Formerly plotChromWide()
         par(xaxs = "i")
+        mydcat(".......................... mydcat        3a               ")
+
         par(mar = c(5, 5, 5, 5))
+        mydcat(".......................... mydcat        3b               ")
+
         par(oma = c(0, 0, 0, 0))
-        plot(res[indexchr, 1] ~ simplepos, col=col[indexchr], cex = 1,
+        mydcat(".......................... mydcat        3c               ")
+
+##         aa <- res[indexchr, 1]
+##         bb <- col[indexchr]
+
+        plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = 1,
              xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
              main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
              pch = pch, ylim = ylim)

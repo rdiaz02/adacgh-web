@@ -3485,11 +3485,18 @@ plot.adacgh.chromosomewide <- function(res, chrom,
   ##      mydcat("..............................    gc before ccircle ")
   ##      print(gc())
 
-        cc1 <- t(usr2png(cbind(simplepos, res[indexchr, 1]), im2))
+
+        ## many of these could be improved, avoiding transposes, etc
+        
+##         cc1 <- t(usr2png(cbind(simplepos, res[indexchr, 1]), im2))
         dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
         cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-        ccircle <- rbind(cc1, rep(cc1.r, ncol(cc1)))
-       
+##         ccircle <- rbind(cc1, rep(cc1.r, ncol(cc1)))
+
+        ccircle <- rbind(t(usr2png(cbind(simplepos, res[indexchr, 1]), im2)),
+                         rep(cc1.r, length(simplepos)))
+
+        
                          
 ##         ccircle <- mapply(usr2pngCircleNew2, simplepos,
 ##                           res[indexchr, 1])
@@ -5089,4 +5096,13 @@ tempdir2 <- function() {
 ### summary(oGLAD$segm$S2[, 3] - spw.out$S2.Status)
 ### summary(oGLAD$segm$S3[, 3] - spw.out$S3.Status)
 
+
+my.usr2png <- function(xy, imWidth, imHeight) {
+    dev <- dev.cur()
+    xy <- fig2dev(plt2fig(usr2plt(xy,dev),dev),dev)
+    cbind(
+          ceiling(xy[,1]*imWidth),
+          ceiling((1-xy[,2])*imHeight)
+          )
+}
 

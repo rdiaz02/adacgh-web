@@ -11,9 +11,9 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 ## arguments of functions match.
 
 
-mydcat <- function(x) {
-  cat("\n", x, "\n")
-}
+## mydcat <- function(x) {
+##   cat("\n", x, "\n")
+## }
 
 ## mydcat <- function(x){}
 
@@ -668,10 +668,6 @@ segmentPlot <- function (x, geneNames, yminmax,
                          imgheight = 500,
                          genomewide_plot = FALSE,
                          ...) {
-  ## FIXME: some very ugly things here:
-  ## arraynames: now it should be same size as original dimensions of things.
-  ## EVEN if you use only some arrays.
-  ## we will fix this later, and have arraynames incorporated in x object itself.
   
   if (is.null(arrays)) {
       arrays <- 1:length(x$segm)
@@ -707,20 +703,8 @@ segmentPlot <- function (x, geneNames, yminmax,
       print(gc())
     }
 
-    ## this involves duplicating objects, but right now I do not see an easy
-    ## way of passing the arraynames
-    
-##     l1 <- list()
-##     for (i in 1:length(numarrays)) {
-##       l1[[i]] <- list()
-##       l1[[i]]$res <- x$segm[[numarrays[i]]]
-##       l1[[i]]$mainname <- arraynames[numarrays[i]]
-##     }
-    
-    ## names(x$segm)[numarrays] <- arraynames
     
     tmp_papout <- papply(x$segm[arrays], function(z) {
-##      cat("\n Doing sample ", attributes(z)$ArrayName, "\n")
       plot.adacgh.nonsuperimpose(res = z, chrom = cnum_slave, 
                                  main = attributes(z)$ArrayName,
                                  colors = colors, ylim = yminmax, 
@@ -3334,7 +3318,7 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
     plot.adacgh.genomewide(res, chrom,  main, colors,
                            ylim, geneNames, geneLoc, imgheight)
   }
-    mydcat(".......................... mydcat        00               ")
+##    mydcat(".......................... mydcat        00               ")
 
   plot.adacgh.chromosomewide(res, chrom,  main, colors,
                              ylim, geneNames, idtype, organism, geneLoc,
@@ -3401,11 +3385,6 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     pixels.point <- 3
     pch <- 20
     
-##    logr <- res[, 1]
-##    smoothdat <- res[, 2]
-##    simplepos <- if(is.null(geneLoc)) (1:length(res[, 1])) else geneLoc
-##    res.dat <- res[, 3]
-    
     col <- rep(colors[1],length(res[, 3]))
     col[which(res[, 3] == -1)] <- colors[3]
     col[which(res[, 3] == 1)] <- colors[2]
@@ -3418,9 +3397,6 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     
     for(cnum in 1:length(chrom.nums)) {
         cat("\n        plot.adacgh.chromosomewide: doing chromosome  ", cnum, "\n")
-        mydcat(".......................... mydcat        1               ")
-##        print(gc())
-        mydcat(".......................... mydcat        1b               ")
 
         indexchr <- which(chrom == chrom.nums[cnum])
         ccircle <- NULL
@@ -3431,53 +3407,24 @@ plot.adacgh.chromosomewide <- function(res, chrom,
         chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
         chrwidth <- max(chrwidth, 800)
 
-        mydcat(".......................... mydcat        2               ")
-
         im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                          height = imgheight, width = chrwidth,
                          ps = 12)
-        
-        mydcat(".......................... mydcat        3               ")
-
         ##
         ## Formerly plotChromWide()
         par(xaxs = "i")
-        mydcat(".......................... mydcat        3a               ")
-
         par(mar = c(5, 5, 5, 5))
-        mydcat(".......................... mydcat        3b               ")
-
         par(oma = c(0, 0, 0, 0))
-        mydcat(".......................... mydcat        3c               ")
 
-         aa <- res[indexchr, 1]
-        mydcat(".......................... mydcat        3d               ")
-
-        bb <- col[indexchr]
-        mydcat(".......................... mydcat        3e               ")
-
-##         plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = 1,
-##              xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
-##              main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-##              pch = pch, ylim = ylim)
-
-        plot(aa ~ simplepos, col=bb, cex = 1,
+        plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = 1,
              xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
              main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
              pch = pch, ylim = ylim)
-
-
-
-        mydcat(".......................... mydcat        4               ")
 
         box()
         axis(2)
         abline(h = 0, lty = 2, col = colors[5])
         rug(simplepos, ticksize = 0.01)
-        mydcat(".......................... mydcat        5               ")
-
-        ##
-        
         lines(res[indexchr, 2] ~ simplepos,
               col = colors[4], lwd = 2, type = "l")
 
@@ -3487,49 +3434,16 @@ plot.adacgh.chromosomewide <- function(res, chrom,
                                         #                          mapply(usr2pngCircle, simplepos[indexchr],
                                         #                                 logr[indexchr]))
 
-        mydcat(".......................... mydcat        6               ")
 
-
-## do we really need all the usr2pngCircleNew2?? or just coordinates??
-##         usr2pngCircleNew3 <- function(x, y, rr = 2) {
-##             xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-##             return(c(xyrc[1, 1], xyrc[1, 2], 4)) ## as code elow depends
-##             ## on number of clumns
-##         }
-        
-##         usr2pngCircleNew2 <- function(x, y, rr = 2, rmin = 4) {
-##             xyrc <- usr2png(cbind(c(x, rr, 0), c(y, 0, 0)), im2)
-##             r <- max(abs(xyrc[2, 1] - xyrc[3, 1]), rmin)
-##             return(c(xyrc[1, 1], xyrc[1, 2], r))
-##         }
-  ##      mydcat("..............................    gc before ccircle ")
-  ##      print(gc())
-
-
-        ## many of these could be improved, avoiding transposes, etc
-        
-##         cc1 <- t(usr2png(cbind(simplepos, res[indexchr, 1]), im2))
         dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
         cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-##         ccircle <- rbind(cc1, rep(cc1.r, ncol(cc1)))
-
         ccircle <- rbind(t(usr2png(cbind(simplepos, res[indexchr, 1]), im2)),
                          rep(cc1.r, length(simplepos)))
-
-        
-                         
-##         ccircle <- mapply(usr2pngCircleNew2, simplepos,
-##                           res[indexchr, 1])
-  ##      mydcat("..............................    gc after ccircle ")
-  ##      print(gc())
-
-        mydcat(".......................... mydcat        7               ")
 
         ## Formerly mapCloseAndPythonChrom()
         nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
         write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
               sep ="\t", ncolumns = 3)
-        mydcat(".......................... mydcat        8               ")
 
         calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
         ## what are the next three lines for here?? FIXME
@@ -3538,17 +3452,14 @@ plot.adacgh.chromosomewide <- function(res, chrom,
             stop("Serious problem: number of arrays does not match")
         write(rep(as.character(geneNames[indexchr]), arraynums), 
               file = paste("geneNamesChr_", nameChrIm, sep = ""))
-        mydcat(".......................... mydcat        9               ")
 
         imClose3(im2)
-        mydcat(".......................... mydcat        10               ")
 
         if(html_js) 
             system(paste(.python.toMap.py, nameChrIm, 
                          idtype, organism, sep = " "))
 
       }        ## looping over chromosomes
-    mydcat(".......................... mydcat        11               ")
 
 }
 

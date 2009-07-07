@@ -948,12 +948,14 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         trythis <- try(
                        segmentPlot(segmres, geneNames = positions.merge1$name,
                                    chrom.numeric = positions.merge1$chrom.numeric,
-                                   cghdata = NULL,
-                                   arraynames = arrayNames,
+#                                   cghdata = NULL,
+#                                   arraynames = arrayNames,
                                    yminmax = c(ymin, ymax),
                                    idtype = idtype,
                                    organism = organism,
-                                   numarrays = numarrays))
+                                   html_js = TRUE,
+                                   superimp = TRUE,
+                                   genomewide_plot = TRUE))
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         cat("\n\n Plotting done \n\n")

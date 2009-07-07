@@ -3450,13 +3450,24 @@ plot.adacgh.chromosomewide <- function(res, chrom,
         par(oma = c(0, 0, 0, 0))
         mydcat(".......................... mydcat        3c               ")
 
-##         aa <- res[indexchr, 1]
-##         bb <- col[indexchr]
+         aa <- res[indexchr, 1]
+        mydcat(".......................... mydcat        3d               ")
 
-        plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = 1,
+        bb <- col[indexchr]
+        mydcat(".......................... mydcat        3e               ")
+
+##         plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = 1,
+##              xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+##              main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
+##              pch = pch, ylim = ylim)
+
+        plot(aa ~ simplepos, col=bb, cex = 1,
              xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
              main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
              pch = pch, ylim = ylim)
+
+
+
         mydcat(".......................... mydcat        4               ")
 
         box()

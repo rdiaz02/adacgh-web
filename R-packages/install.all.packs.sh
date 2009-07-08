@@ -3,87 +3,106 @@
 ## cd /home/sources.programs/R-patched/bin
 #cd /home/sources.programs/R-devel/bin
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/aws*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Rmpi*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/papply*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/sma_*.gz 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/GDD*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/gridBase*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/convert*.gz   
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/colorspace*.gz 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/hexbin*.gz 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/RColorBrewer*.gz 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/rlecuyer_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/DBI_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/RSQLite_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/xtable_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/polynom_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Matrix_*.gz
+
+### Instal Rmpi seàrately, specifyin lam directory
+
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/Rmpi_0.5-7.tar.gz --configure-args=--with-mpi=/usr/lib/lam
+
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/aws*.gz
+##/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/Rmpi*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/papply*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/polynom*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/sma_*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/GDD*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/gridBase*.gz
+##/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/convert*.gz   
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/colorspace*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/hexbin*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/RColorBrewer*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/rlecuyer_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/DBI_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/RSQLite_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/xtable_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/waveslim_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/zoo_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/sandwich_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/strucchange_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/pixmap_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/Hmisc_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/combinat*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/snow_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/R2HTML*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/rsprng_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/cgh_*.gz 
 
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/IRanges*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Biobase*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/DynDoc*.gz 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/widgetTools*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/tkWidgets*.gz  
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Biostrings*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/AnnotationDbi_* 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/preprocessCore*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/affyio_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/affy_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/matchprobes_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/gcrma_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/affydata_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/affyPLM*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/annotate_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/IRanges*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/Biobase*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/DynDoc*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/widgetTools*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/tkWidgets*.gz  
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/Biostrings_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/AnnotationDbi_* 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/preprocessCore*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/affyio_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/affy_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/matchprobes_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/gcrma_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/affydata_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/affyPLM*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/annotate_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/genefilter_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/limma_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/multtest*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/marray_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/vsn_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/annotate_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/geneplotter_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/tilingArray_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/DNAcopy*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/aCGH_*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/convert_*gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/arrayQuality_*gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/cghMCR_*.gz 
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/GLAD_*gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/snapCGH_*gz
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/genefilter_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/limma_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/multtest*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/marray_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/ADaCGH_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/pomelo2/imagemap_current.tar.gz
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/vsn_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/waveslim_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/mvtnorm_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/modeltools_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/vcd_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/coin_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/zoo_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/sandwich_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/strucchange_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/party_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/combinat_*
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/mboost_*
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/zoo_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/sandwich_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/strucchange_*.gz
+/Part-ramon/sources.programs/R-tests/R-patched/bin/R CMD INSTALL ~/bzr-local-repos/signs/R-packages/SignS2
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/annotate_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/geneplotter_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/pixmap_*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/tilingArray_*.gz
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/DNAcopy*.gz 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/cgh_*.gz 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/aCGH_*.gz 
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/arrayQuality_*gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/cghMCR_*.gz 
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/GLAD_*gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/snapCGH_*gz
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/Hmisc_*.gz
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/rsprng_*.gz
-
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/combinat*.gz
-
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/snow*.gz
-
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/R2HTML*.gz
 
 ## just in case a few things did not work
 
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/DynDoc*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/widgetTools*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/marray*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/genefilter*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/tilingArray*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/arrayQuality*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/cghMCR*.gz
-./R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs/snapCGH*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/DynDoc*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/widgetTools*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/marray*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/genefilter*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/tilingArray*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/arrayQuality*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/cghMCR*.gz
+# sudo R CMD INSTALL ~/bzr-local-repos/adacgh-required-packs-2009-06/snapCGH*.gz
 
+
+
+
+### For BioC 2.4 do
 
 

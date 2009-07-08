@@ -1,5 +1,7 @@
 1.5-1  2009-07-08
        - Further clean-ups of code, eliminating debuggin code, etc.
+       - No longer any usage of "<- environment" to pass global
+         variables.
        - More testing, including very large files with Wavi.
        - Changes from 1.3-12 up are large enough to warrant
          increase in minor number!

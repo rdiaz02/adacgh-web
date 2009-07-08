@@ -3358,9 +3358,8 @@ plot.adacgh.genomewide <- function(res, chrom,
     col[which(res.dat == -1)] <- colors[3]
     col[which(res.dat == 1)] <- colors[2]
   
-    environment(plotGenomeWide) <- environment(mapLinkChrom) <- environment()
-    plotGenomeWide()
-    im1 <- mapLinkChrom()
+    plotGenomeWide(logr, simplepos, col, main, pch, ylim, colors)
+    im1 <- mapLinkChrom(logr, simplepos, chrom, nameIm, im1)
    
     lines(smoothdat ~ simplepos, col=colors[4],
           lwd = 2)
@@ -3501,9 +3500,8 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
         col[which(res.dat == 1)] <- colors[2]
  
         if(nfig == 1) {
-            environment(plotGenomeWide) <- environment(mapLinkChrom) <- environment()
-            plotGenomeWide()
-            im1 <- mapLinkChrom()
+            plotGenomeWide(logr, simplepos, col, main, pch, ylim, colors)
+            im1 <- mapLinkChrom(logr, simplepos, chrom, nameIm, im1)
         }
 
         lines(smoothdat ~ simplepos,
@@ -3564,14 +3562,12 @@ plot.cw.superimpA <- function(res, chrom,
                               geneLoc = NULL,
                               html_js = html_js,
                               imgheight = imgheight) {
-#    on.exit(browser())
     ## For superimposed: one plot per chr
     pch <- ""
     arraynums <- length(res)
     nameImage <- main
     pixels.point <- 3
     chrom.nums <- unique(chrom)
-    ## this could be parallelized over chromosomes!! FIXME
     datalist <- list()
     for(cnum in 1:length(chrom.nums)) {
         indexchr <- which(chrom == chrom.nums[cnum])
@@ -3586,7 +3582,9 @@ plot.cw.superimpA <- function(res, chrom,
             datalist[[cnum]]$posn <- NULL
     }
     pappl_common <- list(arraynums = arraynums, nameImage = main,
-                         geneNames = geneNames, imgheight = imgheight)
+                         geneNames = geneNames, imgheight = imgheight,
+                         pch = pch, ylim = ylim, html_js = html_js,
+                         idtype = idtype, organism = organism)
     
     funp <- function(z) {
         if(is.null(z)) return()
@@ -3602,27 +3600,21 @@ plot.cw.superimpA <- function(res, chrom,
         im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameImage, sep =""),
                          height = imgheight, width = chrwidth,
                          ps = 12)
-
         nfig <- 1
         for(arraynum in 1:arraynums) { ## first, plot the points
             cat("\n      plot.cw.superimpA: doing array ", arraynum, "\n")
-            
+            mydcat("    1    ")
             logr <- z$resl[[arraynum]][, 1]
             res.dat <- z$resl[[arraynum]][, 3]
             smoothdat <- z$resl[[arraynum]][, 2]
-            mydcat(" 1 ")
             col <- rep(colors[1],length(res.dat))
             col[which(res.dat == -1)] <- colors[3]
             col[which(res.dat == 1)] <- colors[2]
-            mydcat(" 2 ")
-
             simplepos <-
                 if(is.null(z$posn)) (1:length(logr)) else z$posn
 
-            mydcat(" 3 ")
             
             if(nfig == 1) {
-              mydcat(" 3.1 ")
               ## Formerly plotChromWideA
               par(xaxs = "i")
               par(mar = c(5, 5, 5, 5))
@@ -3635,38 +3627,22 @@ plot.cw.superimpA <- function(res, chrom,
               axis(2)
               abline(h = 0, lty = 2, col = colors[5])
               rug(simplepos, ticksize = 0.01)
-##               plotChromWideA(logr, simplepos, col, thiscn, nameIm,
-##                              pch, ylim, colors)
-              mydcat(" 3.3 ")
-            }
 
-            mydcat(" 4 ")
-            
+            }
 ##             environment(pngCircleRegionA) <- environment()
 ##             ccircle <- pngCircleRegionA()
 
             dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
             cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-            ccircle <- rbind(t(usr2png(cbind(simplepos, logr), im2)),
-                             rep(cc1.r, length(simplepos)))
-            
-            mydcat(" 5 ")
-            
+            ccircle <- cbind(ccircle,
+              rbind(t(usr2png(cbind(simplepos, logr), im2)),
+                             rep(cc1.r, length(simplepos))))
             ## we want all points, but only draw axes once
             points(logr ~ simplepos, col=col,
                    cex = 1, pch = 20)
-            mydcat(" 6 ")
-
-            
             lines(smoothdat ~ simplepos,
                   col = colors[4], lwd = 2, type = "l")
-            mydcat(" 7 ")
-
-            
             nfig <- nfig + 1
-
-            mydcat(" 8 ")
-            
         }
 ##         environment(mapCloseAndPythonChromA) <- environment()
 ##         mapCloseAndPythonChromA()
@@ -3684,18 +3660,14 @@ plot.cw.superimpA <- function(res, chrom,
 ##           cat("\n length(indexchr) ", length(indexchr), "\n")
           stop("Serious problem: number of arrays does not match")
         }
+
         write(rep(as.character(geneNames[indexchr]), arraynums), 
               file = paste("geneNamesChr_", nameChrIm, sep = ""))
         imClose3(im2)
         if(html_js)
           system(paste(.python.toMap.py, nameChrIm, 
                        idtype, organism, sep = " "))
-
-        mydcat(" 10 ")
-        
     }
-    mydcat(" 11 ")
-
     out <- papply(datalist, funp, papply_commondata = pappl_common)
 }
 
@@ -3811,8 +3783,7 @@ mapGenomeWideClose <- function(nameIm, im1) {
     imClose3(im1)
 }
 
-plotGenomeWide <- function() {
-    ## BEWARE!!!: we need to set the environment properly!!
+plotGenomeWide <- function(logr, simplepos, col, main, pch, ylim, colors) {
     plot(logr ~ simplepos, col= col, ylab = "log ratio",
          xlab ="Chromosome location", axes = FALSE, cex = 0.7, main = main,
          pch = pch, ylim = ylim)
@@ -3823,10 +3794,9 @@ plotGenomeWide <- function() {
 }
 
 
-mapLinkChrom <- function() {
+mapLinkChrom <- function(logr, simplepos, chrom, nameIm, im1) {
     ## 1) add the vertical chromosome lines
     ## 2) html map: add links to chromosome-wide figures
-    ## BEWARE!!!: we need to set the environment properly!!
     LimitChr <- tapply(simplepos,
                        chrom, max)
     abline(v=LimitChr, col="grey", lty=2)

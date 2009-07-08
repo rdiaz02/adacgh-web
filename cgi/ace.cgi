@@ -373,7 +373,7 @@ if fdrace > 1:
                            
 if not os.path.exists(tmpDir + '/rerunACE.Rout'):
     shutil.copy("/http/adacgh2/cgi/rerunACE.R", tmpDir)
-    Rcommand = "cd " + tmpDir + "; " + "/http/R-custom/bin/R CMD BATCH --no-restore --no-readline --no-save -q rerunACE.R 2> errorACE.msg &"
+    Rcommand = "cd " + tmpDir + "; " + "/http/R-www/bin/R CMD BATCH --no-restore --no-readline --no-save -q rerunACE.R 2> errorACE.msg &"
     Rrun = os.system(Rcommand)
 
 ###########   Creating a results.hmtl   ###############

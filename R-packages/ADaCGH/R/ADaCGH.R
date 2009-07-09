@@ -3073,7 +3073,6 @@ plot.adacgh.chromosomewide <- function(res, chrom,
 
   pixels.point <- 3
   pch <- 20
-  
   col <- rep(colors[1],length(res[, 3]))
   col[which(res[, 3] == -1)] <- colors[3]
   col[which(res[, 3] == 1)] <- colors[2]
@@ -3083,121 +3082,52 @@ plot.adacgh.chromosomewide <- function(res, chrom,
   
   cat("\n  plot.adacgh.chromosomewide: doing sample ", main, "\n")
   
-  
   for(cnum in 1:length(chrom.nums)) {
     cat("\n        plot.adacgh.chromosomewide: doing chromosome  ", cnum, "\n")
-
-
-    mydcat(" 1 ")
     indexchr <- which(chrom == chrom.nums[cnum])
-    mydcat(" 2 ")
-
     ccircle <- NULL
-
-        mydcat(" 3 ")
-
     simplepos <- if(is.null(geneLoc)) (1:length(indexchr)) else geneLoc[indexchr]
-
-        mydcat(" 4 ")
-
     ## Formerly mapChromOpen
     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-
-        mydcat(" 5 ")
-
     chrwidth <- max(chrwidth, 800)
-        mydcat(" 6 ")
-
     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                      height = imgheight, width = chrwidth,
                      ps = 12)
-
-        mydcat(" 7 ")
-
     ##
     ## Formerly plotChromWide()
     par(xaxs = "i")
     par(mar = c(5, 5, 5, 5))
     par(oma = c(0, 0, 0, 0))
-
-    mydcat(" 8 ")
-
-
-    mydcat2(summary(simplepos))
-    mydcat2(summary(res[indexchr,1]))
-    mydcat2(col[indexchr])
-    mydcat2(chrom.nums[cnum])
-    mydcat2( nameIm)
-    mydcat2(pch)
-    mydcat2(ylim)
     
     plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = 1,
          xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
          main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
          pch = pch, ylim = ylim)
-
-        mydcat(" 9 ")
-
     box()
     axis(2)
     abline(h = 0, lty = 2, col = colors[5])
-
-        mydcat(" 10 ")
-
     rug(simplepos, ticksize = 0.01)
     lines(res[indexchr, 2] ~ simplepos,
           col = colors[4], lwd = 2, type = "l")
-
-        mydcat(" 11 ")
-
     dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
-        mydcat(" 12 ")
-
     cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-        mydcat(" 13 ")
-
     ccircle <- rbind(t(usr2png(cbind(simplepos, res[indexchr, 1]), im2)),
                      rep(cc1.r, length(simplepos)))
-
-        mydcat(" 14 ")
-
-    ## Formerly mapCloseAndPythonChrom()
     nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
-        mydcat(" 15 ")
-
     write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
           sep ="\t", ncolumns = 3)
-
-        mydcat(" 16 ")
-
     calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
-        mydcat(" 17 ")
-
     ## what are the next three lines for here?? FIXME
     if(!exists("arraynums")) arraynums <- 1
-        mydcat(" 18 ")
-
     if(calcnarrays != arraynums)
       stop("Serious problem: number of arrays does not match")
-        mydcat(" 19 ")
-
     write(rep(as.character(geneNames[indexchr]), arraynums), 
           file = paste("geneNamesChr_", nameChrIm, sep = ""))
-        mydcat(" 20 ")
-
     imClose3(im2)
-
-        mydcat(" 21 ")
-
     if(html_js) 
       system(paste(.python.toMap.py, nameChrIm, 
                    idtype, organism, sep = " "))
-        mydcat(" 22 ")
-
-    
   }        ## looping over chromosomes
-    mydcat(" 23 ")
-
 }
 
 
@@ -3299,7 +3229,6 @@ plot.cw.superimpA <- function(res, chrom,
     nfig <- 1
     for(arraynum in 1:arraynums) { ## first, plot the points
       cat("\n      plot.cw.superimpA: doing array ", arraynum, "\n")
-      mydcat("    1    ")
       logr <- z$resl[[arraynum]][, 1]
       res.dat <- z$resl[[arraynum]][, 3]
       smoothdat <- z$resl[[arraynum]][, 2]

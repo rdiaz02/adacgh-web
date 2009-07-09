@@ -9,7 +9,7 @@ produces html files (and associated png) with an image map with links to
 additional information. You need Python for all this to work.
 }
 \usage{
-segmentPlot(x, geneNames, yminmax, chrom.numeric = NULL, 
+segmentPlot(x, geneNames, yminmax, 
             idtype = "ug", organism = "Hs",
             arrays = NULL, chroms = NULL,
             colors = c("orange", "red", "green", "blue", "black"),
@@ -25,7 +25,7 @@ segmentPlot(x, geneNames, yminmax, chrom.numeric = NULL,
   \item{geneNames}{ A vector of gene names. }
     \item{yminmax}{ A vector of the form (min, max) for the minimum and
     maximum used in the figures. }
-  \item{chrom.numeric}{ A (numeric) vector of chromosome indicators. }
+%  \item{chrom.numeric}{ A (numeric) vector of chromosome indicators. }
 %   \item{cghdata}{ The aCGH data. }
 %  \item{arraynames}{ A vector of array names. }
   \item{idtype}{ The type of id of the gene name; one of

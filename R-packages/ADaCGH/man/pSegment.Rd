@@ -409,77 +409,66 @@ yminmax <- c(min(as.matrix(cghE1[, 5:7])),
 
 segmentPlot(hmm.out, 
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")
 
 segmentPlot(glad.out,
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")
 
 segmentPlot(cghseg.out,
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")
 
 segmentPlot(wave.out, 
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")
 
 segmentPlot(wave.out, 
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")
 
 segmentPlot(haar.out,
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")
 
 segmentPlot(cbs.out, 
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")
 
 try(segmentPlot(psw.pos.out,
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs"))
 
 try(segmentPlot(psw.neg.out,
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs"))
 
 try(segmentPlot(biohmm.out, 
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs"))
 
 segmentPlot(ace.out.sum, 
             geneNames = cghE1[, 1],
-            chrom.numeric = chrom.numeric,
             yminmax = yminmax,
             idtype = "ug",
             organism = "Hs")

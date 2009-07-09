@@ -1037,7 +1037,9 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         writeResults(out.losses, commondata = common.data,
                      file = "Losses.Price.Smith.Waterman.results.txt")
         save(file = "PSW.RData", list = ls(all.names = TRUE))
-        ADaCGH:::PSWtoPaLS()
+        ADaCGH:::PSWtoPaLS(x = .__PSW_PALS.Lost_for_PaLS.txt,
+                           y = .__PSW_PALS.Gained_for_PaLS.txt,
+                           out = "Gained_or_Lost_for_PaLS.txt")
         doCheckpoint(4)
     }
     if(checkpoint.num < 5) {

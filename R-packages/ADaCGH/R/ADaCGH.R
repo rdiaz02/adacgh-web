@@ -274,9 +274,9 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
     require("GLAD") || stop("Package not loaded: GLAD")
     out <- papply(data.frame(x),
                   function(z) gladWrapper(z,
-                                          Chrom = slave_chrom),
+                                          Chrom = chrom.numeric),
                   papply_commondata = list(
-                  slave_chrom = chrom.numeric))
+                  chrom.numeric = chrom.numeric))
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
@@ -408,6 +408,8 @@ pSegmentPSW <- function(x, chrom.numeric, common.data,
   stop.na.inf(x)
   warn.too.few.in.chrom(chrom.numeric)
 
+  slname <- name
+  
   numarrays <- ncol(x)
     ncrom <- length(unique(chrom.numeric))
     out <- list()
@@ -428,20 +430,20 @@ pSegmentPSW <- function(x, chrom.numeric, common.data,
     }
     papout <- papply(datalist,
                   function(z) my.sw3b(z$data,
-                                      chrom = sl.chrom.numeric,
-                                      sign = sl.sign,
-                                      p.crit = sl.p.crit,
-                                      nIter = sl.nIter,
-                                      prec = sl.prec,
-                                      name = paste(sl.name, colnamesdata[z$num], sep = ""),
+                                      chrom = chrom.numeric,
+                                      sign = sign,
+                                      p.crit = p.crit,
+                                      nIter = nIter,
+                                      prec = prec,
+                                      name = paste(slname, colnamesdata[z$num], sep = ""),
                                       highest = FALSE),
                   papply_commondata = list(
-                  sl.chrom.numeric = chrom.numeric,
-                  sl.sign = sign,
-                  sl.nIter = nIter,
-                  sl.prec = prec,
-                  sl.name = name,
-                  sl.p.crit = p.crit,
+                  chrom.numeric = chrom.numeric,
+                  sign = sign,
+                  nIter = nIter,
+                  prec = prec,
+                  slname = slname,
+                  p.crit = p.crit,
                   colnamesdata = colnames(x)))
     if(any(unlist(lapply(papout, function(z) z == "swt.perm.try-error")))) {
         m1 <- "There was a problem in the PSW routine; this is \n"
@@ -610,44 +612,44 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
     }
     sbn <- length(sbdry)
    
-    papply_common <- list(slave_alpha        = alpha,
-                          slave_nperm        = nperm,
-                          slave_kmax         = kmax,
-                          slave_nmin         = nmin,
-                          slave_overlap      = overlap,
-                          slave_trim         = trim,
-                          slave_undo.prune   = undo.prune,
-                          slave_undo.SD      = undo.SD,
-                          slave_sbdry        = sbdry,
-                          slave_sbn          = sbn)
+    papply_common <- list(alpha        = alpha,
+                          nperm        = nperm,
+                          kmax         = kmax,
+                          nmin         = nmin,
+                          overlap      = overlap,
+                          trim         = trim,
+                          undo.prune   = undo.prune,
+                          undo.SD      = undo.SD,
+                          sbdry        = sbdry,
+                          sbn          = sbn)
        
     if(smooth) {
         out0 <- papply(datalist, function(z)
                        wrapperDNAcopySmooth(z,
-                                            alpha =         slave_alpha,     
-                                            nperm =         slave_nperm,    
-                                            kmax =          slave_kmax,      
-                                            nmin =          slave_nmin,      
-                                            overlap =       slave_overlap,   
-                                            trim =          slave_trim,      
-                                            undo.prune =    slave_undo.prune,
-                                            undo.SD =       slave_undo.SD,   
-                                            sbdry =         slave_sbdry,     
-                                            sbn =           slave_sbn),
+                                            alpha =         alpha,     
+                                            nperm =         nperm,    
+                                            kmax =          kmax,      
+                                            nmin =          nmin,      
+                                            overlap =       overlap,   
+                                            trim =          trim,      
+                                            undo.prune =    undo.prune,
+                                            undo.SD =       undo.SD,   
+                                            sbdry =         sbdry,     
+                                            sbn =           sbn),
                        papply_common)
     } else {
         out0 <- papply(datalist, function(z)
                        wrapperDNAcopyNoSmooth(z,
-                                            alpha =         slave_alpha,     
-                                            nperm =         slave_nperm,    
-                                            kmax =          slave_kmax,      
-                                            nmin =          slave_nmin,      
-                                            overlap =       slave_overlap,   
-                                            trim =          slave_trim,      
-                                            undo.prune =    slave_undo.prune,
-                                            undo.SD =       slave_undo.SD,   
-                                            sbdry =         slave_sbdry,     
-                                            sbn =           slave_sbn),
+                                            alpha =         alpha,     
+                                            nperm =         nperm,    
+                                            kmax =          kmax,      
+                                            nmin =          nmin,      
+                                            overlap =       overlap,   
+                                            trim =          trim,      
+                                            undo.prune =    undo.prune,
+                                            undo.SD =       undo.SD,   
+                                            sbdry =         sbdry,     
+                                            sbn =           sbn),
                        papply_common)
             }
     matout0 <- matrix(unlist(out0), ncol = nsample)
@@ -708,7 +710,8 @@ segmentPlot <- function (x, geneNames, yminmax,
                         html_js = html_js, imgheight = imgheight)
       cat("\n gc after plot.cw.superimpose \n")
       print(gc())
-      plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
+      plot.gw.superimp(res = x$segm,
+                       chrom = x$chrom.numeric,
                        ylim = yminmax,
                        geneNames = geneNames,
                        imgheight = imgheight,
@@ -718,16 +721,18 @@ segmentPlot <- function (x, geneNames, yminmax,
       print(gc())
     }
 
+    ## to avoid complaints of code checks
+    chrr <-  x$chrom.numeric
     
     tmp_papout <- papply(x$segm[arrays], function(z) {
-      plot.adacgh.nonsuperimpose(res = z, chrom = cnum_slave, 
+      plot.adacgh.nonsuperimpose(res = z, chrom = chrr, 
                                  main = attributes(z)$ArrayName,
                                  colors = colors, ylim = yminmax, 
                                  geneNames = geneNames, idtype = idtype, organism = organism, 
                                  geneLoc = geneLoc, html_js = html_js, imgheight = imgheight,
                                  genomewide_plot = genomewide_plot,
-                                 chroms = chroms)
-    }, papply_commondata = list(cnum_slave = x$chrom.numeric, 
+                                 chromsplot = chroms)
+    }, papply_commondata = list(chrr = chrr, 
        geneNames = geneNames, idtype = idtype, 
        organism = organism, colors = colors, geneLoc = geneLoc, 
        yminmax = yminmax, html_js = html_js, imgheight = imgheight,
@@ -3100,10 +3105,13 @@ summary.ACE.array <- function(object, fdr=NULL, html = TRUE,
 
 
 
-PSWtoPaLS <- function(x = .__PSW_PALS.Lost_for_PaLS.txt,
-                      y = .__PSW_PALS.Gained_for_PaLS.txt,
+## PSWtoPaLS <- function(x = .__PSW_PALS.Lost_for_PaLS.txt,
+##                       y = .__PSW_PALS.Gained_for_PaLS.txt,
+##                       out = "Gained_or_Lost_for_PaLS.txt") {
+
+PSWtoPaLS <- function(x, y,
                       out = "Gained_or_Lost_for_PaLS.txt") {
-    ## Creat the gained or lost
+  ## Creat the gained or lost
     ooo <- function(u, v) mapply(function(x, y, nx)
                                  return(c(paste("#", nx, sep = ""), x, y)),
                                  u, v, names(u))
@@ -3291,14 +3299,13 @@ caughtUserError.Web <- function(message) {
 
 
 doCheckpoint <- function(num) {
-  ## Note the global assignment!!!
-  ## But this is not a regular "user-callable function"
-    checkpoint.num.new <- num
+##    checkpoint.num.new <- num
     save.image()
-    checkpoint.num <<- num
+##    checkpoint.num <<- num
     sink("checkpoint.num")
     cat(num)
     sink()
+    return(num)
 }
 
 
@@ -3423,23 +3430,28 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        chromsplot = NULL) {
     cat("\n plot.adacgh.nonsuperimpose: Doing sample ", main, "\n")
   if(genomewide_plot) {
-    plot.adacgh.genomewide(res, chrom,  main, colors,
-                           ylim, geneNames, geneLoc, imgheight)
+    plot.adacgh.genomewide(res, chrom, geneNames, imgheight,
+                           main, colors,
+                           ylim, geneLoc)
   }
 ##    mydcat(".......................... mydcat        00               ")
 
-  plot.adacgh.chromosomewide(res, chrom,  main, colors,
-                             ylim, geneNames, idtype, organism, geneLoc,
-                             html_js, imgheight, chromsplot = chromsplot)
+  plot.adacgh.chromosomewide(res, chrom,
+                             geneNames,
+                             imgheight,
+                             main, colors,
+                             ylim, idtype, organism, geneLoc,
+                             html_js = html_js,
+                             chromsplot = chromsplot)
 }
 
 plot.adacgh.genomewide <- function(res, chrom,
+                                   geneNames,
+                                   imgheight,
                                    main = NULL,
                                    colors = c("orange", "red", "green", "blue", "black"),
                                    ylim = NULL,
-                                   geneNames = positions.merge1$name,
-                                   geneLoc = NULL,
-                                   imgheight = imgheight) {
+                                   geneLoc = NULL) {
     warning(paste("This function is likely to be soon deprecated.",
             "With huge arrays, genomewide plots make little sense."))
     
@@ -3478,15 +3490,14 @@ plot.adacgh.genomewide <- function(res, chrom,
 
 
 plot.adacgh.chromosomewide <- function(res, chrom,
+                                       geneNames, imgheight,
                                        main = NULL,
                                        colors = c("orange", "red", "green", "blue", "black"),
                                        ylim = NULL,
-                                       geneNames = positions.merge1$name,
                                        idtype = idtype,
                                        organism = organism,
                                        geneLoc = NULL,
-                                       html_js = html_js,
-                                       imgheight = imgheight,
+                                       html_js = FALSE,
                                        chromsplot = NULL) {
 
     pixels.point <- 3
@@ -4316,6 +4327,9 @@ exact = NULL, conf.int = FALSE, conf.level = 0.95, ...)
 {
 
   ##R_pansari and R_qansari are in stats namespace
+  thisR_pansari <- stats:::R_pansari
+  thisR_qansari <- stats:::R_qansari
+  
  alternative <- match.arg(alternative)
  if (conf.int) {
    if (!((length(conf.level) == 1) && is.finite(conf.level) &&
@@ -4339,7 +4353,7 @@ exact = NULL, conf.int = FALSE, conf.level = 0.95, ...)
    exact <- ((m < 50) && (n < 50))
  if (exact && !TIES) {
    pansari <- function(q, m, n) {
-     .C(R_pansari, as.integer(length(q)), p = as.double(q),
+     .C(thisR_pansari, as.integer(length(q)), p = as.double(q),
        as.integer(m), as.integer(n))$p
    }
    PVAL <- switch(alternative, two.sided = {
@@ -4352,7 +4366,7 @@ pansari(STATISTIC,
      m, n))
    if (conf.int) {
      qansari <- function(p, m, n) {
-       .C(R_qansari, as.integer(length(p)), q = as.double(p),
+       .C(thisR_qansari, as.integer(length(p)), q = as.double(p),
         as.integer(m), as.integer(n))$q
      }
      alpha <- 1 - conf.level
@@ -4619,9 +4633,9 @@ pSegmentHMM_A <- function(x, chrom.numeric, ...) {
     chrom.numeric.seq <- as.numeric(as.factor(chrom.numeric))
     
     out <- papply(data.frame(x),
-                  function(z) hmmWrapper_A(z, Chrom = slave_chrom),
+                  function(z) hmmWrapper_A(z, Chrom = chrom.numeric.seq),
                   papply_commondata = list(
-                  slave_chrom = chrom.numeric.seq))
+                  chrom.numeric.seq = chrom.numeric.seq))
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
@@ -4714,52 +4728,75 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
     sbn <- length(sbdry)
    
     datalist <- data.frame(x)
-    papply_common <- list(slave_cnum         = chrom.numeric,
-                          slave_alpha        = alpha,
-                          slave_nperm        = nperm,
-                          slave_kmax         = kmax,
-                          slave_nmin         = nmin,
-                          slave_overlap      = overlap,
-                          slave_trim         = trim,
-                          slave_undo.prune   = undo.prune,
-                          slave_undo.SD      = undo.SD,
-                          slave_sbdry        = sbdry,
-                          slave_sbn          = sbn,
-                          slave_merge        = mergeSegs,
-                          slave_pv_th_merge  = merge.pv.thresh,
-                          slave_ansari_sign  = merge.ansari.sign,
-                          slave_merge_tmin   = merge.thresMin,
-                          slave_merge_tmax   = merge.thresMax,
-                          slave_smooth       = smooth)
-       
+    ## papply_common <- list(slave_cnum         = chrom.numeric,
+    ##                       slave_alpha        = alpha,
+    ##                       slave_nperm        = nperm,
+    ##                       slave_kmax         = kmax,
+    ##                       slave_nmin         = nmin,
+    ##                       slave_overlap      = overlap,
+    ##                       slave_trim         = trim,
+    ##                       slave_undo.prune   = undo.prune,
+    ##                       slave_undo.SD      = undo.SD,
+    ##                       slave_sbdry        = sbdry,
+    ##                       slave_sbn          = sbn,
+    ##                       slave_merge        = mergeSegs,
+    ##                       slave_pv_th_merge  = merge.pv.thresh,
+    ##                       slave_ansari_sign  = merge.ansari.sign,
+    ##                       slave_merge_tmin   = merge.thresMin,
+    ##                       slave_merge_tmax   = merge.thresMax,
+    ##                       slave_smooth       = smooth)
+    
+    
+    papply_common <- list(
+                          chrom.numeric   =   chrom.numeric, 
+                          alpha   =           alpha,         
+                          nperm   =           nperm,         
+                          kmax   =            kmax,          
+                          nmin   =            nmin,          
+                          overlap   =         overlap,       
+                          trim   =            trim,          
+                          undo.prune   =      undo.prune,    
+                          undo.SD   =         undo.SD,       
+                          sbdry   =           sbdry,         
+                          sbn   =             sbn,           
+                          mergeSegs   =       mergeSegs,     
+                          merge.pv.thresh   = merge.pv.thresh,
+                          merge.ansari.sign = merge.ansari.sign,
+                          merge.thresMin   =  merge.thresMin,
+                          merge.thresMax   =  merge.thresMax,
+                          smooth   =          smooth)        
+
+
+
+
     papfunc <- function(data) {
 ##         cat("\n DEBUG: STARTING PAPFUNC \n")
-        if(slave_smooth)
+        if(smooth)
             data <- internalSmoothCNA_A(data,
-                                        chrom.numeric = slave_cnum,
+                                        chrom.numeric = chrom.numeric,
                                         smooth.region = 2, outlier.SD.scale = 4,
                                         smooth.SD.scale = 2, trim = 0.025)
         outseg <-
             internalDNAcopy_A(data,
-                              chrom.numeric = slave_cnum,      
-                              alpha =         slave_alpha,     
-                              nperm =         slave_nperm,    
-                              kmax =          slave_kmax,      
-                              nmin =          slave_nmin,      
-                              overlap =       slave_overlap,   
-                              trim =          slave_trim,      
-                              undo.prune =    slave_undo.prune,
-                              undo.SD =       slave_undo.SD,   
-                              sbdry =         slave_sbdry,     
-                              sbn =           slave_sbn)
-        if(!slave_merge) {
+                              chrom.numeric = chrom.numeric,   
+                              alpha =         alpha,     
+                              nperm =         nperm,    
+                              kmax =          kmax,      
+                              nmin =          nmin,      
+                              overlap =       overlap,   
+                              trim =          trim,     
+                              undo.prune =    undo.prune,
+                              undo.SD =       undo.SD,   
+                              sbdry =         sbdry,     
+                              sbn =           sbn)
+        if(!mergeSegs) {
             return(outseg)
         } else {
             outmerge <- ourMerge(outseg[, 1], outseg[, 2],
-                                   merge.pv.thresh = slave_pv_th_merge,
-                                   merge.ansari.sign = slave_ansari_sign,
-                                   merge.thresMin = slave_merge_tmin,
-                                   merge.thresMax = slave_merge_tmax)
+                                   merge.pv.thresh = merge.pv.thresh,
+                                   merge.ansari.sign = merge.ansari.sign,
+                                   merge.thresMin = merge.thresMin,
+                                   merge.thresMax = merge.thresMax)
             return(outmerge)
         }
     }
@@ -4892,10 +4929,10 @@ internalDNAcopy_A <- function(acghdata,
 }
 
 
-
-## ace.analysisP_C <-function(x, coefs, Sdev, array.names) {
-##     ace.analysis.C(x, coefs, Sdev, array.names)
-## }
+##ace.analysisP_C <-function(x) {
+ace.analysisP_C <-function(x, coefs, Sdev, array.names) {
+  ace.analysis.C(x, coefs, Sdev, array.names)
+}
 
 
 
@@ -4910,46 +4947,37 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
     }
     
     array.names <- colnames(x)
-    
+
     nchrom <- length(unique(Chrom))
     if(is.null(dim(x)) || (dim(x)[2]==1)) {
         genes <- split(x, Chrom)
         first.estimate <- papply(genes,
-                                 function(z) ace.analysis.C(x = z,
-                                                            coefs = coefs,
-                                                            Sdev = Sdev,
-                                                            array.names = array.names),
-                                 papply_commondata =list(coefs = coefs,
-                                   Sdev = Sdev,
-                                   echo = FALSE,
-                                   array.names = array.names))
+                                 function(z) ace.analysisP_C(z,
+                                                             coefs = coefs,
+                                                             Sdev = Sdev,
+                                                             array.names = array.names))
         Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
         Sdevs <- unlist(lapply(Sdevs.estimate, "[", 1))
         Sdevs <- mean(Sdevs[Sdevs>0])
         if(is.nan(Sdevs)) Sdevs <- 0
-        res <- papply(genes, function(z) ace.analysis.C(x = z,
-                                                         coefs = coefs,
-                                                         Sdev = Sdev,
-                                                         array.names = array.names),
-                      papply_commondata =list(coefs=coefs,
-                      Sdev = Sdevs,
-                      echo = FALSE, array.names = array.names))
+
+        res <- papply(genes, function(z) ace.analysisP_C(z,
+                                                          coefs = coefs,
+                                                          Sdev = Sdev,
+                                                          array.names = array.names))
         class(res) <- "ACE"
     }
     else {
+
         Sdevs <- matrix(NA, ncol(x),nchrom)
         res <- list()
         for(i in 1:ncol(x)) {
             genes <- split(x[,i], Chrom)
             first.estimate <- papply(genes,
-                                     function(z) ace.analysis.C(x = z,
-                                                                coefs = coefs,
-                                                                Sdev = Sdev,
-                                                                array.names = array.names),
-                                     papply_commondata =list(coefs= coefs,
-                                       Sdev = Sdev,
-                                       echo = FALSE,
-                                       array.names = array.names[i]))
+                                     function(z) ace.analysisP_C(z,
+                                                                 coefs = coefs,
+                                                                 Sdev = Sdev,
+                                                                 array.names = array.names[i]))
             Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
             Sdevs[i,] <- unlist(lapply(Sdevs.estimate, "[", 1))
         }
@@ -4957,14 +4985,11 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
         if(is.nan(Sdevs)) Sdevs <- 0
         for (i in 1:ncol(x)) {
             genes <- split(x[,i], Chrom)
-            res[[i]] <- papply(genes,
-                               function(z) ace.analysis.C(x = z,
-                                                          coefs = coefs,
-                                                          Sdev = Sdev,
-                                                          array.names = array.names),
-                               papply_commondata =list(coefs= coefs,
-                               Sdev = Sdevs,
-                               echo = FALSE, array.names = array.names[i]))
+
+            res[[i]] <- papply(genes, function(z) ace.analysisP_C(z,
+                                                           coefs = coefs,
+                                                           Sdev = Sdev,
+                                                           array.names = array.names[i]))
             class(res[[i]]) <- "ACE"
         }
         class(res) <- "ACE.array"

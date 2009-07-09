@@ -1,10 +1,17 @@
 ## .__ADaCGH_WEB_APPL <- TRUE in web appl!
 
-if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
-    warningsForUsers <- vector()
+if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv))
+{
+  warningsForUsers <- vector()
+} else if (exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
+  warningsForUsers <- vector()
 } else {
-    warningsForUsers <- warning
+  warningsForUsers <- warning
 }
+
+
+
+
 
 ## BEWARE: at least with DNAcopy we use some non-user callable
 ## functions, such as changepoints. If things do not work, check
@@ -98,6 +105,10 @@ if(package_version(packageDescription("snapCGH")$Version) > "1.11") {
 ## becasue even if fit.model is documented, it is NOT exported.
 ## Well, they get away with it because there are no executable examples
 ## in the help for fit.model.
+
+
+## Other vars
+getbdry <- DNAcopy:::getbdry
 
 
 
@@ -362,12 +373,13 @@ pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres = -0.05, ...) {
 ##             klist <- klist + 1
 ##         }
 ##     }
-    datalist <- data.frame(x)
-    out0 <- papply(datalist, function(z) CGHsegWrapper(z,
-                                                       chrom.numeric = slave_cnum,
-                                                       s = cghseg.s.slave),
-                   papply_commondata = list(cghseg.s.slave = CGHseg.thres,
-                   slave_cnum = chrom.numeric))
+  datalist <- data.frame(x)
+  out0 <- papply(datalist, function(z) CGHsegWrapper(z,
+                                                     chrom.numeric = chrom.numeric,
+                                                     s = CGHseg.thres),
+                 papply_commondata = list(
+                   CGHseg.thres = CGHseg.thres,
+                   chrom.numeric = chrom.numeric))
   
 ##     out <- list()
 ##     klist <- 1
@@ -504,7 +516,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
         thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
         recH <- imodwt(thH)
         ## cluster levels
-        pred.ij <- segmentW(ratio, recH, minDiff=miDiff,
+        pred.ij <- segmentW(ratio, recH, minDiff=minDiff,
                             n.levels = initClusterLevels)
         labs <- as.character(1:length(unique(pred.ij)))
         state <- as.integer(factor(pred.ij, labels=labs))
@@ -514,7 +526,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
     }
     out0 <- papply(datalist, funwv,
                    papply_commondata =list(thrLvl = thrLvl,
-                   miDiff = force(thismdiff)))
+                   minDiff = force(thismdiff)))
 
     ## list with one entry per array
     out <- list()
@@ -696,9 +708,12 @@ segmentPlot <- function (x, geneNames, yminmax,
                         html_js = html_js, imgheight = imgheight)
       cat("\n gc after plot.cw.superimpose \n")
       print(gc())
-      plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric, 
-                       main = "All_arrays", colors = colors, ylim = yminmax, 
-                       geneNames = geneNames, geneLoc = geneLoc, imgheight = imgheight)
+      plot.gw.superimp(res = x$segm, chrom = x$chrom.numeric,
+                       ylim = yminmax,
+                       geneNames = geneNames,
+                       imgheight = imgheight,
+                       main = "All_arrays", colors = colors,  
+                       geneLoc = geneLoc)
       cat("\n gc after plot.gw.superimp \n")
       print(gc())
     }
@@ -709,24 +724,24 @@ segmentPlot <- function (x, geneNames, yminmax,
                                  main = attributes(z)$ArrayName,
                                  colors = colors, ylim = yminmax, 
                                  geneNames = geneNames, idtype = idtype, organism = organism, 
-                                 geneLoc = pos_slave, html_js = html_js, imgheight = imgheight,
+                                 geneLoc = geneLoc, html_js = html_js, imgheight = imgheight,
                                  genomewide_plot = genomewide_plot,
-                                 chromsplot = chromsplot)
+                                 chroms = chroms)
     }, papply_commondata = list(cnum_slave = x$chrom.numeric, 
        geneNames = geneNames, idtype = idtype, 
-       organism = organism, colors = colors, pos_slave = geneLoc, 
+       organism = organism, colors = colors, geneLoc = geneLoc, 
        yminmax = yminmax, html_js = html_js, imgheight = imgheight,
-       genomewide_plot = genomewide_plot, chromsplot = chroms))
+       genomewide_plot = genomewide_plot, chroms = chroms))
     cat("\n gc after plot.adacgh.nonsuperimpose \n")
     print(gc())
     
   }
   else if (inherits(x, "CGH.PSW")) {
     if (x$plotData[[1]]$sign < 0) {
-      main <- "Losses."
+      mainsl <- "Losses."
     }
     else {
-      main <- "Gains."
+      mainsl <- "Gains."
     }
     l1 <- list()
     for (i in 1:length(x$plotData)) {
@@ -745,10 +760,10 @@ segmentPlot <- function (x, geneNames, yminmax,
       cat("\n Doing sample ", z$arrayname, "\n")
       sw.plot3(logratio = z$lratio, sign = z$sign, swt.perm = z$swt.perm, 
                rob = z$rob, swt.run = z$swt.run, p.crit = z$p.crit, 
-               chrom = z$chrom, main = paste(main_slave, z$arrayname, 
+               chrom = z$chrom, main = paste(mainsl, z$arrayname, 
                                   sep = ""), geneNames = geneNames, idtype = idtype, 
                organism = organism, html_js = html_js, imgheight = imgheight)
-    }, papply_commondata = list(main_slave = main,  
+    }, papply_commondata = list(mainsl= mainsl,  
          geneNames = geneNames, idtype = idtype, organism = organism, 
          html_js = html_js, imgheight = imgheight))
   }
@@ -918,30 +933,31 @@ segmentPlot <- function (x, geneNames, yminmax,
 
 
 
-plateauPlot <- function(obj, ...) {
-    UseMethod("plateauPlot")
-}
+## plateauPlot <- function(obj, ...) {
+##     UseMethod("plateauPlot")
+## }
 
-plateauPlot.DNAcopy <- function(obj, ...) {
-    ## For each sample:
-    plot.DNAcopy2(obj, ...)
-    ## superimposing all:
-    plot.DNAcopy3(obj, pt.pch = "", pt.cex = 0, ...)
-    ## One for all
-    plot.DNAcopy4(obj, ...)
-    }
-plateauPlot.CGH.wave <- function(obj, cghdata, ...) {
-    numarrays <- ncol(cghdata)
-    yminmax <- c(min(as.matrix(cghdata)),
-                 max(as.matrix(cghdata)))
-    ## by array:
-    plateau.wavelets(obj, cghdata, by.array = TRUE)
-    ## arrays, superimposed
-    plateau.wavelets(obj, cghdata, by.array = TRUE, superimpose = TRUE,
-                     ylim = yminmax)
-    ## all, collapsed
-    plateau.wavelets(obj, cghdata, by.array = FALSE)
-}
+## plateauPlot.DNAcopy <- function(obj, ...) {
+##     ## For each sample:
+##     plot.DNAcopy2(obj, ...)
+##     ## superimposing all:
+##     plot.DNAcopy3(obj, pt.pch = "", pt.cex = 0, ...)
+##     ## One for all
+##     plot.DNAcopy4(obj, ...)
+##     }
+
+## plateauPlot.CGH.wave <- function(obj, cghdata, ...) {
+##     numarrays <- ncol(cghdata)
+##     yminmax <- c(min(as.matrix(cghdata)),
+##                  max(as.matrix(cghdata)))
+##     ## by array:
+##     plateau.wavelets(obj, cghdata, by.array = TRUE)
+##     ## arrays, superimposed
+##     plateau.wavelets(obj, cghdata, by.array = TRUE, superimpose = TRUE,
+##                      ylim = yminmax)
+##     ## all, collapsed
+##     plateau.wavelets(obj, cghdata, by.array = FALSE)
+## }
 
 
 
@@ -1020,6 +1036,7 @@ SegmentPlotWrite <- function(data, chrom,
 #### For now, these are not documented nor publicly available
 
 DNAcopyDiagnosticPlots <- function(CNA.object, CNA.smoothed.object,
+                                   smoothed.CNA.object,
                                    array.chrom = FALSE, chrom.numeric = NULL) {
     numarrays <- ncol(CNA.object) - 2
     if(!array.chrom) {
@@ -1156,13 +1173,15 @@ writeResults.CGH.wave <- function(obj, acghdata, commondata,
 
 writeResults.DNAcopy <- function(obj, acghdata, commondata, 
                                  file = "CBS.output.txt", ...) {
-    if(inherits(obj, "adacgh.generic.out")) {
-        print.adacgh.generic.results(obj, acghdata,
-                                     commondata, output = file)
-    } else {
-        print.olshen.results(obj, acghdata, commondata,
-                             merged = merged, output = file)
-    }
+  print.adacgh.generic.results(obj, acghdata,
+                               commondata, output = file)
+  ## if(inherits(obj, "adacgh.generic.out")) {
+  ##       print.adacgh.generic.results(obj, acghdata,
+  ##                                    commondata, output = file)
+  ##   } else {
+  ##       print.olshen.results(obj, acghdata, commondata,
+  ##                            merged = merged, output = file)
+  ##   }
 }
 
 writeResults.CGHseg <- function(obj, acghdata, commondata, 
@@ -2150,7 +2169,7 @@ mpiPSW <- function(wdir = getwd()) {
 
 
 
-my.sw3b <- function(logratio, chrom, sign = -1, p.crit = PSW.p.crit,
+my.sw3b <- function(logratio, chrom, sign = -1, p.crit = 0.01,
                     nIter = 1000,
                     prec = 100,
                     name,
@@ -2281,13 +2300,13 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
     }   
     
     if(length(sign.segments)) {
-        f1 <- function(index) {
+        f1A <- function(index) {
             si <- sign.segments[index]
             segments(swt.run$start[si] - 0.5, red.pos,
                      swt.run$start[si] - 0.5 + swt.run$length[si],
                      red.pos, col = "red", lwd = 2)
         }
-        tmp <- mapply(f1, 1:length(sign.segments))
+        tmp <- mapply(f1A, 1:length(sign.segments))
     }
 
    
@@ -2310,12 +2329,12 @@ sw.plot3 <- function (logratio, location = seq(length(logratio)),
         names(xleft) <- 1:length(xleft)
         xright <- lxs[nd + 1]
 
-        f1 <- function(xleft, xright, nd)
+        f1B <- function(xleft, xright, nd)
             imRect(xleft, maxlr, xright, minlr - 10,
                    title = paste("Chromosome", nd),
                    alt = paste("Chromosome", nd),
                    href= paste("Chr", nd, "@", nameIm, ".html", sep =""))
-        rectslist <- mapply(f1, xleft, xright, nd, SIMPLIFY=FALSE)
+        rectslist <- mapply(f1B, xleft, xright, nd, SIMPLIFY=FALSE)
         for(ll in 1:length(rectslist))
             addRegion(im1) <- rectslist[[ll]]
         createIM2(im1, file = paste(nameIm, ".html", sep = ""))
@@ -2745,9 +2764,9 @@ sd.ACE.analysis<- function(obj.ACE.analysis) {
 		}
 }
 
-ace.analysisP <-function(x, coefs, Sdev, array.names) {
-    ace.analysis.C(x, coefs, Sdev, array.names)
-}
+## ace.analysisP <-function(x, coefs, Sdev, array.names) {
+##     ace.analysis.C(x, coefs, Sdev, array.names)
+## }
 
 
 firstACEestimate <- function(x, coefs, Sdev, array.names) {
@@ -2772,19 +2791,22 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
          genes <- split(x, chrom.numeric)
          first.estimate <- papply(genes,
                                   function(z) firstACEestimate(z,
-                                                               coefs = cmm_coefs,
-                                                               Sdev = cmm_Sdev,
-                                                               array.names = cmm_array.names),
-                                  papply_commondata = list(cmm_coefs = coefs,
-                                  cmm_Sdev = Sdev,
-                                  cmm_array.names = array.names))
+                                                               coefs = coefs,
+                                                               Sdev = Sdev,
+                                                               array.names = array.names),
+                                  papply_commondata = list(coefs = coefs,
+                                  Sdev = Sdev,
+                                  array.names = array.names))
          Sdevs <- unlist(first.estimate)
          Sdevs <- mean(Sdevs[Sdevs>0])
          if(is.nan(Sdevs)) Sdevs <- 0
-         res <- papply(genes, ace.analysisP,
+         res <- papply(genes, function(z) ace.analysis.C(x = z,
+                                                         coefs = coefs,
+                                                         Sdev = Sdev,
+                                                         array.names = array.names),
                        papply_commondata =list(coefs=coefs,
-                       Sdev = Sdevs,
-                       echo = FALSE, array.names = array.names))
+                         Sdev = Sdevs,
+                         echo = FALSE, array.names = array.names))
          class(res) <- "ACE"
      } else {
          res <- list()
@@ -2801,22 +2823,22 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
          }
          first.estimate <- papply(datalist,
                                   function(z) firstACEestimate(z$logr,
-                                                               coefs = cmm_coefs,
-                                                               Sdev = cmm_Sdev,
+                                                               coefs = coefs,
+                                                               Sdev = Sdev,
                                                                array.names = z$arrayn),
-                                  papply_commondata = list(cmm_coefs = coefs,
-                                  cmm_Sdev = Sdev))
+                                  papply_commondata = list(coefs = coefs,
+                                  Sdev = Sdev))
          Sdevs <- unlist(first.estimate)
          Sdevs <- mean(Sdevs[Sdevs>0])
          if(is.nan(Sdevs)) Sdevs <- 0
 
          res <- papply(datalist,
-                       function(z) ace.analysisP(z$logr,
-                                                 coefs = cmm_coefs,
-                                                 Sdev = cmm_Sdev,
+                       function(z) ace.analysis.C(z$logr,
+                                                 coefs = coefs,
+                                                 Sdev = Sdev,
                                                  array.names = z$arrayn),
-                       papply_commondata = list(cmm_coefs = coefs,
-                       cmm_Sdev = Sdevs))
+                       papply_commondata = list(coefs = coefs,
+                       Sdev = Sdevs))
          resout <- list()
          i <- 1
          k <- 0
@@ -3196,6 +3218,92 @@ caughtOurError <- function(message) {
 }
     
 
+
+
+caughtOtherError.Web <- function(message) {
+    mpi.clean.quit.Web()
+    sink(file = "R_Error_msg.txt")
+    cat(message)
+    cat("\n")
+    sink()
+    sink(file = "R_Status.txt")
+    cat("Other Error\n\n")
+    sink()
+    quit(save = "no", status = 11, runLast = FALSE)
+}
+
+caughtOtherPackageError.Web <- function(message) {
+    mpi.clean.quit.Web()
+    message <- paste("This is a known problem in a package we depend upon. ",
+                     message)
+    sink(file = "R_Error_msg.txt")
+    cat(message)
+    cat("\n")
+    sink()
+    sink(file = "R_Status.txt")
+    cat("Other Error\n\n")
+    sink()
+    quit(save = "no", status = 11, runLast = FALSE)
+}
+
+
+
+mpi.clean.quit.Web <- function() {
+    if (is.loaded("mpi_initialize")){ 
+        if (mpi.comm.size(1) > 0){ 
+            try(mpi.close.Rslaves() , silent = TRUE)
+        } 
+    }
+    try(mpi.exit(), silent = TRUE)
+}
+
+
+caughtOurError.Web <- function(message) {
+    mpi.clean.quit.Web()
+    message <- paste("There was a problem with our code. Please let us know.\n", 
+                     message)
+    sink(file = "R_Error_msg.txt")
+    cat(message)
+    cat("\n")
+    sink()
+    sink(file = "R_Status.txt")
+    cat("Our Error\n\n")
+    sink()
+    quit(save = "no", status = 11, runLast = FALSE)
+
+}
+
+
+caughtUserError.Web <- function(message) {
+    mpi.clean.quit.Web()
+    message <- paste("There was a problem with something you did.\n",
+                     "Check the error message, your data and options and try again.\n",
+                     message, "\n")
+    sink(file = "R_Error_msg.txt")
+    cat(message)
+    cat("\n")
+    sink()
+    sink(file = "R_Status.txt")
+    cat("User Error\n\n")
+    sink()
+    quit(save = "no", status = 11, runLast = FALSE)
+}
+
+
+doCheckpoint <- function(num) {
+  ## Note the global assignment!!!
+  ## But this is not a regular "user-callable function"
+    checkpoint.num.new <- num
+    save.image()
+    checkpoint.num <<- num
+    sink("checkpoint.num")
+    cat(num)
+    sink()
+}
+
+
+
+
 my.html.data.frame <- function (object, first.col = "Name",
                              file = paste(first.word(deparse(substitute(object))), 
                              "html", sep = "."), append = FALSE, link = NULL, linkCol = 1, 
@@ -3262,27 +3370,27 @@ imagemap3 <- function(filename,width=480,height=480,
     im
 }
 
-linkGene2 <- function(id) {
-    ## Returns a string for use in a web page with a call
-    ## to IDClight.
-    if ((idtype == "None") | (organism == "None"))
-        return(id)
-    else 
-        paste("http://idclight.bioinfo.cnio.es/IDClight.prog",
-              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
-              organism, sep = "")
-}
+## linkGene2 <- function(id) {
+##     ## Returns a string for use in a web page with a call
+##     ## to IDClight.
+##     if ((idtype == "None") | (organism == "None"))
+##         return(id)
+##     else 
+##         paste("http://idclight.bioinfo.cnio.es/IDClight.prog",
+##               "?idtype=", idtype, "&id=", id, "&internal=0&org=",
+##               organism, sep = "")
+## }
 
-linkGene <- function(id) {
-    ## Returns a string for use in a web page with a call
-    ## to IDClight.
-    if ((idtype == "None") | (organism == "None"))
-        return(id)
-    else 
-        paste("<a href=\"http://idclight.bioinfo.cnio.es/IDClight.prog",
-              "?idtype=", idtype, "&id=", id, "&internal=0&org=",
-              organism," target=\"icl_window\"\">",id,"</a>", sep = "")
-}
+## linkGene <- function(id) {
+##     ## Returns a string for use in a web page with a call
+##     ## to IDClight.
+##     if ((idtype == "None") | (organism == "None"))
+##         return(id)
+##     else 
+##         paste("<a href=\"http://idclight.bioinfo.cnio.es/IDClight.prog",
+##               "?idtype=", idtype, "&id=", id, "&internal=0&org=",
+##               organism," target=\"icl_window\"\">",id,"</a>", sep = "")
+## }
 
 
 createIM2 <- function(im, file = "", imgTags = list(),
@@ -3467,11 +3575,9 @@ plot.adacgh.chromosomewide <- function(res, chrom,
 
 
 
-plot.gw.superimp <- function(res, chrom, main = NULL,
+plot.gw.superimp <- function(res, chrom, ylim, geneNames, imgheight, main = NULL,
                              colors = c("orange", "red", "green", "blue", "black"),
-                             ylim =c(ymin, ymax), 
-                             geneNames = positions.merge1$name,
-                             geneLoc = NULL, imgheight = imgheight) {
+                             geneLoc = NULL) {
 
     pch <- ""
     arraynums <- length(res)
@@ -3553,11 +3659,11 @@ plot.gw.superimp <- function(res, chrom, main = NULL,
 
 
 
-plot.cw.superimpA <- function(res, chrom, 
+plot.cw.superimpA <- function(res, chrom,
+                              geneNames,
                               main = "All_arrays",
                               colors = c("orange", "red", "green", "blue", "black"),
                               ylim =NULL, 
-                              geneNames = positions.merge1$name,
                               idtype = idtype, organism = organism,
                               geneLoc = NULL,
                               html_js = html_js,
@@ -4208,6 +4314,8 @@ my.ansari.test.default <-
 function (x, y, alternative = c("two.sided", "less", "greater"),
 exact = NULL, conf.int = FALSE, conf.level = 0.95, ...)
 {
+
+  ##R_pansari and R_qansari are in stats namespace
  alternative <- match.arg(alternative)
  if (conf.int) {
    if (!((length(conf.level) == 1) && is.finite(conf.level) &&
@@ -4542,11 +4650,11 @@ hmmWrapper_A <- function(logratio, Chrom, Pos = NULL) {
 pSegmentBioHMM_A <- function(x, chrom.numeric, Pos, ...) {
     out <- papply(data.frame(x),
                   function(z) BioHMMWrapper_A(z,
-                                         Chrom = slave_chrom,
-                                         Pos    = slave_kb),
+                                         Chrom = chrom.numeric,
+                                         Pos    = Pos),
                   papply_commondata = list(
-                  slave_chrom = chrom.numeric,
-                  slave_kb    = Pos))
+                  chrom.numeric = chrom.numeric,
+                  Pos    = Pos))
 
     te <- unlist(unlist(lapply(out, function(x) inherits(x, "try-error"))))
     if(any(te)) {
@@ -4785,9 +4893,9 @@ internalDNAcopy_A <- function(acghdata,
 
 
 
-ace.analysisP_C <-function(x) {
-    ace.analysis.C(x, coefs, Sdev, array.names)
-}
+## ace.analysisP_C <-function(x, coefs, Sdev, array.names) {
+##     ace.analysis.C(x, coefs, Sdev, array.names)
+## }
 
 
 
@@ -4806,15 +4914,23 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
     nchrom <- length(unique(Chrom))
     if(is.null(dim(x)) || (dim(x)[2]==1)) {
         genes <- split(x, Chrom)
-        first.estimate <- papply(genes, ace.analysisP_C,
+        first.estimate <- papply(genes,
+                                 function(z) ace.analysis.C(x = z,
+                                                            coefs = coefs,
+                                                            Sdev = Sdev,
+                                                            array.names = array.names),
                                  papply_commondata =list(coefs = coefs,
-                                 Sdev = Sdev,
-                                 echo = FALSE, array.names = array.names))
+                                   Sdev = Sdev,
+                                   echo = FALSE,
+                                   array.names = array.names))
         Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
         Sdevs <- unlist(lapply(Sdevs.estimate, "[", 1))
         Sdevs <- mean(Sdevs[Sdevs>0])
         if(is.nan(Sdevs)) Sdevs <- 0
-        res <- papply(genes, ace.analysisP_C,
+        res <- papply(genes, function(z) ace.analysis.C(x = z,
+                                                         coefs = coefs,
+                                                         Sdev = Sdev,
+                                                         array.names = array.names),
                       papply_commondata =list(coefs=coefs,
                       Sdev = Sdevs,
                       echo = FALSE, array.names = array.names))
@@ -4825,10 +4941,15 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
         res <- list()
         for(i in 1:ncol(x)) {
             genes <- split(x[,i], Chrom)
-            first.estimate <- papply(genes, ace.analysisP_C,
+            first.estimate <- papply(genes,
+                                     function(z) ace.analysis.C(x = z,
+                                                                coefs = coefs,
+                                                                Sdev = Sdev,
+                                                                array.names = array.names),
                                      papply_commondata =list(coefs= coefs,
-                                     Sdev = Sdev,
-                                     echo = FALSE, array.names = array.names[i]))
+                                       Sdev = Sdev,
+                                       echo = FALSE,
+                                       array.names = array.names[i]))
             Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
             Sdevs[i,] <- unlist(lapply(Sdevs.estimate, "[", 1))
         }
@@ -4836,7 +4957,11 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
         if(is.nan(Sdevs)) Sdevs <- 0
         for (i in 1:ncol(x)) {
             genes <- split(x[,i], Chrom)
-            res[[i]] <- papply(genes, ace.analysisP_C,
+            res[[i]] <- papply(genes,
+                               function(z) ace.analysis.C(x = z,
+                                                          coefs = coefs,
+                                                          Sdev = Sdev,
+                                                          array.names = array.names),
                                papply_commondata =list(coefs= coefs,
                                Sdev = Sdevs,
                                echo = FALSE, array.names = array.names[i]))

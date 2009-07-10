@@ -277,11 +277,12 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
   warn.too.few.in.chrom(chrom.numeric)
   
   require("GLAD") || stop("Package not loaded: GLAD")
-
-  out <- papply2(data.frame(x),
-                 function(z) gladWrapper(z,
-                                         Chrom = slave_chrom),
-                 list(slave_chrom = chrom.numeric))
+  mydcat(" glad here")
+  out <- papply(data.frame(x),
+                function(z) gladWrapper(z,
+                                        Chrom = slave_chrom),
+                papply_commondata = list(
+                  slave_chrom = chrom.numeric))
   outl <- list()
   outl$segm <- out
   outl$chrom.numeric <- chrom.numeric
@@ -289,6 +290,28 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
   class(outl) <- c("adacgh.generic.out", "adacghGLAD")
   return(outl)
 }    
+
+## pSegmentGLAD <- function(x, chrom.numeric, ...) {
+##   stop.na.inf(x)
+##   stop.na.inf(chrom.numeric)
+##   warn.too.few.in.chrom(chrom.numeric)
+
+##   mydcat(" glad 0")
+
+##   require("GLAD") || stop("Package not loaded: GLAD")
+
+##   mydcat(" glad here")
+##   out <- papply2(data.frame(x),
+##                  function(z) gladWrapper(z,
+##                                          Chrom = slave_chrom),
+##                  papply_commondata = list(slave_chrom = chrom.numeric))
+##   outl <- list()
+##   outl$segm <- out
+##   outl$chrom.numeric <- chrom.numeric
+##   outl <- add.names.as.attr(outl, colnames(x))
+##   class(outl) <- c("adacgh.generic.out", "adacghGLAD")
+##   return(outl)
+## }    
 
 
 
@@ -1022,13 +1045,18 @@ ourMerge <- function(observed, predicted,
 
 
 gladWrapper <- function(x, Chrom, Pos = NULL) {
+  mydcat("inside gladWrapper")
     Pos <- if (is.null(Pos)) (1:length(x)) else Pos
     tmpf <- data.frame(LogRatio = x,
                        PosOrder = Pos,
                        Chromosome = Chrom)
-    tmpf <- list(profileValues = tmpf)
+  mydcat("  gladWrapper 2")
+
+  tmpf <- list(profileValues = tmpf)
     class(tmpf) <- "profileCGH"
     outglad <- glad.profileCGH(tmpf)
+    mydcat("gladWrapper 3")
+
     return(cbind(Observed = x, Smoothed = outglad$profileValues$Smoothing,
                  State = outglad$profileValues$ZoneGNL))
 }

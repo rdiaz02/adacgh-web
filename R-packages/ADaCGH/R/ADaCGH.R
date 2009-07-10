@@ -589,7 +589,7 @@ pSegmentDNAcopy <- function(x, chrom.numeric, parall = "arr", ...) {
   stop.na.inf(x)
   warn.too.few.in.chrom(chrom.numeric)
 
-  mydcat3()
+##  mydcat3()
   
  
     if (parall == "auto")
@@ -628,7 +628,6 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
         sbdry <- getbdry(eta, nperm, max.ones)
     }
     sbn <- length(sbdry)
-   mydcat(" 1 ")
 
     papply_common <- list(slave_alpha        = alpha,
                           slave_nperm        = nperm,
@@ -657,8 +656,6 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
                                             sbn =           slave_sbn),
                        papply_common)
     } else {
-         mydcat(" 2 ")
-
         out0 <- papply2(datalist, function(z)
                        wrapperDNAcopyNoSmooth(z,
                                             alpha =         slave_alpha,     
@@ -673,8 +670,6 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
                                             sbn =           slave_sbn),
                        papply_common)
             }
-       mydcat(" 3 ")
-
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
@@ -684,8 +679,6 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
-    mydcat(" 4 ")
-
     ### FIXME: eh???? we always merge here!!!!!
     out <- papply2(datalist, function(z) ourMerge(z$logr, z$pred))
     outl <- list()
@@ -706,16 +699,12 @@ segmentPlot <- function (x, geneNames, yminmax,
                          imgheight = 500,
                          genomewide_plot = FALSE,
                          ...) {
-
-  mydcat ("   SP 1")
   if(length(yminmax) != 2) {
     stop("yminmax must exist, and must be a two-element vector")
   }
-
   if(length(geneNames) != length(x$chrom.numeric)) {
     stop("lenght of geneNames must equal length of x$chrom.numeric")
   }
-  
   if (is.null(arrays)) {
       arrays <- 1:length(x$segm)
   }
@@ -732,8 +721,6 @@ segmentPlot <- function (x, geneNames, yminmax,
     if (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))) {
       colors <- c(rep(colors[1], 3), colors[4], colors[5])
     }
-  mydcat ("   SP 2")
-
     
     if (superimp) {
       ## Does not use arrays or chroms parameters
@@ -755,37 +742,6 @@ segmentPlot <- function (x, geneNames, yminmax,
       cat("\n gc after plot.gw.superimp \n")
       print(gc())
     }
-  mydcat ("   SP 3")
-
-    mydcat2(yminmax)
-    mydcat2(html_js)
-    mydcat2(imgheight)
-    mydcat2(genomewide_plot)
-    mydcat2(chroms)
-
-    
-##     pappl_common0 <- list(slave_cnum= x$chrom.numeric, 
-##                           slave_geneNames = geneNames,
-##                           slave_idtype = idtype, 
-##                           slave_organism = organism,
-##                           slave_colors = colors,
-##                           slave_geneLoc = geneLoc, 
-##                           slave_yminmax = yminmax,
-##                           slave_html_js = html_js,
-##                           slave_imgheight = imgheight,
-##                           slave_genomewide_plot = genomewide_plot,
-##                           slave_chroms = chroms)
-
-##   mydcat ("   SP 3 B")
-    
-
-##     mydcat("head(pappl_common)")
-##     print(str(pappl_common))
-    
-##     mydcat2(arrays)
-
-##     mydcat("str x$segm[arrays]")
-##     print(str(x$segm[arrays]))
 
     pappl_common <- list(slave_cnum = x$chrom.numeric, 
                          slave_geneNames = geneNames, 
@@ -799,23 +755,7 @@ segmentPlot <- function (x, geneNames, yminmax,
                          slave_genomewide_plot = genomewide_plot,
                          slave_chroms = chroms)
 
-    
-
     tmp_papout <- papply2(x$segm[arrays], function(z) {
-      ##      cat("\n Doing sample ", attributes(z)$ArrayName, "\n")
-##       plot.adacgh.nonsuperimpose(res = z,
-##                                  main = attributes(z)$ArrayName,
-##                                  chrom = slave_cnum, 
-##                                  colors = slave_colors,
-##                                  ylim = slave_yminmax, 
-##                                  geneNames = slave_geneNames,
-##                                  idtype = slave_idtype,
-##                                  organism = slave_organism, 
-##                                  geneLoc = slave_geneLoc,
-##                                  html_js = slave_html_js,
-##                                  imgheight = slave_imgheight,
-##                                  genomewide_plot = slave_genomewide_plot,
-##                                  chromsplot = slave_chroms)
                          plot.adacgh.nonsuperimpose(res = z,
                                                     main = attributes(z)$ArrayName,
                                                     chrom = slave_cnum, 
@@ -828,42 +768,15 @@ segmentPlot <- function (x, geneNames, yminmax,
                                                     html_js = slave_html_js,
                                                     imgheight = slave_imgheight,
                                                     genomewide_plot = slave_genomewide_plot,
-                                                    chromsplot = slave_chroms)
-
-    }, papply_commondata = pappl_common)
+                                                    chromsplot = slave_chroms)},
+                          papply_commondata = pappl_common)
     
-
-
-    
-    ## tmp_papout <- papply2(x$segm[arrays],
-    ##                      function(z) {
-    ##                        mydcat3()
-    ##                      plot.adacgh.nonsuperimpose(res = z,
-    ##                                                 main = attributes(z)$ArrayName,
-    ##                                                 chrom = slave_cnum, 
-    ##                                                 colors = slave_colors,
-    ##                                                 ylim = slave_yminmax, 
-    ##                                                 geneNames = slave_geneNames,
-    ##                                                 idtype = slave_idtype,
-    ##                                                 organism = slave_organism, 
-    ##                                                 geneLoc = slave_geneLoc,
-    ##                                                 html_js = slave_html_js,
-    ##                                                 imgheight = slave_imgheight,
-    ##                                                 genomewide_plot = slave_genomewide_plot,
-    ##                                                 chromsplot = slave_chroms)},
-    ##                       pappl_common)
     cat("\n gc after plot.adacgh.nonsuperimpose \n")
     print(gc())
-
-      mydcat ("   SP 4")
-
-    
-  }
-  else if (inherits(x, "CGH.PSW")) {
+  } else if (inherits(x, "CGH.PSW")) {
     if (x$plotData[[1]]$sign < 0) {
       mainsl <- "Losses."
-    }
-    else {
+    }  else {
       mainsl <- "Gains."
     }
     l1 <- list()
@@ -876,7 +789,6 @@ segmentPlot <- function (x, geneNames, yminmax,
       l1[[i]]$swt.run <- x$plotData[[i]]$swt.run
       l1[[i]]$p.crit <- x$plotData[[i]]$p.crit.bonferroni
       l1[[i]]$chrom <- x$plotData[[i]]$chrom
-#      l1[[i]]$arrayname <- arraynames[i]
       l1[[i]]$arrayname <- x$array.names[i]
     }
     tmp_papout <- papply2(l1,
@@ -1338,15 +1250,10 @@ wrapperDNAcopySmooth <- function(data, alpha, nperm, kmax, nmin, overlap, trim,
     smooth.region <- 2
     outlier.SD.scale <- 4
     smooth.SD.scale <- 2
-    mydcat( " A 1 ")
     data2 <- internalSmoothCNA(data, smooth.region, outlier.SD.scale,
                               smooth.SD.scale, trim)
-    mydcat( " A 2 ")
-
     outseg <- internalDNAcopy(data2, alpha, nperm,  kmax,  nmin, overlap,   
                               trim, undo.prune, undo.SD, sbdry, sbn)
-    mydcat( " A 3 ")
-
     outseg
 }
 
@@ -2693,24 +2600,14 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
                             undo.prune=0.05, undo.SD=3, merge.pv.thresh =
                             1e-04, merge.ansari.sign = 0.05,
                             merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
-
-
-
-  mydcat3()
-  
-  mydcat(" C 1")
     if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
         sbdry <- default.DNAcopy.bdry
     } else {
         max.ones <- floor(nperm * alpha) + 1
         sbdry <- getbdry(eta, nperm, max.ones)
     }
-  mydcat(" C 2")
-
   sbn <- length(sbdry)
     datalist <- data.frame(x)
-    mydcat(" C 3")
-
     papply_common <- list(slave_cnum         = chrom.numeric,
                           slave_alpha        = alpha,
                           slave_nperm        = nperm,
@@ -2728,13 +2625,8 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
                           slave_merge_tmin   = merge.thresMin,
                           slave_merge_tmax   = merge.thresMax,
                           slave_smooth       = smooth)
-
-
-  
   ## up to here, we are in the master
-
     papfunc <- function(data) {
-##         cat("\n DEBUG: STARTING PAPFUNC \n")
         if(slave_smooth)
             data <- internalSmoothCNA_A(data,
                                         chrom.numeric = slave_cnum,
@@ -2771,14 +2663,9 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
     outl <- list()
     outl$segm <- papout
     outl$chrom.numeric <- chrom.numeric
-    mydcat(" C 11")
-
     outl <- add.names.as.attr(outl, colnames(x))
-
     class(outl) <- "DNAcopy" ## why not adacgh.generic.out if not mergeSegs?? FIXME!!!
     if(mergeSegs) class(outl) <- c(class(outl), "adacgh.generic.out")
-    mydcat(" C 12")
-
     return(outl)
 }
 
@@ -2799,8 +2686,6 @@ internalSmoothCNA_A <- function(acghdata, chrom.numeric,
     smooth.SD <- smooth.SD.scale * trimmed.SD
     
     k <- smooth.region
-##     cat("\n DEBUG: internalSmoothCNA_A: before loop uchrom \n")
-    
     for (i in uchrom) {
         ina <-
             which(!is.na(genomdat) & !(abs(genomdat) == Inf) & chrom == i)
@@ -2820,13 +2705,8 @@ internalSmoothCNA_A <- function(acghdata, chrom.numeric,
                    genomdat[ina], n, c(-k:-1, 1:k), outlier.SD, smooth.SD)
         acghdata[ina] <- smoothed.data
     }
-##     cat("\n DEBUG: internalSmoothCNA_A: after loop uchrom \n")
-
     acghdata
 }
-
-
-
 
 internalDNAcopy_A <- function(acghdata,
                             chrom.numeric,
@@ -3434,17 +3314,13 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        geneLoc, html_js, imgheight,
                                        genomewide_plot= FALSE,
                                        chromsplot = NULL) {
-  mydcat( " why dont I get here ? ")
-    cat("\n plot.adacgh.nonsuperimpose: Doing sample ", main, "\n")
-
-    mydcat2(genomewide_plot)
-    
-    if(genomewide_plot) {
+  cat("\n plot.adacgh.nonsuperimpose: Doing sample ", main, "\n")
+  if(genomewide_plot) {
     plot.adacgh.genomewide(res, chrom, geneNames, imgheight,
                            main, colors,
                            ylim, geneLoc)
   }
-
+  
   plot.adacgh.chromosomewide(res, chrom,
                              geneNames,
                              imgheight,
@@ -3509,28 +3385,14 @@ plot.adacgh.chromosomewide <- function(res, chrom,
                                        html_js = FALSE,
                                        chromsplot = NULL) {
 
-  mydcat("  PP 1")
-  
   pixels.point <- 3
   pch <- 20
-
-  mydcat2(colors)
-  
   col <- rep(colors[1],length(res[, 3]))
-  mydcat("  PP 1B")
-  
   col[which(res[, 3] == -1)] <- colors[3]
   col[which(res[, 3] == 1)] <- colors[2]
-
-  mydcat("  PP 2")
-
   nameIm <- main
   if(is.null(chromsplot)) chrom.nums <- unique(chrom)
   else chrom.nums <- chromsplot
-
-  mydcat("  PP 3")
-
-  
   cat("\n  plot.adacgh.chromosomewide: doing sample ", main, "\n")
   
   for(cnum in 1:length(chrom.nums)) {

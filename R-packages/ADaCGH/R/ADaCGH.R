@@ -757,7 +757,28 @@ segmentPlot <- function (x, geneNames, yminmax,
     }
   mydcat ("   SP 3")
 
+    mydcat2(yminmax)
+    mydcat2(html_js)
+    mydcat2(imgheight)
+    mydcat2(genomewide_plot)
+    mydcat2(chroms)
 
+    
+    pappl_common <- list(slave_cnum= x$chrom.numeric, 
+                         slave_geneNames = geneNames, slave_idtype = idtype, 
+                         slave_organism = organism, slave_colors = colors,
+                         slave_geneLoc = geneLoc, 
+                         slave_yminmax = yminmax, slave_html_js = html_js,
+                         slave_imgheight = imgheight,
+                         slave_genomewide_plot = genomewide_plot,
+                         slave_chroms = chroms)
+
+  mydcat ("   SP 3 B")
+    
+
+    mydcat("head(pappl_common)")
+    print(str(pappl_common))
+    
     tmp_papout <- papply2(x$segm[arrays],
                          function(z)
                          plot.adacgh.nonsuperimpose(res = z,
@@ -773,15 +794,7 @@ segmentPlot <- function (x, geneNames, yminmax,
                                                     imgheight = slave_imgheight,
                                                     genomewide_plot = slave_genomewide_plot,
                                                     chromsplot = slave_chroms),
-                          papply_commondata = list(slave_cnum= x$chrom.numeric, 
-                            slave_geneNames = geneNames, slave_idtype = idtype, 
-                            slave_organism = organism, slave_colors = colors,
-                            slave_geneLoc = geneLoc, 
-                            slave_yminmax = yminmax, slave_html_js = html_js,
-                            slave_imgheight = imgheight,
-                            slave_genomewide_plot = genomewide_plot,
-                            slave_chroms = chroms)
-                          )
+                          pappl_common)
     cat("\n gc after plot.adacgh.nonsuperimpose \n")
     print(gc())
 
@@ -3364,6 +3377,7 @@ plot.adacgh.nonsuperimpose <- function(res, chrom,  main, colors,
                                        geneLoc, html_js, imgheight,
                                        genomewide_plot= FALSE,
                                        chromsplot = NULL) {
+  mydcat( " why dont I get here ? ")
     cat("\n plot.adacgh.nonsuperimpose: Doing sample ", main, "\n")
 
     mydcat2(genomewide_plot)

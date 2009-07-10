@@ -764,41 +764,74 @@ segmentPlot <- function (x, geneNames, yminmax,
     mydcat2(chroms)
 
     
-    pappl_common <- list(slave_cnum= x$chrom.numeric, 
-                         slave_geneNames = geneNames, slave_idtype = idtype, 
-                         slave_organism = organism, slave_colors = colors,
+##     pappl_common0 <- list(slave_cnum= x$chrom.numeric, 
+##                           slave_geneNames = geneNames,
+##                           slave_idtype = idtype, 
+##                           slave_organism = organism,
+##                           slave_colors = colors,
+##                           slave_geneLoc = geneLoc, 
+##                           slave_yminmax = yminmax,
+##                           slave_html_js = html_js,
+##                           slave_imgheight = imgheight,
+##                           slave_genomewide_plot = genomewide_plot,
+##                           slave_chroms = chroms)
+
+##   mydcat ("   SP 3 B")
+    
+
+##     mydcat("head(pappl_common)")
+##     print(str(pappl_common))
+    
+##     mydcat2(arrays)
+
+##     mydcat("str x$segm[arrays]")
+##     print(str(x$segm[arrays]))
+
+    pappl_common <- list(slave_cnum = x$chrom.numeric, 
+                         slave_geneNames = geneNames, 
+                         slave_idtype = idtype,  
+                         slave_organism = organism, 
+                         slave_colors = colors,
                          slave_geneLoc = geneLoc, 
-                         slave_yminmax = yminmax, slave_html_js = html_js,
-                         slave_imgheight = imgheight,
+                         slave_yminmax = yminmax, 
+                         slave_html_js = html_js, 
+                         slave_imgheight = imgheight, 
                          slave_genomewide_plot = genomewide_plot,
                          slave_chroms = chroms)
 
-  mydcat ("   SP 3 B")
     
 
-    mydcat("head(pappl_common)")
-    print(str(pappl_common))
+    tmp_papout <- papply2(x$segm[arrays], function(z) {
+      ##      cat("\n Doing sample ", attributes(z)$ArrayName, "\n")
+##       plot.adacgh.nonsuperimpose(res = z,
+##                                  main = attributes(z)$ArrayName,
+##                                  chrom = slave_cnum, 
+##                                  colors = slave_colors,
+##                                  ylim = slave_yminmax, 
+##                                  geneNames = slave_geneNames,
+##                                  idtype = slave_idtype,
+##                                  organism = slave_organism, 
+##                                  geneLoc = slave_geneLoc,
+##                                  html_js = slave_html_js,
+##                                  imgheight = slave_imgheight,
+##                                  genomewide_plot = slave_genomewide_plot,
+##                                  chromsplot = slave_chroms)
+                         plot.adacgh.nonsuperimpose(res = z,
+                                                    main = attributes(z)$ArrayName,
+                                                    chrom = slave_cnum, 
+                                                    colors = slave_colors,
+                                                    ylim = slave_yminmax, 
+                                                    geneNames = slave_geneNames,
+                                                    idtype = slave_idtype,
+                                                    organism = slave_organism, 
+                                                    geneLoc = slave_geneLoc,
+                                                    html_js = slave_html_js,
+                                                    imgheight = slave_imgheight,
+                                                    genomewide_plot = slave_genomewide_plot,
+                                                    chromsplot = slave_chroms)
+
+    }, papply_commondata = pappl_common)
     
-    mydcat2(arrays)
-
-    mydcat("str x$segm[arrays]")
-    print(str(x$segm[arrays]))
-
-
-    tmp_papout <- papply(x$segm[arrays], function(z) {
-##      cat("\n Doing sample ", attributes(z)$ArrayName, "\n")
-      plot.adacgh.nonsuperimpose(res = z, chrom = cnum_slave, 
-                                 main = attributes(z)$ArrayName,
-                                 colors = colors, ylim = yminmax, 
-                                 geneNames = geneNames, idtype = idtype, organism = organism, 
-                                 geneLoc = pos_slave, html_js = html_js, imgheight = imgheight,
-                                 genomewide_plot = genomewide_plot,
-                                 chromsplot = chromsplot)
-    }, papply_commondata = list(cnum_slave = x$chrom.numeric, 
-       geneNames = geneNames, idtype = idtype, 
-       organism = organism, colors = colors, pos_slave = geneLoc, 
-       yminmax = yminmax, html_js = html_js, imgheight = imgheight,
-       genomewide_plot = genomewide_plot, chromsplot = chroms))
 
 
     

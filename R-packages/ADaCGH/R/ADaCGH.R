@@ -779,8 +779,15 @@ segmentPlot <- function (x, geneNames, yminmax,
     mydcat("head(pappl_common)")
     print(str(pappl_common))
     
+    mydcat2(arrays)
+
+    mydcat("str x$segm[arrays]")
+    print(str(x$segm[arrays]))
+
+    
     tmp_papout <- papply2(x$segm[arrays],
-                         function(z)
+                         function(z) {
+                           mydcat3()
                          plot.adacgh.nonsuperimpose(res = z,
                                                     main = attributes(z)$ArrayName,
                                                     chrom = slave_cnum, 
@@ -793,7 +800,7 @@ segmentPlot <- function (x, geneNames, yminmax,
                                                     html_js = slave_html_js,
                                                     imgheight = slave_imgheight,
                                                     genomewide_plot = slave_genomewide_plot,
-                                                    chromsplot = slave_chroms),
+                                                    chromsplot = slave_chroms)},
                           pappl_common)
     cat("\n gc after plot.adacgh.nonsuperimpose \n")
     print(gc())

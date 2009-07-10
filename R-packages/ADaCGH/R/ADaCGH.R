@@ -1,14 +1,3 @@
-## set to FALSE for normal operation,
-## TRUE for debugging (i.e., never :-)
-papply_do_trace <- TRUE
-
-papply2 <- function(arg_sets, papply_action, papply_commondata = list(), 
-                    show_errors = TRUE, do_trace = papply_do_trace, also_trace = c()) {
-  papply(arg_sets, papply_action, papply_commondata, 
-         show_errors, do_trace, also_trace)
-}
-
-
 ## .__ADaCGH_WEB_APPL <- TRUE in web appl!
 if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv))
 {
@@ -277,7 +266,6 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
   warn.too.few.in.chrom(chrom.numeric)
   
   require("GLAD") || stop("Package not loaded: GLAD")
-  mydcat(" glad here")
   out <- papply(data.frame(x),
                 function(z) gladWrapper(z,
                                         Chrom = slave_chrom),
@@ -290,29 +278,6 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
   class(outl) <- c("adacgh.generic.out", "adacghGLAD")
   return(outl)
 }    
-
-## pSegmentGLAD <- function(x, chrom.numeric, ...) {
-##   stop.na.inf(x)
-##   stop.na.inf(chrom.numeric)
-##   warn.too.few.in.chrom(chrom.numeric)
-
-##   mydcat(" glad 0")
-
-##   require("GLAD") || stop("Package not loaded: GLAD")
-
-##   mydcat(" glad here")
-##   out <- papply2(data.frame(x),
-##                  function(z) gladWrapper(z,
-##                                          Chrom = slave_chrom),
-##                  papply_commondata = list(slave_chrom = chrom.numeric))
-##   outl <- list()
-##   outl$segm <- out
-##   outl$chrom.numeric <- chrom.numeric
-##   outl <- add.names.as.attr(outl, colnames(x))
-##   class(outl) <- c("adacgh.generic.out", "adacghGLAD")
-##   return(outl)
-## }    
-
 
 
 pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
@@ -346,7 +311,7 @@ pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
             klist <- klist + 1
         }
     }
-    out0 <- papply2(datalist, hmmWrapper)
+    out0 <- papply(datalist, hmmWrapper)
     matout0 <- matrix(unlist(out0), ncol = nsample)
     rm(datalist)
     rm(out0)
@@ -357,7 +322,7 @@ pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
-    out <- papply2(datalist, function(z) ourMerge(z$logr, z$pred))
+    out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
@@ -380,7 +345,7 @@ pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
             klist <- klist + 1
         }
     }
-    out0 <- papply2(datalist,
+    out0 <- papply(datalist,
                   function(z) BioHMMWrapper(z$logr, Pos = z$pos))
 
     te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
@@ -404,7 +369,7 @@ pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
         datalist[[i]]$pred <- matout0[, i]
     }
     
-    out <- papply2(datalist, function(z) ourMerge(z$logr, z$pred))
+    out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
    
     outl <- list()
     outl$segm <- out
@@ -423,7 +388,7 @@ pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres = -0.05, ...) {
   warn.too.few.in.chrom(chrom.numeric)
 
   datalist <- data.frame(x)
-  out0 <- papply2(datalist, function(z) CGHsegWrapper(z,
+  out0 <- papply(datalist, function(z) CGHsegWrapper(z,
                                                      chrom.numeric = slave_chrom,
                                                      s = slave_CGHseg.thres),
                   list(slave_chrom = chrom.numeric, slave_CGHseg.thres = CGHseg.thres))
@@ -466,7 +431,7 @@ pSegmentPSW <- function(x, chrom.numeric, common.data,
         datalist[[i]]$num  <- i
     }
   cnamesdata <- colnames(x)
-    papout <- papply2(datalist,
+    papout <- papply(datalist,
                   function(z) my.sw3b(z$data,
                                       chrom = slave_chrom.numeric,
                                       sign = slave_sign,
@@ -562,7 +527,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
                      Smoothed = pred.ij,
                      State = state))
     }
-    out0 <- papply2(datalist, funwv,
+    out0 <- papply(datalist, funwv,
                     list(slave_thrLvl = thrLvl,
                          slave_minDiff = thismdiff,
                          slave_initClusterLevels = initClusterLevels))
@@ -593,7 +558,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
             datalist[[i]]$logr <- x[, i]
             datalist[[i]]$pred  <- out[[i]][, 2]
         }
-        papout <- papply2(datalist,
+        papout <- papply(datalist,
                          function(z)  ourMerge(z[[1]], z[[2]]))
         outl <- list()
         outl$segm <- papout
@@ -665,7 +630,7 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
 
     
     if(smooth) {
-        out0 <- papply2(datalist, function(z)
+        out0 <- papply(datalist, function(z)
                        wrapperDNAcopySmooth(z,
                                             alpha =         slave_alpha,     
                                             nperm =         slave_nperm,    
@@ -679,7 +644,7 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
                                             sbn =           slave_sbn),
                        papply_common)
     } else {
-        out0 <- papply2(datalist, function(z)
+        out0 <- papply(datalist, function(z)
                        wrapperDNAcopyNoSmooth(z,
                                             alpha =         slave_alpha,     
                                             nperm =         slave_nperm,    
@@ -703,7 +668,7 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
         datalist[[i]]$pred <- matout0[, i]
     }
     ### FIXME: eh???? we always merge here!!!!!
-    out <- papply2(datalist, function(z) ourMerge(z$logr, z$pred))
+    out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
     outl <- list()
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
@@ -778,7 +743,7 @@ segmentPlot <- function (x, geneNames, yminmax,
                          slave_genomewide_plot = genomewide_plot,
                          slave_chroms = chroms)
 
-    tmp_papout <- papply2(x$segm[arrays], function(z) {
+    tmp_papout <- papply(x$segm[arrays], function(z) {
                          plot.adacgh.nonsuperimpose(res = z,
                                                     main = attributes(z)$ArrayName,
                                                     chrom = slave_cnum, 
@@ -814,7 +779,7 @@ segmentPlot <- function (x, geneNames, yminmax,
       l1[[i]]$chrom <- x$plotData[[i]]$chrom
       l1[[i]]$arrayname <- x$array.names[i]
     }
-    tmp_papout <- papply2(l1,
+    tmp_papout <- papply(l1,
                          function(z) {
                            cat("\n Doing sample ", z$arrayname, "\n")
                            sw.plot3(logratio = z$lratio,
@@ -1045,20 +1010,15 @@ ourMerge <- function(observed, predicted,
 
 
 gladWrapper <- function(x, Chrom, Pos = NULL) {
-  mydcat("inside gladWrapper")
-    Pos <- if (is.null(Pos)) (1:length(x)) else Pos
-    tmpf <- data.frame(LogRatio = x,
-                       PosOrder = Pos,
-                       Chromosome = Chrom)
-  mydcat("  gladWrapper 2")
-
+  Pos <- if (is.null(Pos)) (1:length(x)) else Pos
+  tmpf <- data.frame(LogRatio = x,
+                     PosOrder = Pos,
+                     Chromosome = Chrom)
   tmpf <- list(profileValues = tmpf)
-    class(tmpf) <- "profileCGH"
-    outglad <- glad.profileCGH(tmpf)
-    mydcat("gladWrapper 3")
-
-    return(cbind(Observed = x, Smoothed = outglad$profileValues$Smoothing,
-                 State = outglad$profileValues$ZoneGNL))
+  class(tmpf) <- "profileCGH"
+  outglad <- glad.profileCGH(tmpf)
+  return(cbind(Observed = x, Smoothed = outglad$profileValues$Smoothing,
+               State = outglad$profileValues$ZoneGNL))
 }
 
 
@@ -1541,7 +1501,7 @@ wave.aCGH <- function(dat, chrom, minDiff) {
         return(list(pred.ij = pred.ij, state = state))
     }
 
-    papout <- papply2(datalist,
+    papout <- papply(datalist,
                      function(z) funwv(z,
                                        thrLvl = slave_thrLvl,
                                        minDiff = slave_minDiff),
@@ -2239,7 +2199,7 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
     if(is.null(dim(x)) || (dim(x)[2]==1)) {
 ### this is only parallelization possible, since only one subject
       genes <- split(x, chrom.numeric)
-      first.estimate <- papply2(genes,
+      first.estimate <- papply(genes,
                                function(z) firstACEestimate(z,
                                                             coefs = slave_coefs,
                                                             Sdev = slave_Sdev,
@@ -2250,7 +2210,7 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
       Sdevs <- unlist(first.estimate)
       Sdevs <- mean(Sdevs[Sdevs>0])
       if(is.nan(Sdevs)) Sdevs <- 0
-      res <- papply2(genes, function(z) ace.analysis.C(x = z,
+      res <- papply(genes, function(z) ace.analysis.C(x = z,
                                                       coefs = slave_coefs,
                                                       Sdev = slave_Sdev,
                                                       array.names = slave_array.names),
@@ -2271,7 +2231,7 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
           klist <- klist + 1
         }
       }
-      first.estimate <- papply2(datalist,
+      first.estimate <- papply(datalist,
                                function(z) firstACEestimate(z$logr,
                                                             coefs = slave_coefs,
                                                             Sdev = slave_Sdev,
@@ -2282,7 +2242,7 @@ ACE <- function(x, chrom.numeric, coefs = file.aux, Sdev=0.2, echo=FALSE) {
       Sdevs <- mean(Sdevs[Sdevs>0])
       if(is.nan(Sdevs)) Sdevs <- 0
       
-      res <- papply2(datalist,
+      res <- papply(datalist,
                     function(z) ace.analysis.C(z$logr,
                                                coefs = coefs,
                                                Sdev = Sdev,
@@ -2543,7 +2503,7 @@ pSegmentHMM_A <- function(x, chrom.numeric, ...) {
     ## So recode
     chrom.numeric.seq <- as.numeric(as.factor(chrom.numeric))
     
-    out <- papply2(data.frame(x),
+    out <- papply(data.frame(x),
                   function(z) hmmWrapper_A(z, Chrom = slave_chrom.numeric.seq),
                    list(slave_chrom.numeric.seq = chrom.numeric.seq))
     outl <- list()
@@ -2572,7 +2532,7 @@ hmmWrapper_A <- function(logratio, Chrom, Pos = NULL) {
 
 
 pSegmentBioHMM_A <- function(x, chrom.numeric, Pos, ...) {
-    out <- papply2(data.frame(x),
+    out <- papply(data.frame(x),
                   function(z) BioHMMWrapper_A(z,
                                               Chrom = slave_chrom.numeric,
                                               Pos    = slave_Pos),
@@ -2826,7 +2786,7 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
   nchrom <- length(unique(Chrom))
   if(is.null(dim(x)) || (dim(x)[2]==1)) {
     genes <- split(x, Chrom)
-    first.estimate <- papply2(genes,
+    first.estimate <- papply(genes,
                              function(z) ace.analysis.C(z,
                                                         coefs = slave_coefs,
                                                         Sdev = slave_Sdev,
@@ -2834,12 +2794,12 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
                               list(slave_coefs = coefs,
                                    slave_Sdev = Sdev,
                                    slave_array.names = array.names))
-    Sdevs.estimate <- papply2(first.estimate, sd.ACE.analysis)
+    Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
     Sdevs <- unlist(lapply(Sdevs.estimate, "[", 1))
     Sdevs <- mean(Sdevs[Sdevs>0])
     if(is.nan(Sdevs)) Sdevs <- 0
     
-    res <- papply2(genes, function(z) ace.analysis.C(z,
+    res <- papply(genes, function(z) ace.analysis.C(z,
                                                     coefs = slave_coefs,
                                                     Sdev = slave_Sdev,
                                                     array.names = slave_array.names),
@@ -2854,7 +2814,7 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
     res <- list()
     for(i in 1:ncol(x)) {
       genes <- split(x[,i], Chrom)
-      first.estimate <- papply2(genes,
+      first.estimate <- papply(genes,
                                function(z) ace.analysis.C(z,
                                                           coefs = slave_coefs,
                                                           Sdev = slave_Sdev,
@@ -2862,7 +2822,7 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
                                 list(slave_coefs = coefs,
                                      slave_Sdev = Sdev,
                                      slave_array.name = array.names[i]))
-      Sdevs.estimate <- papply2(first.estimate, sd.ACE.analysis)
+      Sdevs.estimate <- papply(first.estimate, sd.ACE.analysis)
       Sdevs[i,] <- unlist(lapply(Sdevs.estimate, "[", 1))
     }
     Sdevs <- mean(Sdevs[Sdevs>0])
@@ -2870,7 +2830,7 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
     for (i in 1:ncol(x)) {
       genes <- split(x[,i], Chrom)
       
-      res[[i]] <- papply2(genes,
+      res[[i]] <- papply(genes,
                                function(z) ace.analysis.C(z,
                                                           coefs = slave_coefs,
                                                           Sdev = slave_Sdev,
@@ -3633,7 +3593,7 @@ plot.cw.superimpA <- function(res, chrom,
       system(paste(.python.toMap.py, nameChrIm, 
                    idtype, organism, sep = " "))
   } ## END OF FUNP
-  out <- papply2(datalist, funp, pappl_common)
+  out <- papply(datalist, funp, pappl_common)
                 ## function(z) funp(z,
                 ##    arraynums = arraynums, nameImage = main,
                 ##    geneNames = geneNames, imgheight = imgheight,

@@ -39,7 +39,7 @@ web-based application for the analysis of aCGH data. Tech. report.
   \code{\link[varSelRF]{basicClusterInit.Rd}}, but that is more
   sophisticated.}
 \examples{
-\dontrun{
+{%\dontrun
 ## all slaves need a common dir to read and write.
 dir.to.create <- tempdir2()
 setwd(dir.to.create)

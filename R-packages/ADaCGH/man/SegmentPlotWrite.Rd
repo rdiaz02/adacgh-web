@@ -85,7 +85,7 @@ Just a convenience wrapper.
 }
 
 \examples{
-{%\dontrun
+\dontrun{
 ## This will not work unless you have a working Python installation
 
 ##setwd("/tmp/o3") ## all slaves need a common dir to read and write.

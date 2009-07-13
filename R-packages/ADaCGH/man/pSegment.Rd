@@ -328,7 +328,7 @@ Parallelization and other modifications and additions are by Ramon Diaz-Uriarte 
 
 
  \examples{
-{%\dontrun
+\dontrun{
 ## all slaves need a common dir to read and write.
 dir.to.create <- tempdir2()
 setwd(dir.to.create)
@@ -400,7 +400,7 @@ try(writeResults(biohmm.out, cghE1[, 5:6], common))
 
 ### plot all
 
-{%\dontrun
+\dontrun{
 
 ## This will not work unless you have a working Python installation
 

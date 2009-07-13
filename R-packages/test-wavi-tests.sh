@@ -1,9 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 
 ## Runs the testing code in wavi
 
 ## You should have launched the LAM/MPI environment the way you
 ## like it first.
+
+alias RR=/var/www/bin/R-local-7-LAM-MPI/bin/R
+
 
 rm -r -f /tmp/wavi-tests
 mkdir /tmp/wavi-tests
@@ -30,25 +33,25 @@ cp /tmp/wavi-tests/f1.R /tmp/wavi-tests/haarseg-ok/.
 
 cd /tmp/wavi-tests
 cd dnacopy-ok
-R CMD BATCH f1.R
+RR CMD BATCH f1.R
 cd ..
 cd biohmm-ok
-R CMD BATCH f1.R
+RR CMD BATCH f1.R
 cd ..
 cd hmm-ok
-R CMD BATCH f1.R
+RR CMD BATCH f1.R
 cd ..
 cd glad-ok
-R CMD BATCH f1.R
+RR CMD BATCH f1.R
 cd ..
 cd wavelets-ok
-R CMD BATCH f1.R
+RR CMD BATCH f1.R
 cd ..
 cd cghseg-ok
-R CMD BATCH f1.R
+RR CMD BATCH f1.R
 cd ..
 cd haarseg-ok
-R CMD BATCH f1.R
+RR CMD BATCH f1.R
 cd ..
 
 

@@ -626,7 +626,7 @@ def Rrun(tmpDir, lamSuffix):
     """ Launch R, after setting the lam stuff."""
     Rcommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
                '"; cd ' + tmpDir + \
-               '; sleep 1; /http/R-www/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
+               '; sleep 1; /var/www/bin/R-local-7-LAM-MPI/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
 ##               '; sleep 1; /http/R-custom/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
     Rtorun = os.system(Rcommand)
     

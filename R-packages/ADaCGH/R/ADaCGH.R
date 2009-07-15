@@ -2,12 +2,12 @@
 if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv))
 {
   warningsForUsers <- vector()
-  running.as.web.adacgh <- TRUE
+#  running.as.web.adacgh <- TRUE
 } else if (exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
   warningsForUsers <- vector()
-  running.as.web.adacgh <- FALSE
+#  running.as.web.adacgh <- FALSE
 } else {
-  running.as.web.adacgh <- FALSE
+#  running.as.web.adacgh <- FALSE
   warningsForUsers <- warning
 }
 
@@ -417,8 +417,9 @@ pSegmentPSW <- function(x, chrom.numeric, common.data,
     out <- list()
     out$plotData <- list()
   
-  if (running.as.web.adacgh) { ## send to PaLS
-    print("former testing value of .AD.... Now running.as.web.adacgh")
+##  if (running.as.web.adacgh) { ## send to PaLS
+  if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) { ## send to PaLS
+    print("former testing value of .AD....")
     palsVect <- vector()
     palsL <- list()
   }
@@ -690,13 +691,14 @@ segmentPlot <- function (x, geneNames, yminmax,
   if(length(yminmax) != 2) {
     stop("yminmax must exist, and must be a two-element vector")
   }
-  if(length(geneNames) != length(x$chrom.numeric)) {
-    stop("lenght of geneNames must equal length of x$chrom.numeric")
-  }
   if (is.null(arrays)) {
       arrays <- 1:length(x$segm)
   }
   if (inherits(x, c("adacgh.generic.out"))) {
+    if(length(geneNames) != length(x$chrom.numeric)) {
+      stop("lenght of geneNames must equal length of x$chrom.numeric")
+    }
+
     geneLoc <- if (inherits(x, "mergedBioHMM")) x$pos else NULL
     if (inherits(x, "CGH.ACE.summary")) {
       original.pos <- 2
@@ -3230,7 +3232,7 @@ my.html.data.frame <- function (object, first.col = "Name",
     ## named "Name". I allow to pass a name.
    
     linkType <- match.arg(linkType)
-    x <- format.df(object, ...)
+    x <- format.df(object, numeric.dollar = FALSE, ...)
     adj <- attr(x, "col.just")
     if (any(adj == "r")) 
         for (i in seq(along = adj)[adj == "r"]) x[, i] <- paste("<div align=right>", 

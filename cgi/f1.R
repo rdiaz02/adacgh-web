@@ -16,17 +16,24 @@
 #### USA.
 
 
-#### For easier debugging: we go saving results as things go along.
+## rm(list = ls()) ## for some extreme debugging cases
+
+assign(".__ADaCGH_WEB_APPL", TRUE)
+### For testing this script, set the above to false
+# if(! .__ADaCGH_WEB_APPL) rm(list = ls())
 
 
-## rm(list = ls()) ## Just in case.
+## you might want, in some debugging, to comment the second line
+checkpoint.num <- 0
+checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)
+
+
+
+
 
 version
 system("hostname")
 cat("\nRunning\n", file = "Status.msg")
-
-checkpoint.num <- scan("checkpoint.num", what = double(0), n = 1)
-
 
 
 .Last <- function(){
@@ -64,48 +71,40 @@ doCheckpoint <- function(num) {
 }
 
 
-## mpiSlaveMemClean <- function() {
-##   cat("\n gc in slaves before delete \n")
-##   mpi.remote.exec(gc())
-##   mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
-##   cat("\n gc in slaves after delete \n")
-##   mpi.remote.exec(gc())
-  
-## }
-
-
 ##startExecTime <- format(Sys.time())
 
 ## why is this here and further down below?? FIXME
-pid <- Sys.getpid()
-write.table(file = "pid.txt", pid,
-            row.names = FALSE,
-            col.names = FALSE)
 
-
-## attach pid to name in R.running.procs
-hostn <- system("hostname", intern = TRUE)
-new.name1 <- unlist(strsplit(getwd(), "/"))
-new.name1 <- paste(new.name1[length(new.name1)], "@", hostn, sep = "")
-new.name <- paste("R.", new.name1, "%", pid, sep = "")
-new.name1 <- paste("R.", new.name1, sep = "")
-system(paste("mv ../../R.running.procs/", new.name1,
-             " ../../R.running.procs/", new.name,
-             sep = ""))
-
-sink(file = "hostname")
-cat(hostn)
-sink()
+if(.__ADaCGH_WEB_APPL) {
+  pid <- Sys.getpid()
+  write.table(file = "pid.txt", pid,
+              row.names = FALSE,
+              col.names = FALSE)
+  
+  
+  ## attach pid to name in R.running.procs
+  hostn <- system("hostname", intern = TRUE)
+  new.name1 <- unlist(strsplit(getwd(), "/"))
+  new.name1 <- paste(new.name1[length(new.name1)], "@", hostn, sep = "")
+  new.name <- paste("R.", new.name1, "%", pid, sep = "")
+  new.name1 <- paste("R.", new.name1, sep = "")
+  system(paste("mv ../../R.running.procs/", new.name1,
+               " ../../R.running.procs/", new.name,
+               sep = ""))
+  
+  sink(file = "hostname")
+  cat(hostn)
+  sink()
 
 
 ### The above is no longer really needed. What follows is what buryThem2.py
-##  uses
-sink(file = "current_R_proc_info")
-cat(hostn)
-cat("   ")
-cat(pid)
-sink()
-
+  ##  uses
+  sink(file = "current_R_proc_info")
+  cat(hostn)
+  cat("   ")
+  cat(pid)
+  sink()
+}
 
 
 ########################################################
@@ -117,7 +116,6 @@ sink()
 methodaCGH <- scan("methodaCGH", what = "", n = 1)
 
 
-assign(".__ADaCGH_WEB_APPL", TRUE)
 print("testing existence of indicator")
 print(exists(".__ADaCGH_WEB_APPL"))
 library(Hmisc, verbose = FALSE)
@@ -168,33 +166,33 @@ library(Rmpi)
 
 
 
-startExecTime <- format(Sys.time())
-
-pid <- Sys.getpid()
-write.table(file = "pid.txt", pid,
-            row.names = FALSE,
-            col.names = FALSE)
-trylam <- try(
-              lamSESSION <- scan("lamSuffix", sep = "\t",
-                                 what = "",
-                                 strip.white = TRUE)
-              )
-
+if(.__ADaCGH_WEB_APPL) {
+  startExecTime <- format(Sys.time())
+  
+  pid <- Sys.getpid()
+  write.table(file = "pid.txt", pid,
+              row.names = FALSE,
+              col.names = FALSE)
+  trylam <- try(
+                lamSESSION <- scan("lamSuffix", sep = "\t",
+                                   what = "",
+                                   strip.white = TRUE)
+                )
 #################################################################
-## enter info into lam suffix log table
-
-tmpDir <- getwd()
-sed.command <- paste("sed -i 's/RprocessPid\t",
-                     lamSESSION, "\t", hostn, "/",
-                     pid, "\t",
-                     lamSESSION, "\t", hostn, "/' ",
-                     "/http/mpi.log/LAM_SUFFIX_Log",
-                     sep = "")
-## debugging:
-sed.command
-
-system(sed.command)
-
+  ## enter info into lam suffix log table
+  
+  tmpDir <- getwd()
+  sed.command <- paste("sed -i 's/RprocessPid\t",
+                       lamSESSION, "\t", hostn, "/",
+                       pid, "\t",
+                       lamSESSION, "\t", hostn, "/' ",
+                       "/http/mpi.log/LAM_SUFFIX_Log",
+                       sep = "")
+  ## debugging:
+  sed.command
+  
+  system(sed.command)
+}
 
 
 
@@ -220,18 +218,18 @@ DNA.undo.sd = 3  ## not needed, really
 ##############################################
 ##############################################
 
-
-caughtUserError <- function(message) {
+if(.__ADaCGH_WEB_APPL) {
+  caughtUserError <- function(message) {
     GDD("ErrorFigure.png", width = png.width,
-           height = png.height, 
-           ps = png.pointsize)
-##           family = png.family)
+        height = png.height, 
+        ps = png.pointsize)
+    ##           family = png.family)
     plot(x = c(0, 1), y = c(0, 1),
          type = "n", axes = FALSE, xlab = "", ylab = "")
     box()
     text(0.5, 0.7, "There was a PROBLEM with your data.")
     text(0.5, 0.5,
-    "Please read carefully the error messages,")
+         "Please read carefully the error messages,")
     
     text(0.5, 0.3, "fix the problem, and try again.")
     dev.off()
@@ -243,22 +241,22 @@ caughtUserError <- function(message) {
     cat(message)
     sink()
     quit(save = "no", status = 11, runLast = TRUE)
-}
-
-## FIXME: this is here and in the package code. Can we eliminate
-##        from here? But it gives a clear message structure: User and
-##        ours.
-caughtOurError <- function(message) {
+  }
+  
+  ## FIXME: this is here and in the package code. Can we eliminate
+  ##        from here? But it gives a clear message structure: User and
+  ##        ours.
+  caughtOurError <- function(message) {
     GDD("ErrorFigure.png", width = png.width,
-           height = png.height, 
-           ps = png.pointsize)
-##           family = png.family)
+        height = png.height, 
+        ps = png.pointsize)
+    ##           family = png.family)
     plot(x = c(0, 1), y = c(0, 1),
          type = "n", axes = FALSE, xlab = "", ylab = "")
     box()
     text(0.5, 0.7, "There was a PROBLEM with the code.")
     text(0.5, 0.5,
-    "Please let us know (send us the URL),")
+         "Please let us know (send us the URL),")
     
     text(0.5, 0.3, "so that we can fix it.")
     dev.off()
@@ -270,9 +268,13 @@ caughtOurError <- function(message) {
     cat(message)
     sink()
     quit(save = "no", status = 11, runLast = TRUE)
+  }
+  
+} else {
+caughtUserErrorError <- caughtOurError <- function(x) {}
 }
 
-warningsForUsers <- vector()
+  warningsForUsers <- vector()
 
 #######################################################
 #######################################################
@@ -876,7 +878,8 @@ options(warn = -1)
 ### Launch Rmpi as late as possible with only the minimum possible slaves
 
 
-try({
+if(.__ADaCGH_WEB_APPL) {
+#try({
   usize <- min(numarrays * chromnum, mpi.universe.size())
   ## make sure at least two, o.w. rsprng won't work, and
   ## we do not want to hack my mpiInit.
@@ -886,7 +889,10 @@ try({
   sink(file = "mpiOK")
   cat("MPI started OK\n")
   sink()
-})
+#})
+} else {
+  mpiInit(universeSize = mpi.universe.size(), exit_on_fail = FALSE)
+}
 
 
 
@@ -918,7 +924,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
                                         Pos = positions.merge1$MidPoint,
                                         mergeSegs = mergeRes,
                                         minDiff = force(Wave.minDiff),
-                                        CGHseg.thres = force(CGHseg.s))
+                                        CGHseg.thres = force(CGHseg.s),
+                                        HaarSeg.m = 2)
                        })
         
         if(inherits(trythis, "try-error"))
@@ -947,9 +954,6 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
     if(checkpoint.num < 5) {
         trythis <- try(
                        segmentPlot(segmres, geneNames = positions.merge1$name,
-                                   chrom.numeric = positions.merge1$chrom.numeric,
-#                                   cghdata = NULL,
-#                                   arraynames = arrayNames,
                                    yminmax = c(ymin, ymax),
                                    idtype = idtype,
                                    organism = organism,
@@ -995,6 +999,7 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
     }
 
     if(checkpoint.num < 3) {
+##      running.as.web.adacgh <- TRUE
         ## Gains
         trythis <- try({
             out.gains <-
@@ -1016,7 +1021,8 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         doCheckpoint(3)
     }
     if(checkpoint.num < 4) {
-
+##      running.as.web.adacgh <- TRUE
+      
         print("testing existence of indicator before losses")
         print(exists(".__ADaCGH_WEB_APPL"))
         ## Losses
@@ -1043,16 +1049,24 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         doCheckpoint(4)
     }
     if(checkpoint.num < 5) {
-        segmentPlot(out.gains, geneNames = positions.merge1$name,
-                    cghdata = xcenter,
-                    arraynames = arrayNames,
-                    idtype = idtype, organism = organism)
-        segmentPlot(out.losses, geneNames = positions.merge1$name,
-                    arraynames = arrayNames,
-                    cghdata = xcenter,
-                    idtype = idtype, organism = organism)
-        doCheckpoint(5)
-        quit(save = "yes", status = 0, runLast = TRUE)
+      ymax <- max(as.matrix(xcenter))
+      ymin <- min(as.matrix(xcenter))
+
+    segmentPlot(out.gains,
+                geneNames = positions.merge1$name,
+                yminmax = c(ymin, ymax),
+                idtype = idtype, organism = organism,
+                html_js = TRUE,
+                superimp = TRUE,
+                genomewide_plot = TRUE)
+    segmentPlot(out.losses, geneNames = positions.merge1$name,
+                yminmax = c(ymin, ymax),
+                idtype = idtype, organism = organism,
+                html_js = TRUE,
+                superimp = TRUE,
+                genomewide_plot = TRUE)
+    doCheckpoint(5)
+    quit(save = "yes", status = 0, runLast = TRUE)
     }
     
 } else if(methodaCGH == "ACE") {
@@ -1129,13 +1143,17 @@ if(! (methodaCGH %in% c("PSW", "ACE"))) {
         save.image()
         
         trythis <- try({
-            ## The segmented plots, one per array
-            segmentPlot(ACE.summ,
-                        chrom.numeric = positions.merge1$chrom.numeric,
+          ymax <- max(as.matrix(xcenter))
+          ymin <- min(as.matrix(xcenter))
+          
+          segmentPlot(ACE.summ,
+###                        chrom.numeric = positions.merge1$chrom.numeric,
                         geneNames = positions.merge1$name,
-                        cghdata = xcenter,
-                        arraynames = arrayNames,
-                        idtype = idtype, organism = organism)
+                        yminmax = c(ymin, ymax),
+                        idtype = idtype, organism = organism,
+                        html_js = TRUE,
+                        superimp = TRUE,
+                        genomewide_plot = TRUE)
         })
         if(class(trythis) == "try-error")
             caughtOurError(paste("Error in ACE plots  with error",

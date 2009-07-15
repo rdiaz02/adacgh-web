@@ -5,8 +5,10 @@
 ## You should have launched the LAM/MPI environment the way you
 ## like it first.
 
-alias RR=/var/www/bin/R-local-7-LAM-MPI/bin/R
+## Of course, you need to install ADaCGH first!!
 
+##alias RR=/var/www/bin/R-local-7-LAM-MPI/bin/R
+alias RR="/Part-ramon/sources.programs/R-tests/R-patched-2009-07-09/bin/R"
 
 rm -r -f /tmp/wavi-tests
 mkdir /tmp/wavi-tests

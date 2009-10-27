@@ -149,6 +149,7 @@ getbdry <- DNAcopy:::getbdry
 
 mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
                     universeSize = NULL, exit_on_fail = FALSE) {
+  
     trythis <- try({
         if(! is.null(universeSize))
             minUniverseSize <- universeSize
@@ -174,6 +175,7 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
 ## Note that if ADaCGH is NOT already installed, such as in R CMD check
         ### a new, with multiple nodes, this will fail!!!!
         mpi.remote.exec(library(ADaCGH, verbose = TRUE))
+        ## FIXME: should fail is setwd in slaves is not successf.
         mpi.bcast.Robj2slave(wdir)
         mpi.remote.exec(setwd(wdir))    
     })
@@ -733,33 +735,52 @@ segmentPlot <- function (x, geneNames, yminmax,
       print(gc())
     }
 
-    pappl_common <- list(slave_cnum = x$chrom.numeric, 
-                         slave_geneNames = geneNames, 
-                         slave_idtype = idtype,  
-                         slave_organism = organism, 
-                         slave_colors = colors,
-                         slave_geneLoc = geneLoc, 
-                         slave_yminmax = yminmax, 
-                         slave_html_js = html_js, 
-                         slave_imgheight = imgheight, 
-                         slave_genomewide_plot = genomewide_plot,
-                         slave_chroms = chroms)
+    if(arrays > 1) {
+      ## here, use parallelization only if arrays > 1
+      ## the papply parallelizes only over arrays
+      pappl_common <- list(slave_cnum = x$chrom.numeric, 
+                           slave_geneNames = geneNames, 
+                           slave_idtype = idtype,  
+                           slave_organism = organism, 
+                           slave_colors = colors,
+                           slave_geneLoc = geneLoc, 
+                           slave_yminmax = yminmax, 
+                           slave_html_js = html_js, 
+                           slave_imgheight = imgheight, 
+                           slave_genomewide_plot = genomewide_plot,
+                           slave_chroms = chroms)
+      
+      tmp_papout <- papply(x$segm[arrays], function(z) {
+        plot.adacgh.nonsuperimpose(res = z,
+                                   main = attributes(z)$ArrayName,
+                                   chrom = slave_cnum, 
+                                   colors = slave_colors,
+                                   ylim = slave_yminmax, 
+                                   geneNames = slave_geneNames,
+                                   idtype = slave_idtype,
+                                   organism = slave_organism, 
+                                   geneLoc = slave_geneLoc,
+                                   html_js = slave_html_js,
+                                   imgheight = slave_imgheight,
+                                   genomewide_plot = slave_genomewide_plot,
+                                   chromsplot = slave_chroms)},
+                           papply_commondata = pappl_common)
 
-    tmp_papout <- papply(x$segm[arrays], function(z) {
-                         plot.adacgh.nonsuperimpose(res = z,
-                                                    main = attributes(z)$ArrayName,
-                                                    chrom = slave_cnum, 
-                                                    colors = slave_colors,
-                                                    ylim = slave_yminmax, 
-                                                    geneNames = slave_geneNames,
-                                                    idtype = slave_idtype,
-                                                    organism = slave_organism, 
-                                                    geneLoc = slave_geneLoc,
-                                                    html_js = slave_html_js,
-                                                    imgheight = slave_imgheight,
-                                                    genomewide_plot = slave_genomewide_plot,
-                                                    chromsplot = slave_chroms)},
-                          papply_commondata = pappl_common)
+    } else { ## no parallelization
+      plot.adacgh.nonsuperimpose(res = x$segm[arrays][[1]],
+                                 main = attributes(x$segm[arrays][[1]])$ArrayName,
+                                 chrom = x$chrom.numeric, 
+                                 colors = colors,
+                                 ylim = yminmax, 
+                                 geneNames = geneNames,
+                                 idtype = idtype,
+                                 organism = organism, 
+                                 geneLoc = geneLoc,
+                                 html_js = html_js,
+                                 imgheight = imgheight,
+                                 genomewide_plot = genomewide_plot,
+                                 chromsplot = chroms)
+    }
     
     cat("\n gc after plot.adacgh.nonsuperimpose \n")
     print(gc())
@@ -3210,9 +3231,9 @@ caughtUserError.Web <- function(message) {
 }
 
 
-doCheckpoint <- function(num) {
+doCheckpoint <- function(num, save = TRUE) {
 ##    checkpoint.num.new <- num
-    save.image()
+  if(save) save.image()
 ##    checkpoint.num <<- num
     sink("checkpoint.num")
     cat(num)

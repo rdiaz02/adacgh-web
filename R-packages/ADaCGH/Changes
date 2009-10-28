@@ -1,3 +1,8 @@
+1.5-2  2009-10-28
+       - png figures have a max. size so huge chromosomes do not
+         result in black figures
+       - pch is changed to 0.5 and 0.1 depending on number of points
+	 
 1.5-1  2009-07-13
        - Major clean-ups of code, eliminating debuggin code, etc.
        - No longer any usage of "<- environment" to pass global

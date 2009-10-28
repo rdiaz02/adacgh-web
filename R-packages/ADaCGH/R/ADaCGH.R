@@ -3413,7 +3413,7 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     simplepos <- if(is.null(geneLoc)) (1:length(indexchr)) else geneLoc[indexchr]
     ## Formerly mapChromOpen
     chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-    chrwidth <- max(chrwidth, 800)
+    chrwidth <- max(min(chrwidth, 1200), 800)
     im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
                      height = imgheight, width = chrwidth,
                      ps = 12)
@@ -3422,8 +3422,16 @@ plot.adacgh.chromosomewide <- function(res, chrom,
     par(xaxs = "i")
     par(mar = c(5, 5, 5, 5))
     par(oma = c(0, 0, 0, 0))
-    
-    plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = 1,
+
+    if(length(indexchr) > 50000) {
+      this.cex <- 0.1
+    } else if (length(indexchr) > 10000) {
+      this.cex <- 0.5
+    } else {
+      this.cex <- 1
+    }
+   
+    plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = this.cex,
          xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
          main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
          pch = pch, ylim = ylim)

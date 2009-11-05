@@ -735,7 +735,7 @@ segmentPlot <- function (x, geneNames, yminmax,
       print(gc())
     }
 
-    if(arrays > 1) {
+    if(length(arrays) > 1) {
       ## here, use parallelization only if arrays > 1
       ## the papply parallelizes only over arrays
       pappl_common <- list(slave_cnum = x$chrom.numeric, 

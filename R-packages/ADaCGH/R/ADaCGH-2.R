@@ -186,6 +186,137 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
 }
 
 
+## FIXME: all save de RData without compression!!!!
+
+
+
+parallByArray <- function(method, cghdata, chrom, narrays, ...) {
+  sfClusterApplyLB(1:narrays, slaveByArray, method, ...)
+}
+
+
+
+slaveByArray <- function(index, method, cghRDataName, chromRDataName, ...) {
+  
+}
+
+## FIXME: use readonly where appropriate!!!
+
+## Watch out for possible confusion:
+## cghRdataName is the NAME of the RData file
+##
+
+
+getCGHValue <- function(cghRDataName, array) {
+  nmobj <- load(cghRDataName)
+  open(get(nmobj, inherits = FALSE), readonly = TRUE)
+  tmp <- get(nmobj, inherits = FALSE)[, array]
+  close(get(nmobj, inherits = FALSE))
+  return(tmp)
+}
+
+getChromValue <- function(chromRDataName) {
+  nmobj <- load(chromRDataName)
+  open(get(nmobj, inherits = FALSE), readonly = TRUE)
+  tmp <- get(nmobj, inherits = FALSE)[]
+  close(get(nmobj, inherits = FALSE))
+  return(tmp)
+}
+
+getffObj <- function(RDataName) {
+  cat("\n Making an assignment in the calling environment!!! \n")
+  nmobj <- load(RDataName, env = parent.frame())
+  cat("We just created (or overwrote)", nmobj, "\n")
+  cat("Don't forget to close", nmobj, "\n")
+  open(get(nmobj, inherits = FALSE, envir = parent.frame()), readonly = TRUE)
+  return(nmobj)
+}
+
+
+
+
+ffListOut <- function(smoothedVal, stateVal) {
+  pattern <- paste(getwd(), paste(sample(letters, 4), collapse = ""),
+                   sep = "/")
+  smoothed <- ff(smoothedVal,
+                 vmode = "double",
+                 pattern = pattern)
+  state <- ff(stateVal,
+              vmode = "short",
+              pattern = pattern)
+  close(smoothed)
+  close(state)
+  return(list(smoothed = smoothed,
+              state = state))
+}
+
+internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
+##  cghvalues <- getCGHval(cghRDataName, index)
+##  chromvalues <- getChromval(chromRDataName)
+  
+  tmpf <- list(profileValues = data.frame(
+                 LogRatio = getCGHValue(cghRDataName, index),
+                 PosOrder = 1:nvalues,
+                 Chromosome = getChromValue(chromRDataName)))
+  class(tmpf) <- "profileCGH"
+  outglad <- glad.profileCGH(tmpf)
+  return(ffListOut(outglad$profileValues$Smoothing,
+                   outglad$profileValues$ZoneGNL))
+}
+  
+
+##  method.string <- deparse(substitute(method))
+
+## We work with objects from disk.
+## For managemente, much easier if RData and dirs for
+## ff objects are the same.
+
+pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
+
+  ## check appropriate class of objects
+  
+  ## stop.na.inf(x)
+  ## stop.na.inf(chrom.numeric)
+  ## warn.too.few.in.chrom(chrom.numeric)
+
+  require("GLAD") || stop("Package not loaded: GLAD")
+
+  nameCgh <- getffObj(cghRDataName)
+  nameChrom <- getffObj(chromRDataName)
+  
+  rle.chr <- intrle(as.integer(get(nameChrom))[])
+  
+  chromValues <- rle.chr$values
+  nchrom <- length(chromValues)
+  narrays <- ncol(get(nameCgh))
+  nvalues <- nrow(get(nameCgh))
+  close(get(nameCgh))
+  close(get(nameChrom))  
+
+  out <- sfClusterApplyLB(1:narrays,
+                          internalGLAD,
+                          cghRDataName, chromRDataName, nvalues)
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+internalHaarSeg <- function() {
+}
+
+
 pSegmentHaarSeg <- function(x, chrom.numeric, HaarSeg.m = 3,
                             W = vector(),
                             rawI = vector(), 
@@ -279,42 +410,39 @@ hmmWrapper <- function(logratio) {
     res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
     hmm(obj.aCGH) <- res
     return(obj.aCGH$hmm$states.hmm[[1]][, 6])
-}
+  }
 
 
-
-
-
-pSegmentGLAD <- function(x, chrom.numeric, ...) {
-  stop.na.inf(x)
-  stop.na.inf(chrom.numeric)
-  warn.too.few.in.chrom(chrom.numeric)
+## pSegmentGLAD <- function(x, chrom.numeric, ...) {
+##   stop.na.inf(x)
+##   stop.na.inf(chrom.numeric)
+##   warn.too.few.in.chrom(chrom.numeric)
   
-  require("GLAD") || stop("Package not loaded: GLAD")
-  out <- papply(data.frame(x),
-                function(z) gladWrapper(z,
-                                        Chrom = slave_chrom),
-                papply_commondata = list(
-                  slave_chrom = chrom.numeric))
-  outl <- list()
-  outl$segm <- out
-  outl$chrom.numeric <- chrom.numeric
-  outl <- add.names.as.attr(outl, colnames(x))
-  class(outl) <- c("adacgh.generic.out", "adacghGLAD")
-  return(outl)
-}    
+##   require("GLAD") || stop("Package not loaded: GLAD")
+##   out <- papply(data.frame(x),
+##                 function(z) gladWrapper(z,
+##                                         Chrom = slave_chrom),
+##                 papply_commondata = list(
+##                   slave_chrom = chrom.numeric))
+##   outl <- list()
+##   outl$segm <- out
+##   outl$chrom.numeric <- chrom.numeric
+##   outl <- add.names.as.attr(outl, colnames(x))
+##   class(outl) <- c("adacgh.generic.out", "adacghGLAD")
+##   return(outl)
+## }    
 
-gladWrapper <- function(x, Chrom, Pos = NULL) {
-  Pos <- if (is.null(Pos)) (1:length(x)) else Pos
-  tmpf <- data.frame(LogRatio = x,
-                     PosOrder = Pos,
-                     Chromosome = Chrom)
-  tmpf <- list(profileValues = tmpf)
+gladWrapper <- function(x, Chrom) {
+  tmpf <- list(profileValues = data.frame(LogRatio = x,
+                 PosOrder = 1:length(n),
+                 Chromosome = Chrom))
   class(tmpf) <- "profileCGH"
   outglad <- glad.profileCGH(tmpf)
   return(cbind(Observed = x, Smoothed = outglad$profileValues$Smoothing,
                State = outglad$profileValues$ZoneGNL))
 }
+
+
 
 
 pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
@@ -459,6 +587,7 @@ piccardsStretch01 <- function(obj, k, n, logratio) {
     return(cbind(smoothed = smoothed, state = state))
 }
 
+
 piccardsKO <- function(loglik, n, s) {
     ## return the optimal number of segments, as in
     ## piccard et al., p. 13. k is number of segments, not breakponts.
@@ -470,8 +599,7 @@ piccardsKO <- function(loglik, n, s) {
     } else {
         return(1)
     }
-}
-
+  }
 
 #### Choosing a good s for Piccard's approach
 ####  and collapsing levels
@@ -489,7 +617,6 @@ piccardsKO <- function(loglik, n, s) {
 ## so our implementation seems correct. look at where the
 ## breakpoint is located, etc, and it is like figure 1 of
 ## Picard's paper.
-
 
 
 
@@ -583,7 +710,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 }
 
 
-pSegmentDNAcopy <- function(x, chrom.numeric, parall = "arr", ...) {
+pSegmentDNAcopy <- function(x, chrom.numeric, ...) {
   stop.na.inf(chrom.numeric)
   stop.na.inf(x)
   warn.too.few.in.chrom(chrom.numeric)
@@ -591,11 +718,11 @@ pSegmentDNAcopy <- function(x, chrom.numeric, parall = "arr", ...) {
 }
 
 pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
-                            alpha=0.01, nperm=10000, kmax=25, nmin=200,
-                            eta = 0.05, overlap=0.25, trim = 0.025,
-                            undo.prune=0.05, undo.SD=3, merge.pv.thresh =
-                            1e-04, merge.ansari.sign = 0.05,
-                            merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
+                              alpha=0.01, nperm=10000, kmax=25, nmin=200,
+                              eta = 0.05, overlap=0.25, trim = 0.025,
+                              undo.prune=0.05, undo.SD=3, merge.pv.thresh =
+                              1e-04, merge.ansari.sign = 0.05,
+                              merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
     if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
         sbdry <- default.DNAcopy.bdry
     } else {
@@ -668,7 +795,7 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
 
 internalSmoothCNA_A <- function(acghdata, chrom.numeric,
                               smooth.region = 2, outlier.SD.scale = 4,
-                              smooth.SD.scale = 2, trim = 0.025) {
+                                smooth.SD.scale = 2, trim = 0.025) {
     ## this is just the original smoothCNA funct. adapted to use
     ## a single array and to be parallelized and fed to internalDNAcopy
 ##     cat("\n DEBUG: STARTING internalSmoothCNA_A \n")
@@ -702,7 +829,7 @@ internalSmoothCNA_A <- function(acghdata, chrom.numeric,
         acghdata[ina] <- smoothed.data
     }
     acghdata
-}
+  }
 
 internalDNAcopy_A <- function(acghdata,
                             chrom.numeric,
@@ -715,7 +842,7 @@ internalDNAcopy_A <- function(acghdata,
                             overlap, 
                             trim,
                             undo.prune,
-                            undo.SD) {
+                              undo.SD) {
     ## tries to follow the original "segment"
     
     uchrom <- unique(chrom.numeric)
@@ -769,24 +896,24 @@ internalDNAcopy_A <- function(acghdata,
     stretched.state    <- rep(1:length(sample.lsegs), sample.lsegs)
     return(cbind(Observed = genomdati, Predicted = stretched.segmeans,
                  State = stretched.state))
-}
+  }
 
 
 ourMerge <- function(observed, predicted,
-                       merge.pv.thresh = 1e-04,
-                       merge.ansari.sign = 0.05,
-                       merge.thresMin = 0.05,
-                       merge.thresMax = 0.5) {
+                     merge.pv.thresh = 1e-04,
+                     merge.ansari.sign = 0.05,
+                     merge.thresMin = 0.05,
+                     merge.thresMax = 0.5) {
 
     cat("\n        Starting merge \n")
     segmentus2 <-
-        mergeLevelsB(vecObs  = observed,
-                    vecPred = predicted,
-                    pv.thres = merge.pv.thresh,
-                    ansari.sign = merge.ansari.sign,
-                    thresMin = merge.thresMin,
-                    thresMax = merge.thresMax)$vecMerged
-
+      mergeLevelsB(vecObs  = observed,
+                   vecPred = predicted,
+                   pv.thres = merge.pv.thresh,
+                   ansari.sign = merge.ansari.sign,
+                   thresMin = merge.thresMin,
+                   thresMax = merge.thresMax)$vecMerged
+    
     classes.ref <- which.min(abs(unique(segmentus2)))
     classes.ref <- unique(segmentus2)[classes.ref]
     ref <- rep(0, length(segmentus2))
@@ -2220,6 +2347,17 @@ add.names.as.attr <- function(x, anames) {
     return(x)
 }
 
+warn.too.few.in.chrom2 <- function(x, min.num.chrom = 20) {
+  if(!inherits(x, "rle"))
+    stop("First argument should be of class rle")
+  ## if too few samples, somethin funny is going on
+  if(any(x$lengths < min.num.chrom))
+    warning("There are fewer than ", min.num.chrom, " observations",
+            "in some group of ", deparse(substitute(x)),
+            "!!!!!!!!!!. \n This is unlikely to make sense.\n",
+            "Note that you can get weird errors, or no output at all,", 
+            "if you are running parallelized with certaind methods.")
+}
 
 warn.too.few.in.chrom <- function(x, min.num.chrom = 20) {
   ## if too few samples, somethin funny is going on

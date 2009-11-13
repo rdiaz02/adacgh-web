@@ -45,7 +45,12 @@ mydcat3 <- function() {
   print(Sys.getpid())
 }
 
-  
+mysize <- function(x) {
+  cat("\n Size of object ", deparse(substitute(x)), ": ")
+  print(object.size(x), units = "M")
+}
+
+
 
 
 
@@ -223,11 +228,13 @@ getChromValue <- function(chromRDataName) {
   return(tmp)
 }
 
-getffObj <- function(RDataName) {
-  cat("\n Making an assignment in the calling environment!!! \n")
+getffObj <- function(RDataName, silent = FALSE) {
   nmobj <- load(RDataName, env = parent.frame())
-  cat("We just created (or overwrote)", nmobj, "\n")
-  cat("Don't forget to close", nmobj, "\n")
+    if(!silent) {
+      cat("\n Making an assignment in the calling environment!!! \n")
+      cat("We just created (or overwrote)", nmobj, "\n")
+      cat("Don't forget to close", nmobj, "\n")
+    }
   open(get(nmobj, inherits = FALSE, envir = parent.frame()), readonly = TRUE)
   return(nmobj)
 }
@@ -281,8 +288,9 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
 
   require("GLAD") || stop("Package not loaded: GLAD")
 
-  nameCgh <- getffObj(cghRDataName)
-  nameChrom <- getffObj(chromRDataName)
+  nameCgh <- getffObj(cghRDataName, silent = TRUE)
+  nameChrom <- getffObj(chromRDataName, silent = TRUE)
+  arrayNames <- colnames(get(nameCgh))
   
   rle.chr <- intrle(as.integer(get(nameChrom))[])
   
@@ -293,12 +301,36 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
   close(get(nameCgh))
   close(get(nameChrom))  
 
-  out <- sfClusterApplyLB(1:narrays,
+  outsf <- sfClusterApplyLB(1:narrays,
                           internalGLAD,
                           cghRDataName, chromRDataName, nvalues)
 
-
+  browser()
+  mysize(outsf)
+  browser()
+  return(outToffdf(outsf, arrayNames))
 }
+
+outToffdf <- function(out, arrayNames) {
+  nelem <- length(out)
+  if(is.null(arrayNames))
+    arrayNames <- paste("A", 1:nelem, sep = "")
+  ## this is horrible, but I can't get it to work otherwise
+  p1 <- paste("outSmoothed <- ffdf(",
+              paste(arrayNames, " = out[[", 1:nelem, "]]$smoothed", sep = "",
+                    collapse = ", "),
+              ")")
+  p2 <- paste("outState <- ffdf(",
+              paste(arrayNames, "= out", "[[", 1:nelem, "]]$state", sep = "",
+                    collapse = ", "),
+              ")")
+  eval(parse(text = p1))
+  eval(parse(text = p2))
+  colnames(outSmoothed) <- colnames(outState) <- arrayNames
+  return(list(outSmoothed = outSmoothed, outState = outState))
+}
+  
+
 
 
 

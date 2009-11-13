@@ -45,50 +45,7 @@ mydcat3 <- function() {
   print(Sys.getpid())
 }
 
-mysize <- function(x) {
-  cat("\n Size of object ", deparse(substitute(x)), ": ",
-      round(object.size(x)/10^6, 1), "MB \n")
-  
-}
 
-sizesobj <- function(n = 1) {
-  ## n: how far up to go
-  l1 <- ls(env = parent.frame(n = n))
-  if(length(l1) > 0) {
-    r1 <- sapply(l1,
-                 function(x)
-                 object.size(get(x, env = parent.frame(n = n))))
-    r1 <- sort(r1, decreasing = TRUE)
-    round(as.matrix(r1/10^6), 1)
-  }
-}
-  
-
-
-
-  
-
-nodeWhere <- function() {
-  fn <- paste("nodeWhere", paste(sample(letters,8), sep = "", collapse = ""),
-              sep = "")
-  sink(file = fn)
-  cat("\n HOSTNAME IS ")
-  print(system("hostname", intern = TRUE))
-  date()
-
-  gcmessage("     .... internal gc is ")
-
-  cat("\n Memory sizes this level ")
-  sizesobj(2)
-  cat("\n Memory sizes one level up ")
-  sizesobj(3)
-  sink()
-}
-
-gcmessage <- function(text) {
-  cat("\n ", text, "\n")
-  print(gc())
-}
 
 
 ## mydcat <- function(x){}
@@ -247,6 +204,47 @@ slaveByArray <- function(index, method, cghRDataName, chromRDataName, ...) {
 ## Watch out for possible confusion:
 ## cghRdataName is the NAME of the RData file
 ##
+
+nodeWhere <- function() {
+  fn <- paste("nodeWhere", paste(sample(letters,8), sep = "", collapse = ""),
+              sep = "")
+  sink(file = fn)
+  cat("\n HOSTNAME IS ")
+  print(system("hostname", intern = TRUE))
+  date()
+
+  gcmessage("     .... internal gc is ")
+
+  ## The following do not seem to work
+  ## cat("\n Memory sizes this level ")
+  ## sizesobj(2)
+  ## cat("\n Memory sizes one level up ")
+  ## sizesobj(3)
+  sink()
+}
+
+gcmessage <- function(text) {
+  cat("\n ", text, "\n")
+  print(gc())
+}
+
+mysize <- function(x) {
+  cat("\n Size of object ", deparse(substitute(x)), ": ",
+      round(object.size(x)/10^6, 1), "MB \n")
+  
+}
+
+sizesobj <- function(n = 1) {
+  ## n: how far up to go
+  l1 <- ls(env = parent.frame(n = n))
+  if(length(l1) > 0) {
+    r1 <- sapply(l1,
+                 function(x)
+                 object.size(get(x, env = parent.frame(n = n))))
+    r1 <- sort(r1, decreasing = TRUE)
+    round(as.matrix(r1/10^6), 1)
+  }
+}
 
 
 getCGHValue <- function(cghRDataName, array) {

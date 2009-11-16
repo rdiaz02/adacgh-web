@@ -11,15 +11,6 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv))
   warningsForUsers <- warning
 }
 
-
-
-
-
-## BEWARE: at least with DNAcopy we use some non-user callable
-## functions, such as changepoints. If things do not work, check
-## arguments of functions match.
-
-
 mydcat <- function(x) {
   cat("\n", x, "\n")
 }
@@ -45,29 +36,6 @@ mydcat3 <- function() {
   print(Sys.getpid())
 }
 
-
-
-
-## mydcat <- function(x){}
-
-
-names.formals.changepoints.1.17 <- c("genomdat",
-                                     "data.type",
-                                     "alpha",
-                                     "sbdry",
-                                     "sbn",
-                                     "nperm",
-                                     "p.method",
-                                     "min.width",
-                                     "kmax",
-                                     "nmin",
-                                     "trimmed.SD",
-                                     "undo.splits",
-                                     "undo.prune",
-                                     "undo.SD",
-                                     "verbose",
-                                     "ngrid",
-                                     "tol")
 names.formals.changepoints.1.18 <- c("genomdat",
                                      "data.type",
                                      "alpha",
@@ -112,9 +80,8 @@ if(vDNAcopy >= "1.18.0") {
 if(!identical(names.formals.changepoints, names(formals(adacgh_changepoints)))) {
   m1 <- "Arguments to DNAcopy function changepoints have changed.\n"
   m2 <- "Either your version of DNAcopy is newer than ours, or older.\n"
-  m3 <- "If your version is different from 1.16.0 or 1.17.1 or 1.18.0 or 1.19.0\n please let us know of this problem.\n"
-  m4 <- "We are assuming you are using DNAcopy version 1.16.0 or 1.17.1 or 1.18.0 or 1.19.0 ,\n"
-  m5 <- "the ones for the former  BioConductor release (v. 2.3), current stable release (v. 2.4)\n and the devel releas (v. 2.5).\n"
+  m3 <- "If your version is different from 1.18.0 or 1.19.0 o 1.20.0\n please let us know of this problem.\n"
+  m4 <- "We are assuming you are using DNAcopy version 1.18.0 or 1.19.0 or 1.20.0,\n"
   m6 <- paste("Your version of DNAcopy is ", packageDescription("DNAcopy")$Version, ".\n")
   mm <- paste(m1, m2, m3, m4, m5, m6)
   stop(mm)
@@ -123,11 +90,14 @@ if(!identical(names.formals.changepoints, names(formals(adacgh_changepoints)))) 
 
 ## As of v. 1.12 at least snapCGH finally has a namespace. So now we have
 ## to do
+
 if(package_version(packageDescription("snapCGH")$Version) > "1.11") {
   myfit.model <- snapCGH:::fit.model
 } else {
   myfit.model <- fit.model
 }
+
+
 ## becasue even if fit.model is documented, it is NOT exported.
 ## Well, they get away with it because there are no executable examples
 ## in the help for fit.model.
@@ -135,8 +105,6 @@ if(package_version(packageDescription("snapCGH")$Version) > "1.11") {
 
 ## Other vars
 getbdry <- DNAcopy:::getbdry
-
-
 
 ## where do we live? to call the python script
 .python.toMap.py <- system.file("Python", "toMap.py", package = "ADaCGH")
@@ -205,10 +173,14 @@ slaveByArray <- function(index, method, cghRDataName, chromRDataName, ...) {
 ## cghRdataName is the NAME of the RData file
 ##
 
-nodeWhere <- function() {
-  fn <- paste("nodeWhere", paste(sample(letters,8), sep = "", collapse = ""),
+nodeWhere <- function(nodeMessage) {
+  if(is.null(nodeMessage)) nodeMessage <- ""
+  nodeMessage <- paste("nodeWhere", nodeMessage, sep = "_")
+  fn <- paste(nodeMessage, paste(sample(letters,8), sep = "", collapse = ""),
               sep = "")
-  capture.output(cat("\n HOSTNAME IS "), file = fn)
+  
+  capture.output(print(nodeMessage), file = fn)
+  capture.output(cat("\n HOSTNAME IS "), file = fn, append = TRUE)
   capture.output( {
     print(system("hostname", intern = TRUE))
     print(date())
@@ -217,7 +189,7 @@ nodeWhere <- function() {
     
     ## Problem is: we get function arguments
     cat("\n Memory sizes this level\n ")
-    sizesobj(6)
+    sizesobj(6) ## 'cause we are deep down within caputre, function call, 
     cat("\n\n Memory sizes one level up\n ")
     sizesobj(7)
   }, file = fn, append = TRUE)
@@ -247,7 +219,8 @@ sizesobj <- function(n = 1) {
     ##              object.size(get(x, env = parent.frame(n = n + 2))))
 
     sizes <- rep(NA, length(l1))
-    for(i in 1:length(l1)) sizes[i] <- object.size(get(l1[i], env = parent.frame(n = n)))
+    for(i in 1:length(l1)) sizes[i] <- object.size(get(l1[i],
+                                                       env = parent.frame(n = n)))
     names(sizes) <- l1
     sizes <- sort(sizes, decreasing = TRUE)
     sizes <- round(as.matrix(sizes/10^6), 1)
@@ -305,15 +278,14 @@ ffListOut <- function(smoothedVal, stateVal) {
 internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
 ##  cghvalues <- getCGHval(cghRDataName, index)
 ##  chromvalues <- getChromval(chromRDataName)
-
-  nodeWhere()
-
   tmpf <- list(profileValues = data.frame(
                  LogRatio = getCGHValue(cghRDataName, index),
                  PosOrder = 1:nvalues,
                  Chromosome = getChromValue(chromRDataName)))
   class(tmpf) <- "profileCGH"
   outglad <- glad.profileCGH(tmpf)
+  rm(tmpf)
+    nodeWhere("internalGLAD")
   return(ffListOut(outglad$profileValues$Smoothing,
                    outglad$profileValues$ZoneGNL))
 }
@@ -335,17 +307,10 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
   require("GLAD") || stop("Package not loaded: GLAD")
 
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
-  nameChrom <- getffObj(chromRDataName, silent = TRUE)
   arrayNames <- colnames(get(nameCgh))
-  
-  rle.chr <- intrle(as.integer(get(nameChrom))[])
-  
-  chromValues <- rle.chr$values
-  nchrom <- length(chromValues)
   narrays <- ncol(get(nameCgh))
   nvalues <- nrow(get(nameCgh))
   close(get(nameCgh))
-  close(get(nameChrom))  
 
   outsf <- sfClusterApplyLB(1:narrays,
                           internalGLAD,
@@ -354,6 +319,7 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
   browser()
   mysize(outsf)
   browser()
+  nodeWhere("pSegmentGLAD")
   return(outToffdf(outsf, arrayNames))
 }
 
@@ -379,50 +345,70 @@ outToffdf <- function(out, arrayNames) {
 
 
 
-internalHaarSeg <- function() {
+internalHaarSeg <- function(index, cghRDataName, HaarSeg.m,
+                            chromPos,
+                            W, rawI,
+                            breaksFdrQ,
+                            haarStartLevel,
+                            haarEndLevel) {
+
+  xvalue <- getCGHValue(cghRDataName, index)
+## FIXME: when we have library, remove ADaCGH:::
+  haarout <- ADaCGH:::ad_HaarSeg(I = xvalue,
+                        chromPos = chromPos,
+                        W = W, rawI = rawI,
+                        breaksFdrQ = breaksFdrQ,
+                        haarStartLevel = haarStartLevel,
+                        haarEndLevel = haarEndLevel)[[2]]
+  mad.subj <- median(abs(xvalue - haarout))/0.6745
+  rm(xvalue)
+  thresh <- HaarSeg.m * mad.subj
+  ## alteration <- rep(0, nvalues)
+  ## alteration[haarout > thresh] <- 1
+  ## alteration[haarout < -thresh] <- -1
+
+  nodeWhere("internalHaarSeg")
+  browser()
+  return(ffListOut(haarout,
+                   ifelse( abs(haarout > thresh), 1, 0) * sign(haarout)))
 }
 
 
-pSegmentHaarSeg <- function(x, chrom.numeric, HaarSeg.m = 3,
+pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
+                            HaarSeg.m = 3,
                             W = vector(),
                             rawI = vector(), 
                             breaksFdrQ = 0.001,			  
                             haarStartLevel = 1,
                             haarEndLevel = 5, ...) {
-  stop.na.inf(x)
-  stop.na.inf(chrom.numeric)
-  warn.too.few.in.chrom(chrom.numeric)
-  rle.chr <- rle(chrom.numeric)
+
+  nameCgh <- getffObj(cghRDataName, silent = TRUE)
+  arrayNames <- colnames(get(nameCgh))
+  narrays <- ncol(get(nameCgh))
+  nvalues <- nrow(get(nameCgh))
+  close(get(nameCgh))
+
+  nameChrom <- getffObj(chromRDataName, silent = TRUE)
+  rle.chr <- intrle(as.integer(get(nameChrom)[]))
   chr.end <- cumsum(rle.chr$lengths)
   chr.start <- c(1, chr.end[-length(chr.end)] + 1)
   chromPos <- cbind(chr.start, chr.end)
-  out <- list()
-  out$segm <- list()
-##  dots <- as.list(substitute(list(...)))[-1]
+  close(get(nameChrom)) 
+
   
-  for(subj in 1:ncol(x)) {
-    cat("\n      running subject or column ", subj)
-    haarout <- ad_HaarSeg(x[, subj], chromPos = chromPos,
-                          W = W, rawI = rawI,
-                          breaksFdrQ = breaksFdrQ,
-                          haarStartLevel = haarStartLevel,
-                          haarEndLevel = haarEndLevel)[[2]]
-    mad.subj <- median(abs(x[, subj] - haarout))/0.6745
-    thresh <- HaarSeg.m * mad.subj
-    ## alteration <- rep(0, nvalues)
-    ## alteration[haarout > thresh] <- 1
-    ## alteration[haarout < -thresh] <- -1
-    
-    out$segm[[subj]] <- cbind(Observed = x[, subj],
-                              Smoothed = haarout,
-                              Alteration =
-                              ifelse( abs(haarout > thresh), 1, 0) * sign(haarout))
-  }
-  cat("\n")
-  out$chrom.numeric <- chrom.numeric
-  out <- add.names.as.attr(out, colnames(x))
-  class(out) <- c("adacgh.generic.out", "adacghHaarSeg")
-  return(out)
+  outsf <- sfClusterApplyLB(1:narrays,
+                            internalHaarSeg,
+                            HaarSeg.m = HaarSeg.m,
+                            cghRDataName = cghRDataName,
+                            chromPos,
+                            W, rawI,
+                            breaksFdrQ,
+                            haarStartLevel,
+                            haarEndLevel)
+  nodeWhere("pSegmentHaarSeg")
+  ## FIXME: classes!! for all output!!
+  ## class(out) <- c("adacgh.generic.out", "adacghHaarSeg")
+  return(outToffdf(outsf, arrayNames))
 }
 
 pSegmentHMM <- function(x, chrom.numeric, parall = "auto", ...) {

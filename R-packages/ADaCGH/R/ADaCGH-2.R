@@ -208,19 +208,20 @@ slaveByArray <- function(index, method, cghRDataName, chromRDataName, ...) {
 nodeWhere <- function() {
   fn <- paste("nodeWhere", paste(sample(letters,8), sep = "", collapse = ""),
               sep = "")
-  sink(file = fn)
-  cat("\n HOSTNAME IS ")
-  print(system("hostname", intern = TRUE))
-  date()
-
-  gcmessage("     .... internal gc is ")
-
-  ## The following do not seem to work
-  ## cat("\n Memory sizes this level ")
-  ## sizesobj(2)
-  ## cat("\n Memory sizes one level up ")
-  ## sizesobj(3)
-  sink()
+  capture.output(cat("\n HOSTNAME IS "), file = fn)
+  capture.output( {
+    print(system("hostname", intern = TRUE))
+    print(date())
+    
+    gcmessage("     .... internal gc is ")
+    
+    ## Problem is: we get function arguments
+    cat("\n Memory sizes this level\n ")
+    sizesobj(6)
+    cat("\n\n Memory sizes one level up\n ")
+    sizesobj(7)
+  }, file = fn, append = TRUE)
+  
 }
 
 gcmessage <- function(text) {
@@ -238,11 +239,20 @@ sizesobj <- function(n = 1) {
   ## n: how far up to go
   l1 <- ls(env = parent.frame(n = n))
   if(length(l1) > 0) {
-    r1 <- sapply(l1,
-                 function(x)
-                 object.size(get(x, env = parent.frame(n = n))))
-    r1 <- sort(r1, decreasing = TRUE)
-    round(as.matrix(r1/10^6), 1)
+   
+    ## The following does not work reliably, probably because
+    ## of name passing issues in sapply, function(x) etc
+    ## r1 <- sapply(l1,
+    ##              function(x)
+    ##              object.size(get(x, env = parent.frame(n = n + 2))))
+
+    sizes <- rep(NA, length(l1))
+    for(i in 1:length(l1)) sizes[i] <- object.size(get(l1[i], env = parent.frame(n = n)))
+    names(sizes) <- l1
+    sizes <- sort(sizes, decreasing = TRUE)
+    sizes <- round(as.matrix(sizes/10^6), 1)
+    colnames(sizes) <- "Size(MB)"
+    print(sizes)
   }
 }
 

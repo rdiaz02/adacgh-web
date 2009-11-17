@@ -263,7 +263,7 @@ getCGHValue <- function(cghRDataName, array, posInitEnd = NULL) {
 getChromValue <- function(chromRDataName, posInitEnd = NULL) {
   nmobj <- load(chromRDataName)
   open(get(nmobj, inherits = FALSE), readonly = TRUE)
-  if(is.nul(posInitEnd))
+  if(is.null(posInitEnd))
     tmp <- get(nmobj, inherits = FALSE)[]
   else
     tmp <- get(nmobj, inherits = FALSE)[ri(posInitEnd[1], posInitEnd[2])]
@@ -276,12 +276,12 @@ getPosValue <- getChromValue
 
 getNames <- function(namesRDataName, posInitEnd = NULL) {
   ## This is a simple character vector. Not an ff object
-  ## No notion of open or close
+  ## No notion of open or close and no range index
   nmobj <- load(namesRDataName)
-  if(is.nul(posInitEnd))
+  if(is.null(posInitEnd))
     tmp <- get(nmobj, inherits = FALSE)
   else
-    tmp <- get(nmobj, inherits = FALSE)[ri(posInitEnd[1], posInitEnd[2])]
+    tmp <- get(nmobj, inherits = FALSE)[posInitEnd[1]:posInitEnd[2]]
   rm(list = nmobj) 
   return(tmp)
 }
@@ -335,6 +335,83 @@ outToffdf <- function(out, arrayNames) {
   return(list(outSmoothed = outSmoothed, outState = outState))
 }
 
+
+createTableArrChrom <- function(arraynames, chrom) {
+  rle.chr <- intrle(as.integer(chrom))
+  chr.end <- cumsum(rle.chr$lengths)
+  chr.start <- c(1, chr.end[-length(chr.end)] + 1)
+  ncrom <- length(chr.start)
+  narrays <- length(arraynames)
+  rrc <- rep(narrays, ncrom)
+  
+  return(data.frame(Index = 1:(narrays * ncrom),
+                    ArrayNum = rep(1:narrays, ncrom),
+                    ArrayName = rep(arraynames, ncrom),
+                    Chrom = rep(1:ncrom, rrc),
+                    posInit = rep(chr.start, rrc),
+                    posEnd  = rep(chr.end, rrc)))
+}
+
+
+inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
+                                 filename = "inputData.RData") {
+  ## assume filename, when loaded, is "inputData"
+  load(filename)
+  gc()
+  ## rownames(inputData) <- NULL ## Don't!
+  if(any(is.na(inputData))) 
+    caughtUserError.Web(paste("Your aCGH file contains missing values. \n",
+                              "That is not allowed.\n"))
+  gc(); gc()
+  if(!is.numeric(inputData$chromosome))
+    caughtUserError.Web(paste("Chromosome contains non-numeric data.\n",
+                              "That is not allowed.\n"))
+
+  if(any(!sapply(inputData[, -c(1, 2, 3)], is.numeric)))
+    caughtUserError.Web(paste("Your aCGH file contains non-numeric data. \n",
+                              "That is not allowed.\n")   )
+  
+  gc()
+  probeNames <- inputData$ID
+  save(file = "probeNames.RData", probeNames, compress = FALSE)
+  rm(probeNames)
+  gcmessage("after rm probeNames")
+
+ 
+  chromData <- ff(inputData[, 2], vmode = "ubyte",
+                  pattern = ffpattern)
+
+  posData <- ff(inputData[, 3], vmode = "double",
+                  pattern = ffpattern)
+
+  save(file = "chromData.RData", chromData, compress = FALSE)
+  save(file = "posData.RData", posData, compress = FALSE)
+  rm(posData, chromData)
+  gcmessage("after rm posData and chromData")
+  if(is.null(colnames(inputData))) {
+    narr <- ncol(inputData) - 3
+    colnames(inputData) <- c("1", "2", "3", paste("A", 1:narr, sep = ""))
+  }
+
+  tableArrChr <- createTableArrChrom(colnames(inputData)[-c(1, 2, 3)],
+                                     inputData[, 2])
+  inputData <- inputData[, -c(1, 2, 3)]
+  cghData <- as.ffdf(inputData, pattern = ffpattern)
+  rm(inputData)
+  save(file = "cghData.RData", cghData, compress = FALSE)
+  rm(cghData)
+  gcmessage("after rm inputData")
+
+  cat("\n Files saved in current directory \n", getwd(),
+      " with names :\n",
+      "chromData.RData, posData.RData, cghData.RData, probeNames.RData \n")
+
+ return(tableArrChr)
+}
+
+
+
+
 internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
 ##  cghvalues <- getCGHval(cghRDataName, index)
 ##  chromvalues <- getChromval(chromRDataName)
@@ -376,9 +453,6 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
                           internalGLAD,
                           cghRDataName, chromRDataName, nvalues)
 
-  browser()
-  mysize(outsf)
-  browser()
   nodeWhere("pSegmentGLAD")
   return(outToffdf(outsf, arrayNames))
 }
@@ -522,6 +596,7 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
   nvalues <- nrow(get(nameCgh))
   close(get(nameCgh))
 
+  ## FIXME: change this!! we can do it simpler!!
   nameChrom <- getffObj(chromRDataName, silent = TRUE)
   rle.chr <- intrle(as.integer(get(nameChrom)[]))
   chr.end <- cumsum(rle.chr$lengths)
@@ -885,114 +960,72 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 #######################################################
 #######################################################
 
+## FIXME: qué pasa si solo un array o solo un chrom?
+  ### con plot y con segmentacion
 
-segmentPlot <- function (x, geneNames, yminmax,
-                         idtype = "ug", organism = "Hs",
-                         arrays = NULL,
-                         chroms = NULL,
-                         colors = c("orange", "red", "green", "blue", 
-                           "black"), html_js = FALSE, superimp = FALSE,
-                         imgheight = 500,
-                         genomewide_plot = FALSE,
-                         ...) {
-  if(length(yminmax) != 2) {
-    stop("yminmax must exist, and must be a two-element vector")
-  }
-  if (is.null(arrays)) {
-      arrays <- 1:length(x$segm)
-  }
-  if(length(geneNames) != length(x$chrom.numeric)) {
-    stop("lenght of geneNames must equal length of x$chrom.numeric")
-  }
-  
-  geneLoc <- if (inherits(x, "mergedBioHMM")) x$pos else NULL
-  original.pos <- 1
-  segment.pos <- 2
-  
-  if (inherits(x, "CGH.wave") & (!inherits(x, "CGH.wave.merged"))) {
-    colors <- c(rep(colors[1], 3), colors[4], colors[5])
-  }
-  
-  if(length(arrays) > 1) {
-    ## here, use parallelization only if arrays > 1
-    ## the papply parallelizes only over arrays
-    pappl_common <- list(slave_cnum = x$chrom.numeric, 
-                         slave_geneNames = geneNames, 
-                         slave_idtype = idtype,  
-                         slave_organism = organism, 
-                         slave_colors = colors,
-                         slave_geneLoc = geneLoc, 
-                         slave_yminmax = yminmax, 
-                         slave_html_js = html_js, 
-                         slave_imgheight = imgheight, 
-                         slave_genomewide_plot = genomewide_plot,
-                         slave_chroms = chroms)
-    
-    tmp_papout <- papply(x$segm[arrays], function(z) {
-      plot.adacgh.chromosomewide(res = z,
-                                 main = attributes(z)$ArrayName,
-                                 chrom = slave_cnum, 
-                                 colors = slave_colors,
-                                 ylim = slave_yminmax, 
-                                 geneNames = slave_geneNames,
-                                 idtype = slave_idtype,
-                                 organism = slave_organism, 
-                                 geneLoc = slave_geneLoc,
-                                 html_js = slave_html_js,
-                                 imgheight = slave_imgheight,
-                                 genomewide_plot = slave_genomewide_plot,
-                                 chromsplot = slave_chroms)},
-                         papply_commondata = pappl_common)
-    
-  } else { ## no parallelization
-    plot.adacgh.nonsuperimpose(res = x$segm[arrays][[1]],
-                               main = attributes(x$segm[arrays][[1]])$ArrayName,
-                               chrom = x$chrom.numeric, 
-                               colors = colors,
-                               ylim = yminmax, 
-                               geneNames = geneNames,
-                               idtype = idtype,
-                               organism = organism, 
-                               geneLoc = geneLoc,
-                               html_js = html_js,
-                               imgheight = imgheight,
-                               genomewide_plot = genomewide_plot,
-                               chromsplot = chroms)
-  }
-  cat("\n gc after plot.adacgh.nonsuperimpose \n")
-  print(gc())
-  
+pChromPlot <- function(tableArrChrom,
+                       outRDataName,
+                       cghRDataName,
+                       chromRDataName,
+                       probenamesRDataName,
+                       posRDataName = NULL,
+                       imgheight = 500,
+                       pixels.point = 3,
+                       pch = 20,
+                       colors = c("orange", "red", "green",
+                         "blue", "black"),
+                       ...) {
+
+  null <- sfClusterApplyLB(tableArrChrom$Index,
+                           internalChromPlot,
+                           tableArrChrom = tableArrChrom,
+                           outRDataName = outRDataName,
+                           cghRDataName = cghRDataName,
+                           chromRDataName = chromRDataName,
+                           probenamesRDataName = probenamesRDataName,
+                           posRDataName = posRDataName,
+                           imgheight = imgheight,
+                           pixels.point = pixels.point,
+                           pch = pch,
+                           colors = colors, ...)
+
 }
 
 internalChromPlot <- function(tableIndex,
                               tableArrChrom,
                               outRDataName,
-                              nameIm,
                               cghRDataName,
                               chromRDataName,
+                              probenamesRDataName,
                               posRDataName = NULL,
+                              imgheight = 500,
                               pixels.point = 3,
                               pch = 20,
                               colors = c("orange", "red", "green",
                                          "blue", "black"),
                               ...) {
 
-  arrayIndex <- tableArrChrom[tableIndex, "Array"]
-  cnum <- tableArrChrom[tableIndex, "Chrom"]
-  chromPos <- tableArrChrom[tableIndex, c("posInit", "posEnd")]
+
+  nodeWhere("starting internalChromPlot")
   
-  data <- getCGHValue(cghRDataName, arrayIndex, chromPos)
-  res <- getOutValue(outRDataName, 3, rrayIndex, chromPos)
+  arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
+  cnum <- tableArrChrom[tableIndex, "Chrom"]
+  arrayName <- tableArrChrom[tableIndex, "ArrayName"]
+  chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
+  
+  cghdata <- getCGHValue(cghRDataName, arrayIndex, chromPos)
+  res <- getOutValue(outRDataName, 3, arrayIndex, chromPos)
    
-  ndata <- length(data)
+  ndata <- length(cghdata)
   col <- rep(colors[1], ndata)
   col[which(res[, 2] == -1)] <- colors[3]
   col[which(res[, 2] == 1)] <- colors[2]
 
-  if(is.null(posRDataName)) simplepos <- 1:ndata
-  else simplepos <- getPosValue(posRDataName, chromPos)
+  if(is.null(posRDataName)) {
+    simplepos <- 1:ndata
+  } else simplepos <- getPosValue(posRDataName, chromPos)
 
-  nameChrIm <- paste("Chr", cnum, "@", nameIm, sep ="")
+  nameChrIm <- paste("Chr", cnum, "@", arrayName, sep ="")
   
   cat("\n        internalChromPlot: doing array ", arrayIndex,
       " chromosome ", cnum, 
@@ -1016,126 +1049,53 @@ internalChromPlot <- function(tableIndex,
     this.cex <- 1
   }
    
-  plot(data ~ simplepos, col=col, cex = this.cex,
+  plot(cghdata ~ simplepos, col=col, cex = this.cex,
        xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
        main = nameChrIm,
-       pch = pch, ylim = ylim)
+       pch = pch) ##ylim
+
+  nodeWhere("internalChromPlot: right after plot")
+  
   box()
   axis(2)
   abline(h = 0, lty = 2, col = colors[5])
   rug(simplepos, ticksize = 0.01)
   lines(res[, 1] ~ simplepos,
         col = colors[4], lwd = 2, type = "l")
-  dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
+  ## FIXME: quitar :::
+  dummy.coord <- ADaCGH:::usr2png(cbind(c(2, 0), c(0, 0)), im2)
   cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-  ccircle <- rbind(t(usr2png(cbind(simplepos, data), im2)),
+  ccircle <- rbind(t(ADaCGH:::usr2png(cbind(simplepos, cghdata), im2)),
                    rep(cc1.r, length(simplepos)))
   write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
         sep ="\t", ncolumns = 3)
 
 
   ## we delay loading stuff
+  rm(cghdata)
+  rm(simplepos)
+  rm(res)
+  nodeWhere("internalChromPlot: before geneNames")
+  
   ## FIXME: borrar todo lo que se pueda de antes y hacer gc
 
-  geneNames <- getNames(namesRDataName, chromPos)
-  
+  probeNames <- getNames(probenamesRDataName, chromPos)
+
   ## FIXME: arreglar esto: length(geneNames) es range index
-  if ( (ncol(ccircle)/length(geneNames)) != 1)
+  if ( (ncol(ccircle)/length(probeNames)) != 1)
     stop("Serious problem: number of arrays does not match")
-  write(geneNames, 
+  write(probeNames, 
         file = paste("geneNamesChr_", nameChrIm, sep = ""))
   imClose3(im2)
-  rm(geneNames)
+  rm(probeNames)
   
-  if(html_js) 
-    system(paste(.python.toMap.py, nameChrIm, 
-                 idtype, organism, sep = " "))
+  ## if(html_js) 
+  ##   system(paste(.python.toMap.py, nameChrIm, 
+  ##                idtype, organism, sep = " "))
+
+  nodeWhere("internalChromPlot: end")
+
 }
-
-
-
-
-
-plot.adacgh.chromosomewide <- function(res, chrom,
-                                       geneNames, imgheight,
-                                       main = NULL,
-                                       colors = c("orange", "red", "green",
-                                         "blue", "black"),
-                                       ylim = NULL,
-                                       idtype = idtype,
-                                       organism = organism,
-                                       geneLoc = NULL,
-                                       html_js = FALSE,
-                                       chromsplot = NULL) {
-
-  pixels.point <- 3
-  pch <- 20
-  col <- rep(colors[1],length(res[, 3]))
-  col[which(res[, 3] == -1)] <- colors[3]
-  col[which(res[, 3] == 1)] <- colors[2]
-  nameIm <- main
-  if(is.null(chromsplot)) chrom.nums <- unique(chrom)
-  else chrom.nums <- chromsplot
-  cat("\n  plot.adacgh.chromosomewide: doing sample ", main, "\n")
-  
-  for(cnum in 1:length(chrom.nums)) {
-    cat("\n        plot.adacgh.chromosomewide: doing chromosome  ", cnum, "\n")
-    indexchr <- which(chrom == chrom.nums[cnum])
-    ccircle <- NULL
-    simplepos <- if(is.null(geneLoc)) (1:length(indexchr)) else geneLoc[indexchr]
-    ## Formerly mapChromOpen
-    chrwidth <- round(pixels.point * (length(indexchr) + .10 * length(indexchr)))
-    chrwidth <- max(min(chrwidth, 1200), 800)
-    im2 <- imagemap3(paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-                     height = imgheight, width = chrwidth,
-                     ps = 12)
-    ##
-    ## Formerly plotChromWide()
-    par(xaxs = "i")
-    par(mar = c(5, 5, 5, 5))
-    par(oma = c(0, 0, 0, 0))
-
-    if(length(indexchr) > 50000) {
-      this.cex <- 0.1
-    } else if (length(indexchr) > 10000) {
-      this.cex <- 0.5
-    } else {
-      this.cex <- 1
-    }
-   
-    plot(res[indexchr,1] ~ simplepos, col=col[indexchr], cex = this.cex,
-         xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
-         main = paste("Chr", chrom.nums[cnum], "@", nameIm, sep =""),
-         pch = pch, ylim = ylim)
-    box()
-    axis(2)
-    abline(h = 0, lty = 2, col = colors[5])
-    rug(simplepos, ticksize = 0.01)
-    lines(res[indexchr, 2] ~ simplepos,
-          col = colors[4], lwd = 2, type = "l")
-    dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
-    cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-    ccircle <- rbind(t(usr2png(cbind(simplepos, res[indexchr, 1]), im2)),
-                     rep(cc1.r, length(simplepos)))
-    nameChrIm <- paste("Chr", chrom.nums[cnum], "@", nameIm, sep ="")
-    write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
-          sep ="\t", ncolumns = 3)
-    calcnarrays <- ncol(ccircle)/length(geneNames[indexchr])
-    ## what are the next three lines for here?? FIXME
-    if(!exists("arraynums")) arraynums <- 1
-    if(calcnarrays != arraynums)
-      stop("Serious problem: number of arrays does not match")
-    write(rep(as.character(geneNames[indexchr]), arraynums), 
-          file = paste("geneNamesChr_", nameChrIm, sep = ""))
-    imClose3(im2)
-    if(html_js) 
-      system(paste(.python.toMap.py, nameChrIm, 
-                   idtype, organism, sep = " "))
-  }        ## looping over chromosomes
-}
-
-  
-
 
 
 #######################################################

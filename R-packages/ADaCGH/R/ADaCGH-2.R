@@ -196,7 +196,7 @@ mysize <- function(x) {
   
 }
 
-sizesobj <- function(n = 1. minsizeshow = 0.5) {
+sizesobj <- function(n = 1,  minsizeshow = 0.5) {
   ## n: how far up to go
   l1 <- ls(env = parent.frame(n = n))
   if(length(l1) > 0) {
@@ -218,9 +218,6 @@ sizesobj <- function(n = 1. minsizeshow = 0.5) {
     print(sizes)
   }
 }
-
-
-
 
 getOutValue <- function(outRDataName, components, array, posInitEnd = NULL) {
   ## component: 1 for Smoothed, 2 for State, 3 for both.
@@ -245,7 +242,7 @@ getOutValue <- function(outRDataName, components, array, posInitEnd = NULL) {
     return(tmp1)
   else if(components == 2)
     return(tmp2)
-  else return(cbind(tmp1, tmp2))
+  else return(cbind(tmp1, tmp2)) ## smoothed, state
 }
 
 
@@ -262,13 +259,36 @@ getCGHValue <- function(cghRDataName, array, posInitEnd = NULL) {
 }
 
 
-getChromValue <- function(chromRDataName) {
+
+getChromValue <- function(chromRDataName, posInitEnd = NULL) {
   nmobj <- load(chromRDataName)
   open(get(nmobj, inherits = FALSE), readonly = TRUE)
-  tmp <- get(nmobj, inherits = FALSE)[]
+  if(is.nul(posInitEnd))
+    tmp <- get(nmobj, inherits = FALSE)[]
+  else
+    tmp <- get(nmobj, inherits = FALSE)[ri(posInitEnd[1], posInitEnd[2])]
   close(get(nmobj, inherits = FALSE))
   return(tmp)
 }
+
+getPosValue <- getChromValue
+
+
+getNames <- function(namesRDataName, posInitEnd = NULL) {
+  ## This is a simple character vector. Not an ff object
+  ## No notion of open or close
+  nmobj <- load(namesRDataName)
+  if(is.nul(posInitEnd))
+    tmp <- get(nmobj, inherits = FALSE)
+  else
+    tmp <- get(nmobj, inherits = FALSE)[ri(posInitEnd[1], posInitEnd[2])]
+  rm(list = nmobj) 
+  return(tmp)
+}
+  
+
+
+
 
 getffObj <- function(RDataName, silent = FALSE) {
   nmobj <- load(RDataName, env = parent.frame())
@@ -848,31 +868,6 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #######################################################
 #######################################################
 #######################################################
@@ -969,25 +964,92 @@ segmentPlot <- function (x, geneNames, yminmax,
   
 }
 
-internalChromPlot <- function(arrayIndex, chromPos,
-                              cghRDataName, chromRDataName,
+internalChromPlot <- function(tableIndex,
+                              tableArrChrom,
+                              outRDataName,
+                              nameIm,
+                              cghRDataName,
+                              chromRDataName,
+                              posRDataName = NULL,
                               pixels.point = 3,
                               pch = 20,
                               colors = c("orange", "red", "green",
                                          "blue", "black"),
                               ...) {
 
-  data <- getCGHValue(cghRDataName, arrayIndex, chromPos)
-  state <- getOutValue()
-  smoothed <- getOutValue()
-
+  arrayIndex <- tableArrChrom[tableIndex, "Array"]
+  cnum <- tableArrChrom[tableIndex, "Chrom"]
+  chromPos <- tableArrChrom[tableIndex, c("posInit", "posEnd")]
   
+  data <- getCGHValue(cghRDataName, arrayIndex, chromPos)
+  res <- getOutValue(outRDataName, 3, rrayIndex, chromPos)
+   
   ndata <- length(data)
   col <- rep(colors[1], ndata)
-  col[which(res[, 3] == -1)] <- colors[3]
-  col[which(res[, 3] == 1)] <- colors[2]
+  col[which(res[, 2] == -1)] <- colors[3]
+  col[which(res[, 2] == 1)] <- colors[2]
 
+  if(is.null(posRDataName)) simplepos <- 1:ndata
+  else simplepos <- getPosValue(posRDataName, chromPos)
+
+  nameChrIm <- paste("Chr", cnum, "@", nameIm, sep ="")
   
+  cat("\n        internalChromPlot: doing array ", arrayIndex,
+      " chromosome ", cnum, 
+      " positions ", chromPos, "\n")
+  
+  ccircle <- NULL
+  chrwidth <- round(pixels.point * (ndata + .10 * ndata))
+  chrwidth <- max(min(chrwidth, 1200), 800)
+  im2 <- imagemap3(nameChrIm,
+                   height = imgheight, width = chrwidth,
+                   ps = 12)
+  par(xaxs = "i")
+  par(mar = c(5, 5, 5, 5))
+  par(oma = c(0, 0, 0, 0))
+  
+  if(ndata > 50000) {
+    this.cex <- 0.1
+  } else if (ndata > 10000) {
+    this.cex <- 0.5
+  } else {
+    this.cex <- 1
+  }
+   
+  plot(data ~ simplepos, col=col, cex = this.cex,
+       xlab ="Chromosomal location", ylab = "log ratio", axes = FALSE,
+       main = nameChrIm,
+       pch = pch, ylim = ylim)
+  box()
+  axis(2)
+  abline(h = 0, lty = 2, col = colors[5])
+  rug(simplepos, ticksize = 0.01)
+  lines(res[, 1] ~ simplepos,
+        col = colors[4], lwd = 2, type = "l")
+  dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
+  cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
+  ccircle <- rbind(t(usr2png(cbind(simplepos, data), im2)),
+                   rep(cc1.r, length(simplepos)))
+  write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
+        sep ="\t", ncolumns = 3)
+
+
+  ## we delay loading stuff
+  ## FIXME: borrar todo lo que se pueda de antes y hacer gc
+
+  geneNames <- getNames(namesRDataName, chromPos)
+  
+  ## FIXME: arreglar esto: length(geneNames) es range index
+  if ( (ncol(ccircle)/length(geneNames)) != 1)
+    stop("Serious problem: number of arrays does not match")
+  write(geneNames, 
+        file = paste("geneNamesChr_", nameChrIm, sep = ""))
+  imClose3(im2)
+  rm(geneNames)
+  
+  if(html_js) 
+    system(paste(.python.toMap.py, nameChrIm, 
+                 idtype, organism, sep = " "))
 }
 
 

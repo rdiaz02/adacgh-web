@@ -287,9 +287,6 @@ getNames <- function(namesRDataName, posInitEnd = NULL) {
 }
   
 
-
-
-
 getffObj <- function(RDataName, silent = FALSE) {
   nmobj <- load(RDataName, env = parent.frame())
     if(!silent) {
@@ -299,6 +296,17 @@ getffObj <- function(RDataName, silent = FALSE) {
     }
   open(get(nmobj, inherits = FALSE, envir = parent.frame()), readonly = TRUE)
   return(nmobj)
+}
+
+
+ffVecOut <- function(smoothedVal, vmode = "double") {
+  pattern <- paste(getwd(), paste(sample(letters, 4), collapse = ""),
+                   sep = "/")
+  vv <- ff(smoothedVal,
+           vmode = vmode,
+           pattern = pattern)
+  close(vv)
+  return(vv)
 }
 
 ffListOut <- function(smoothedVal, stateVal) {
@@ -411,7 +419,6 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
 
 
 
-
 internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
 ##  cghvalues <- getCGHval(cghRDataName, index)
 ##  chromvalues <- getChromval(chromRDataName)
@@ -422,7 +429,7 @@ internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
   class(tmpf) <- "profileCGH"
   outglad <- glad.profileCGH(tmpf)
   rm(tmpf)
-    nodeWhere("internalGLAD")
+  nodeWhere("internalGLAD")
   return(ffListOut(outglad$profileValues$Smoothing,
                    outglad$profileValues$ZoneGNL))
 }
@@ -621,13 +628,27 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
 }
 
 
+pSegmentHMM <- function(cghRDataName, chromRDataName, tableArrChrom, ...) {
 
-pSegmentHMM <- function(x, chrom.numeric, parall = "auto", ...) {
-  stop.na.inf(x)
-  stop.na.inf(chrom.numeric)
-  warn.too.few.in.chrom(chrom.numeric)
-      return(pSegmentHMM_axc(x, chrom.numeric, ...))
+  arrayNames <- levels(tableArrChrom$ArrayName)
+  out0 <- sfClusterApplyLB(tableArrChrom$Index,
+                            internalHMM,
+                            tableArrChrom,
+                            cghRDataName)
+  nodeWhere("pSegmentHMM")
+
+  ## I need to put together the output for mergeLevels
+
+  
+##  return(outToffdf(outsf, arrayNames))
 }
+
+internalHMM <- function(tableIndex, tableArrChrom, cghRDataName) {
+  arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
+  chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
+  return(hmmWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos)))
+}
+
 
 pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
   nsample <- ncol(x)
@@ -656,26 +677,46 @@ pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
     outl$segm <- out
     outl$chrom.numeric <- chrom.numeric
     outl <- add.names.as.attr(outl, colnames(x))
-    class(outl) <- c("adacgh.generic.out","mergedHMM")
-    return(outl)
+  class(outl) <- c("adacgh.generic.out","mergedHMM")
+  return(outl)
 }
 
 
 hmmWrapper <- function(logratio) {
-    ## Fit HMM, and return the predicted
-    ## we do not pass Chrom since we only fit by Chrom.
-    Pos <- Clone <- 1:length(logratio)
-    Chrom <- rep(1, length(logratio))
-    obj.aCGH <- create.aCGH(data.frame(logratio),
-                            data.frame(Clone = Clone,
-                                       Chrom = Chrom,
-                                       kb = Pos))
-    res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
-    hmm(obj.aCGH) <- res
-    return(obj.aCGH$hmm$states.hmm[[1]][, 6])
-  }
+  ## Fit HMM, and return the predicted
+  ## we do not pass Chrom since we only fit by Chrom.
+  Pos <- Clone <- 1:length(logratio)
+  Chrom <- rep(1, length(logratio))
+  obj.aCGH <- create.aCGH(data.frame(logratio),
+                          data.frame(Clone = Clone,
+                                     Chrom = Chrom,
+                                     kb = Pos))
+  res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
+  hmm(obj.aCGH) <- res
+  return(ffVecOut(obj.aCGH$hmm$states.hmm[[1]][, 6]))
+}
 
+vectorFromffList <- function(indices, lff) {
+  ## Put together the "by chromosome by array" pieces
+  ## into a single "by array" vector.
+  ## This implementation might not be very efficient.
+  return(
+         unlist(lapply(lff[indices],
+                       function(x) {
+                         open(x)
+                         tmp <- x[]
+                         close(x)
+                         return(tmp)
+                       }))
+         )
+}
 
+vectorForArray <- function(t1, array, listofff) {
+  indices <- t1$Index[t1$ArrayNum == array]
+  ## Note: it is key that t1 is ordered by position for
+  ##       a sequence of increasing indices.
+  vectorFromffList(indices, listofff)
+}
 
 pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
   stop.na.inf(x)
@@ -767,9 +808,6 @@ pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres = -0.05, ...) {
   class(outl) <- c("adacgh.generic.out", "CGHseg")
   return(outl)
 }
-
-
-
 
 CGHsegWrapper <- function(logratio, chrom.numeric,
                           s, maxseg = NULL,

@@ -405,13 +405,11 @@ vectorFromffList2 <- function(indices, lff, element) {
 }
 
 
-
-
 wrapCreateTableArrChr <- function(cghRDataName, chromRDataName) {
-  ## SPEED: if you are using it, you do not really need it.
-  ## The table is created somewhere else, probably
-  ## and cghdata is read at other places, like chrom
-  ## But with 30 arrays of 1*10 probes each, it takes
+  ## SPEED: if you are using this function, you do not really need it.
+  ## The table is created somewhere else
+  ## and cghdata is read at other places, likewise with chrom
+  ## But with 30 arrays of 10^6 probes each, it takes
   ## less than 0.020 seconds and is light on memory.
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
   arrayNames <- colnames(get(nameCgh))
@@ -445,7 +443,7 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
   ## assume filename, when loaded, is "inputData"
   load(filename)
   gc()
-  ## rownames(inputData) <- NULL ## Don't!
+  rownames(inputData) <- NULL ## Don't? Takes a lot of time
   if(any(is.na(inputData))) 
     caughtUserError.Web(paste("Your aCGH file contains missing values. \n",
                               "That is not allowed.\n"))
@@ -714,8 +712,15 @@ pSegmentHMM <- function(cghRDataName, chromRDataName, ...) {
 
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
     
-  arrayNames <- levels(tableArrChrom$ArrayName)
-  narrays <- length(arrayNames)
+  nameCgh <- getffObj(cghRDataName, silent = TRUE)
+  arrayNames <- colnames(get(nameCgh))
+  narrays <- ncol(get(nameCgh))
+  nvalues <- nrow(get(nameCgh))
+  close(get(nameCgh))
+
+
+  
+  
   ## Parallelized by arr by chrom
   out0 <- sfClusterApplyLB(tableArrChrom$Index,
                             internalHMM,
@@ -781,8 +786,14 @@ internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
 
 pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
-  arrayNames <- levels(tableArrChrom$ArrayName)
-  narrays <- length(arrayNames)
+
+  nameCgh <- getffObj(cghRDataName, silent = TRUE)
+  arrayNames <- colnames(get(nameCgh))
+  narrays <- ncol(get(nameCgh))
+  nvalues <- nrow(get(nameCgh))
+  close(get(nameCgh))
+
+
   
   out0 <- sfClusterApplyLB(tableArrChrom$Index,
                            internalBioHMM,
@@ -838,22 +849,28 @@ BioHMMWrapper <- function(logratio, Pos) {
 
 
 pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
-                           mergeLevels = FALSE, ...) {
-  ## We always use mergeLevels. OK for gain/loss/no-change,
+                           mergeSegs = FALSE, ...) {
+  ## We always use mergeSegs. OK for gain/loss/no-change,
   ## but it breaks the underlying segments
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
-  arrayNames <- levels(tableArrChrom$ArrayName)
-  narrays <- length(arrayNames)
+
+  nameCgh <- getffObj(cghRDataName, silent = TRUE)
+  arrayNames <- colnames(get(nameCgh))
+  narrays <- ncol(get(nameCgh))
+  nvalues <- nrow(get(nameCgh))
+  close(get(nameCgh))
+
+
   ## Parallelized by arr by chrom
   out0 <- sfClusterApplyLB(tableArrChrom$Index,
                            internalCGHseg,
                            tableArrChrom,
                            cghRDataName,
                            CGHseg.thres,
-                           mergeLevels)
+                           mergeSegs)
   nodeWhere("pSegmentCGHseg_0")
 
-  if(mergeLevels) {
+  if(mergeSegs) {
     ## Parallelized by array
     out <- sfClusterApplyLB(1:narrays,
                             internalMerge,
@@ -881,7 +898,7 @@ puttogetherCGHseg <- function(index, out, tableArrChrom) {
 }
 
 internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres,
-                           mergeLevels) {
+                           mergeSegs) {
   ## the following could be parameters
   
   maxseg <- NULL
@@ -901,17 +918,17 @@ internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres
   }
   nodeWhere("internalCGHseg")
 
-  return(piccardsStretch01(obj1, optk, n, y, mergeLevels))
+  return(piccardsStretch01(obj1, optk, n, y, mergeSegs))
 
   ## Beware we do not use the original "states" of Piccard
-  ## as we always use mergeLevels
+  ## as we always use mergeSegs
   ## segstates <- c(segstates, finalsegm[, 2])
 }
 
 
 
-piccardsStretch01 <- function(obj, k, n, logratio, mergeLevels) {
-  ## note return object differs if mergeLevels TRUE or FALSE
+piccardsStretch01 <- function(obj, k, n, logratio, mergeSegs) {
+  ## note return object differs if mergeSegs TRUE or FALSE
     if(k > 1) {
         poss <- obj@breakpoints[[k]]
         start <- c(1, poss)
@@ -919,14 +936,14 @@ piccardsStretch01 <- function(obj, k, n, logratio, mergeLevels) {
         smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
         reps <- diff(c(start, n + 1))
         smoothed <- rep(smoothedC, reps)
-        if(!mergeLevels)
+        if(!mergeSegs)
           state <- rep(1:k, reps)
     } else { ## only one segment
         smoothed <- rep(mean(logratio), n)
-        if(!mergeLevels)
+        if(!mergeSegs)
           state <- rep(1, n)
     }
-    if(mergeLevels)
+    if(mergeSegs)
       return(ffVecOut(smoothed))
     else
       return(list(ffVecOut(smoothed),
@@ -965,92 +982,78 @@ piccardsKO <- function(loglik, n, s) {
 ## Picard's paper.
 
 
-pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
+pSegmentWavelets <- function(cghRDataName, chromRDataName, mergeSegs = TRUE,
                              minDiff = 0.25,
                              minMergeDiff = 0.05,
                              thrLvl = 3, initClusterLevels = 10, ...) {
-  stop.na.inf(chrom.numeric)
-  stop.na.inf(x)
-  warn.too.few.in.chrom(chrom.numeric)
+
+  tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
+
+  nameCgh <- getffObj(cghRDataName, silent = TRUE)
+  arrayNames <- colnames(get(nameCgh))
+  narrays <- ncol(get(nameCgh))
+  nvalues <- nrow(get(nameCgh))
+  close(get(nameCgh))
+
+  thismdiff <- if(mergeSegs) minMergeDiff else minDiff
+
+  out0 <- sfClusterApplyLB(tableArrChrom$Index,
+                           internalWaveHsu,
+                           tableArrChrom,
+                           cghRDataName,
+                           thrLvl = thrLvl,
+                           minDiff = thismdiff,
+                           initClusterLevels = initClusterLevels,
+                           mergeSegs = mergeSegs)
+  nodeWhere("pSegmentWavelets_0")
+
+  browser()
   
-##     ncloneschrom <- tapply(x[, 1], chrom.numeric, function(x) length(x))
-##     if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
-##         warningsForUsers <-
-##             c(warningsForUsers,
-##               paste("The number of clones/genes is either",
-##                     "larger than 1096 or smaller than 21",
-##                     "in at least one chromosome. The wavelet",
-##                     "thresholding of 3 might not be appropriate."))
-    Nsamps  <- ncol(x)
-    uniq.chrom <- unique(chrom.numeric)
-
-    datalist <- list()
-    klist <- 1
-    for(i in 1:Nsamps) {
-        for (j in uniq.chrom) {
-            datalist[[klist]] <- x[chrom.numeric == j, i]
-            klist <- klist + 1
-        }
-    }
-    thismdiff <- if(mergeSegs) minMergeDiff else minDiff
-##    force(thismdiff)
-    funwv <- function(ratio){ # , thrLvl, minDiff, initClusterLevels) {
-        wc   <- modwt(ratio, "haar", n.levels=slave_thrLvl)
-        thH  <- our.hybrid(wc, max.level=slave_thrLvl, hard=FALSE)
-        recH <- imodwt(thH)
-        ## cluster levels
-        pred.ij <- segmentW(ratio, recH, minDiff=slave_minDiff,
-                            n.levels = slave_initClusterLevels)
-        labs <- as.character(1:length(unique(pred.ij)))
-        state <- as.integer(factor(pred.ij, labels=labs))
-        return(cbind(Observed = ratio,
-                     Smoothed = pred.ij,
-                     State = state))
-    }
-    out0 <- papply(datalist, funwv,
-                    list(slave_thrLvl = thrLvl,
-                         slave_minDiff = thismdiff,
-                         slave_initClusterLevels = initClusterLevels))
-
-    ## list with one entry per array
-    out <- list()
-    klist <- 1
-    for(i in 1:Nsamps) {
-        out[[i]] <- out0[[klist]]
-        for(j in uniq.chrom[-1]) {
-            klist <- klist + 1
-            out[[i]] <- rbind(out[[i]], out0[[klist]])
-        }
-    }
-
-    ## if merging, call ourMerge
-    if(!mergeSegs) {
-        outl <- list()
-        outl$segm <- out
-        outl$chrom.numeric <- chrom.numeric
-        outl <- add.names.as.attr(outl, colnames(x))
-        class(outl) <- c(class(out), "CGH.wave", "adacgh.generic.out")
-        return(outl)
-    } else {
-        datalist <- list()
-        for (i in 1:ncol(x)) {
-            datalist[[i]] <- list()
-            datalist[[i]]$logr <- x[, i]
-            datalist[[i]]$pred  <- out[[i]][, 2]
-        }
-        papout <- papply(datalist,
-                         function(z)  ourMerge(z[[1]], z[[2]]))
-        outl <- list()
-        outl$segm <- papout
-        outl$chrom.numeric <- chrom.numeric
-        outl <- add.names.as.attr(outl, colnames(x))
-        class(outl) <- c(class(out), "CGH.wave", "CGH.wave.merged",
-                         "adacgh.generic.out")
-        return(outl)
-    }
-        
+  if(mergeSegs) {
+    out <- sfClusterApplyLB(1:narrays,
+                            internalMerge,
+                            out0,
+                            tableArrChrom,
+                            cghRDataName)
+    nodeWhere("pSegmentWavelets_YES_merge")
+  } else { ## of course, could be done sequentially
+    ## but if many arrays and long chromosomes, probably
+    ## better over several nodes
+    out <- sfClusterApplyLB(1:narrays,
+                            puttogetherCGHseg,
+                            out0,
+                            tableArrChrom)
+    nodeWhere("pSegmentWavelets_No_merge")
+  }  
+  nodeWhere("pSegmentWavelets_1")
+  return(outToffdf(out, arrayNames))
 }
 
+
+internalWaveHsu <- function(tableIndex, tableArrChrom,
+                            cghRDataName,
+                            thrLvl, minDiff, initClusterLevels,
+                            mergeSegs) {
+  arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
+  chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
+  nodeWhere("internalWaveHsu")
+  ratio <- getCGHValue(cghRDataName, arrayIndex, chromPos)
+  
+  wc   <- modwt(ratio, "haar", n.levels=thrLvl)
+  thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
+  recH <- imodwt(thH)
+  ## cluster levels
+  pred.ij <- segmentW(ratio, recH, minDiff=minDiff,
+                      n.levels = initClusterLevels)
+  labs <- as.character(1:length(unique(pred.ij)))
+  if(!mergeSegs) 
+    state <- as.integer(factor(pred.ij, labels=labs))
+  if(mergeSegs)
+    return(ffVecOut(pred.ij))
+  else
+    return(list(ffVecOut(pred.ij),
+                ffVecOut(state, vmode = "integer")))
+}
 
 
 

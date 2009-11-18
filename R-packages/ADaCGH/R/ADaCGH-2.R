@@ -111,6 +111,12 @@ getbdry <- DNAcopy:::getbdry
     
 ##############################################
 
+## We work with objects from disk.
+## For managemente, much easier if RData and dirs for
+## ff objects are the same.
+
+
+
 
 ###  Visible stuff
 
@@ -166,7 +172,7 @@ nodeWhere <- function(nodeMessage) {
   if(is.null(nodeMessage)) nodeMessage <- ""
   nodeMessage <- paste("nodeWhere", nodeMessage, sep = "_")
   fn <- paste(nodeMessage, paste(sample(letters,8), sep = "", collapse = ""),
-              sep = "")
+              sep = "_")
   
   capture.output(print(nodeMessage), file = fn)
   capture.output(cat("\n HOSTNAME IS "), file = fn, append = TRUE)
@@ -222,6 +228,12 @@ sizesobj <- function(n = 1,  minsizeshow = 0.5) {
 getOutValue <- function(outRDataName, components, array, posInitEnd = NULL) {
   ## component: 1 for Smoothed, 2 for State, 3 for both.
   nmobj <- load(outRDataName)
+
+  if(!inherits(get(nmobj[[1]], inherits = FALSE), "ffdf"))
+    stop("outRDataName must be a list of ffdf")
+  if(!inherits(get(nmobj[[2]], inherits = FALSE), "ffdf"))
+    stop("outRDataName must be a list of ffdf")
+  
   if((components == 1) | (components == 3)) {
     open(get(nmobj, inherits = FALSE)[[1]], readonly = TRUE)
     if(is.null(posInitEnd))
@@ -249,6 +261,8 @@ getOutValue <- function(outRDataName, components, array, posInitEnd = NULL) {
 
 getCGHValue <- function(cghRDataName, array, posInitEnd = NULL) {
   nmobj <- load(cghRDataName)
+  if(!inherits(get(nmobj, inherits = FALSE), "ffdf"))
+    stop("cghRDataName must be of class ffdf")
   open(get(nmobj, inherits = FALSE), readonly = TRUE)
   if(is.null(posInitEnd))
     tmp <- get(nmobj, inherits = FALSE)[, array]
@@ -316,7 +330,7 @@ ffListOut <- function(smoothedVal, stateVal) {
                  vmode = "double",
                  pattern = pattern)
   state <- ff(stateVal,
-              vmode = "short",
+              vmode = "integer", ## could be short but allow pathological cases
               pattern = pattern)
   close(smoothed)
   close(state)
@@ -343,6 +357,71 @@ outToffdf <- function(out, arrayNames) {
   return(list(outSmoothed = outSmoothed, outState = outState))
 }
 
+vectorFromffList <- function(indices, lff) {
+  ## Put together the "by chromosome by array" pieces
+  ## into a single "by array" vector.
+  ## This implementation might not be very efficient.
+  return(
+         unlist(lapply(lff[indices],
+                       function(x) {
+                         open(x)
+                         tmp <- x[]
+                         close(x)
+                         return(tmp)
+                       }))
+         )
+}
+
+vectorForArray <- function(t1, array, listofff) {
+  indices <- t1$Index[t1$ArrayNum == array]
+  ## Note: it is key that t1 is ordered by position for
+  ##       a sequence of increasing indices.
+  vectorFromffList(indices, listofff)
+}
+
+vectorForArrayL2 <- function(t1, array, listofff, element) {
+  ## the list is a two element list for each position
+  indices <- t1$Index[t1$ArrayNum == array]
+  ## Note: it is key that t1 is ordered by position for
+  ##       a sequence of increasing indices.
+  vectorFromffList2(indices, listofff, element)
+}
+
+vectorFromffList2 <- function(indices, lff, element) {
+  ## Put together the "by chromosome by array" pieces
+  ## into a single "by array" vector.
+  ## This implementation might not be very efficient.
+  ## Probably an ff object can be returned
+  ## from concatenating several??
+  return(
+         unlist(lapply(lff[indices],
+                       function(x) {
+                         open(x[[element]])
+                         tmp <- x[[element]][]
+                         close(x[[element]])
+                         return(tmp)
+                       }))
+         )
+}
+
+
+
+
+wrapCreateTableArrChr <- function(cghRDataName, chromRDataName) {
+  ## SPEED: if you are using it, you do not really need it.
+  ## The table is created somewhere else, probably
+  ## and cghdata is read at other places, like chrom
+  ## But with 30 arrays of 1*10 probes each, it takes
+  ## less than 0.020 seconds and is light on memory.
+  nameCgh <- getffObj(cghRDataName, silent = TRUE)
+  arrayNames <- colnames(get(nameCgh))
+  if(is.null(arrayNames)) {
+    narr <- ncol(get(nameCgh))
+    arrayNames <- paste("A", 1:narr, sep = "")
+  }
+  close(get(nameCgh))
+  createTableArrChrom(arrayNames, getChromValue(chromRDataName))
+}
 
 createTableArrChrom <- function(arraynames, chrom) {
   rle.chr <- intrle(as.integer(chrom))
@@ -419,26 +498,13 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
 
 
 
-internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
-##  cghvalues <- getCGHval(cghRDataName, index)
-##  chromvalues <- getChromval(chromRDataName)
-  tmpf <- list(profileValues = data.frame(
-                 LogRatio = getCGHValue(cghRDataName, index),
-                 PosOrder = 1:nvalues,
-                 Chromosome = getChromValue(chromRDataName)))
-  class(tmpf) <- "profileCGH"
-  outglad <- glad.profileCGH(tmpf)
-  rm(tmpf)
-  nodeWhere("internalGLAD")
-  return(ffListOut(outglad$profileValues$Smoothing,
-                   outglad$profileValues$ZoneGNL))
-}
-  
-
-
-## We work with objects from disk.
-## For managemente, much easier if RData and dirs for
-## ff objects are the same.
+#####################################################
+#####################################################
+##############
+##############    Methods
+##############
+#####################################################
+#####################################################
 
 pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
 
@@ -464,49 +530,19 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
   return(outToffdf(outsf, arrayNames))
 }
 
-internalDNAcopy <- function(index, cghRDataName, chromRDataName,
-                            mergeSegs, smooth,
-                            alpha, nperm, kmax, nmin,
-                            eta, overlap, trim,
-                            undo.prune, undo.SD,
-                            sbdry, sbn,
-                            merge.pv.thresh,
-                            merge.ansari.sign,
-                            merge.thresMin, merge.thresMax) {
-
-  data <- getCGHValue(cghRDataName, index)
-  chrom.numeric <- getChromValue(chromRDataName)
-  if(smooth)
-    data <- internalDNAcopySmooth(data,
-                                chrom.numeric = chrom.numeric,
-                                smooth.region = 2, outlier.SD.scale = 4,
-                                smooth.SD.scale = 2, trim = 0.025)
-  outseg <-
-    internalDNAcopySegm(data,
-                        chrom.numeric = chrom.numeric,      
-                        alpha =         alpha,     
-                        nperm =         nperm,    
-                        kmax =          kmax,      
-                        nmin =          nmin,      
-                        overlap =       overlap,   
-                        trim =          trim,      
-                        undo.prune =    undo.prune,
-                        undo.SD =       undo.SD,   
-                        sbdry =         sbdry,     
-                        sbn =           sbn)
-  rm(chrom.numeric)
-  
-  if(mergeSegs)
-    outseg <- ourMerge(data, outseg[ , 1],
-                       merge.pv.thresh = merge.pv.thresh,
-                       merge.ansari.sign = merge.ansari.sign,
-                       merge.thresMin = merge.thresMin,
-                       merge.thresMax = merge.thresMax)
-  rm(data)
-  nodeWhere("internalDNAcopy")
-  return(ffListOut(outseg[, 1], outseg[, 2]))
-
-  
+internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
+##  cghvalues <- getCGHval(cghRDataName, index)
+##  chromvalues <- getChromval(chromRDataName)
+  tmpf <- list(profileValues = data.frame(
+                 LogRatio = getCGHValue(cghRDataName, index),
+                 PosOrder = 1:nvalues,
+                 Chromosome = getChromValue(chromRDataName)))
+  class(tmpf) <- "profileCGH"
+  outglad <- glad.profileCGH(tmpf)
+  rm(tmpf)
+  nodeWhere("internalGLAD")
+  return(ffListOut(outglad$profileValues$Smoothing,
+                   outglad$profileValues$ZoneGNL))
 }
 
 pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
@@ -558,35 +594,52 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
   ## FIXME: classes!! for all output!!
   ## class(out) <- c("adacgh.generic.out", "adacghHaarSeg")
   return(outToffdf(outsf, arrayNames))
-
 }
 
-internalHaarSeg <- function(index, cghRDataName, HaarSeg.m,
-                            chromPos,
-                            W, rawI,
-                            breaksFdrQ,
-                            haarStartLevel,
-                            haarEndLevel) {
+internalDNAcopy <- function(index, cghRDataName, chromRDataName,
+                            mergeSegs, smooth,
+                            alpha, nperm, kmax, nmin,
+                            eta, overlap, trim,
+                            undo.prune, undo.SD,
+                            sbdry, sbn,
+                            merge.pv.thresh,
+                            merge.ansari.sign,
+                            merge.thresMin, merge.thresMax) {
 
-  xvalue <- getCGHValue(cghRDataName, index)
-## FIXME: when we have library, remove ADaCGH:::
-  haarout <- ADaCGH:::ad_HaarSeg(I = xvalue,
-                        chromPos = chromPos,
-                        W = W, rawI = rawI,
-                        breaksFdrQ = breaksFdrQ,
-                        haarStartLevel = haarStartLevel,
-                        haarEndLevel = haarEndLevel)[[2]]
-  mad.subj <- median(abs(xvalue - haarout))/0.6745
-  rm(xvalue)
-  thresh <- HaarSeg.m * mad.subj
-  ## alteration <- rep(0, nvalues)
-  ## alteration[haarout > thresh] <- 1
-  ## alteration[haarout < -thresh] <- -1
-
-  nodeWhere("internalHaarSeg")
-  return(ffListOut(haarout,
-                   ifelse( abs(haarout > thresh), 1, 0) * sign(haarout)))
+  cghdata <- getCGHValue(cghRDataName, index)
+  chrom.numeric <- getChromValue(chromRDataName)
+  if(smooth)
+    cghdata <- internalDNAcopySmooth(cghdata,
+                                chrom.numeric = chrom.numeric,
+                                smooth.region = 2, outlier.SD.scale = 4,
+                                smooth.SD.scale = 2, trim = 0.025)
+  outseg <-
+    internalDNAcopySegm(cghdata,
+                        chrom.numeric = chrom.numeric,      
+                        alpha =         alpha,     
+                        nperm =         nperm,    
+                        kmax =          kmax,      
+                        nmin =          nmin,      
+                        overlap =       overlap,   
+                        trim =          trim,      
+                        undo.prune =    undo.prune,
+                        undo.SD =       undo.SD,   
+                        sbdry =         sbdry,     
+                        sbn =           sbn)
+  rm(chrom.numeric)
+  
+  if(mergeSegs)
+    outseg <- ourMerge(cghdata, outseg[ , 1],
+                       merge.pv.thresh = merge.pv.thresh,
+                       merge.ansari.sign = merge.ansari.sign,
+                       merge.thresMin = merge.thresMin,
+                       merge.thresMax = merge.thresMax)
+  rm(cghdata)
+  nodeWhere("internalDNAcopy")
+  return(ffListOut(outseg[, 1], outseg[, 2]))
 }
+
+
 
 
 pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
@@ -627,222 +680,238 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
   return(outToffdf(outsf, arrayNames))
 }
 
+internalHaarSeg <- function(index, cghRDataName, HaarSeg.m,
+                            chromPos,
+                            W, rawI,
+                            breaksFdrQ,
+                            haarStartLevel,
+                            haarEndLevel) {
 
-pSegmentHMM <- function(cghRDataName, chromRDataName, tableArrChrom, ...) {
+  xvalue <- getCGHValue(cghRDataName, index)
+## FIXME: when we have library, remove ADaCGH:::
+  haarout <- ADaCGH:::ad_HaarSeg(I = xvalue,
+                        chromPos = chromPos,
+                        W = W, rawI = rawI,
+                        breaksFdrQ = breaksFdrQ,
+                        haarStartLevel = haarStartLevel,
+                        haarEndLevel = haarEndLevel)[[2]]
+  mad.subj <- median(abs(xvalue - haarout))/0.6745
+  rm(xvalue)
+  thresh <- HaarSeg.m * mad.subj
+  ## alteration <- rep(0, nvalues)
+  ## alteration[haarout > thresh] <- 1
+  ## alteration[haarout < -thresh] <- -1
 
+  nodeWhere("internalHaarSeg")
+  return(ffListOut(haarout,
+                   ifelse( abs(haarout > thresh), 1, 0) * sign(haarout)))
+}
+
+
+pSegmentHMM <- function(cghRDataName, chromRDataName, ...) {
+  ## The table exists. No need to re-create if
+  ## really paranoid about speed
+
+  tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
+    
   arrayNames <- levels(tableArrChrom$ArrayName)
+  narrays <- length(arrayNames)
+  ## Parallelized by arr by chrom
   out0 <- sfClusterApplyLB(tableArrChrom$Index,
                             internalHMM,
                             tableArrChrom,
                             cghRDataName)
-  nodeWhere("pSegmentHMM")
-
-  ## I need to put together the output for mergeLevels
-
+  nodeWhere("pSegmentHMM_0")
+  ## Parallelized by array
+  out <- sfClusterApplyLB(1:narrays,
+                          internalMerge,
+                          out0,
+                          tableArrChrom,
+                          cghRDataName)
   
-##  return(outToffdf(outsf, arrayNames))
+  nodeWhere("pSegmentHMM_1")
+  return(outToffdf(out, arrayNames))
 }
 
 internalHMM <- function(tableIndex, tableArrChrom, cghRDataName) {
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
+  nodeWhere("internalHMM")
   return(hmmWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos)))
 }
-
-
-pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
-  nsample <- ncol(x)
-  nchrom <- unique(chrom.numeric)
-    datalist <- list()
-    klist <- 1
-    for(i in 1:nsample) {
-        for (j in nchrom) {
-            datalist[[klist]] <- x[chrom.numeric == j, i]
-            klist <- klist + 1
-        }
-    }
-    out0 <- papply(datalist, hmmWrapper)
-    matout0 <- matrix(unlist(out0), ncol = nsample)
-    rm(datalist)
-    rm(out0)
-    
-    datalist <- list()
-    for(i in 1:nsample) {
-        datalist[[i]] <- list()
-        datalist[[i]]$logr <- x[, i]
-        datalist[[i]]$pred <- matout0[, i]
-    }
-    out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-    outl <- list()
-    outl$segm <- out
-    outl$chrom.numeric <- chrom.numeric
-    outl <- add.names.as.attr(outl, colnames(x))
-  class(outl) <- c("adacgh.generic.out","mergedHMM")
-  return(outl)
-}
-
 
 hmmWrapper <- function(logratio) {
   ## Fit HMM, and return the predicted
   ## we do not pass Chrom since we only fit by Chrom.
+  ##  cat("\n Disregard the 'sample is  1 	Chromosomes: 1' messages!!!\n")
   Pos <- Clone <- 1:length(logratio)
   Chrom <- rep(1, length(logratio))
   obj.aCGH <- create.aCGH(data.frame(logratio),
                           data.frame(Clone = Clone,
                                      Chrom = Chrom,
                                      kb = Pos))
+  ## we could wrap this in "capture.output"
   res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
   hmm(obj.aCGH) <- res
+  nodeWhere("hmmWrapper")
   return(ffVecOut(obj.aCGH$hmm$states.hmm[[1]][, 6]))
 }
 
-vectorFromffList <- function(indices, lff) {
-  ## Put together the "by chromosome by array" pieces
-  ## into a single "by array" vector.
-  ## This implementation might not be very efficient.
-  return(
-         unlist(lapply(lff[indices],
-                       function(x) {
-                         open(x)
-                         tmp <- x[]
-                         close(x)
-                         return(tmp)
-                       }))
-         )
+
+internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
+  ## Used when previously parallelized arr by chrom
+
+  
+  ## cghdata <- getCGHValue(cghRDataName, index)
+  ## smoothed <- vectorForArray(tableArrChrom, index, smoothedff)
+  ## outseg <- ourMerge(cghdata,
+  ##                    smoothed
+  ##                    )
+  ## rm(cghdata)
+  ## rm(smoothed)
+  outseg <- ourMerge(
+                     getCGHValue(cghRDataName, index),
+                     vectorForArray(tableArrChrom, index, smoothedff)
+                     )
+  nodeWhere("internalMerge")
+  return(ffListOut(outseg[, 1], outseg[, 2]))
 }
 
-vectorForArray <- function(t1, array, listofff) {
-  indices <- t1$Index[t1$ArrayNum == array]
-  ## Note: it is key that t1 is ordered by position for
-  ##       a sequence of increasing indices.
-  vectorFromffList(indices, listofff)
-}
 
-pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
-  stop.na.inf(x)
-  stop.na.inf(chrom.numeric)
-  stop.na.inf(Pos)
-  warn.too.few.in.chrom(chrom.numeric)
+
+pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
+  tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
+  arrayNames <- levels(tableArrChrom$ArrayName)
+  narrays <- length(arrayNames)
+  
+  out0 <- sfClusterApplyLB(tableArrChrom$Index,
+                           internalBioHMM,
+                           tableArrChrom,
+                           cghRDataName,
+                           posRDataName)
+  nodeWhere("pSegmentBioHMM_0")
+  te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
+  if(any(te)) {
+    m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
+    m2 <- "You can try rerunning it a few times."
+    m3 <- "You can also tell the authors of the BioHMM package"
+    m4 <- " that you get the error(s): \n\n "
+    mm <- paste(m1, m2, m3, m4, paste(out0[which(te)], collapse = "    \n   "))
+    caughtError(mm)
+  }
+
+  ## Parallelized by array
+  out <- sfClusterApplyLB(1:narrays,
+                          internalMerge,
+                          out0,
+                          tableArrChrom,
+                          cghRDataName)
+  
+  nodeWhere("pSegmentBioHMM_1")
+  return(outToffdf(out, arrayNames))
+
   return(pSegmentBioHMM_axc(x, chrom.numeric, Pos, ...))
 }
 
-    
-pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
-    nsample <- ncol(x)
-    nchrom <- unique(chrom.numeric)
-    datalist <- list()
-    klist <- 1
-    for(i in 1:nsample) {
-        for (j in nchrom) {
-            datalist[[klist]] <- list()
-            datalist[[klist]]$logr <- x[chrom.numeric == j, i]
-            datalist[[klist]]$pos <- Pos[chrom.numeric == j]
-            klist <- klist + 1
-        }
-    }
-    out0 <- papply(datalist,
-                  function(z) BioHMMWrapper(z$logr, Pos = z$pos))
-
-    te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
-
-    if(any(te)) {
-        m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
-        m2 <- "You can try rerunning it a few times."
-        m3 <- "You can also tell the original authors that you get the error(s): \n\n "
-        mm <- paste(m1, m2, m3, paste(out0[which(te)], collapse = "    \n   "))
-        caughtError(mm)
-    }
-    matout0 <- matrix(unlist(out0), ncol = nsample)
-    rm(datalist)
-    rm(out0)
-
-    datalist <- list()
-    klist <- 1
-    for(i in 1:nsample) {
-        datalist[[i]] <- list()
-        datalist[[i]]$logr <- x[, i]
-        datalist[[i]]$pred <- matout0[, i]
-    }
-    
-    out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
-   
-    outl <- list()
-    outl$segm <- out
-    outl$chrom.numeric <- chrom.numeric
-    outl$pos <- Pos
-    outl <- add.names.as.attr(outl, colnames(x))
-    class(outl) <- c("adacgh.generic.out","mergedBioHMM")
-    return(outl)
+internalBioHMM <- function(tableIndex, tableArrChrom, cghRDataName, posRDataName) {
+  arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
+  chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
+  nodeWhere("internalBioHMM")
+  return(BioHMMWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos),
+                       getPosValue(posRDataName, chromPos)))
 }
 
 BioHMMWrapper <- function(logratio, Pos) {
-    cat("\n       .... running BioHMMWrapper \n")
-    ydat <- matrix(logratio, ncol=1)
-    n <- length(ydat)
-    res <- try(myfit.model(sample = 1, chrom = 1, dat = matrix(ydat, ncol = 1),
+  cat("\n       .... running BioHMMWrapper \n")
+  ydat <- matrix(logratio, ncol=1)
+  n <- length(ydat)
+  res <- try(myfit.model(sample = 1, chrom = 1, dat = matrix(ydat, ncol = 1),
                          datainfo = data.frame(Name = 1:n, Chrom = rep(1, n),
-                         Position = Pos)))
-    if(inherits(res, "try-error")) {
-        return(res)
-    } else {
-        return(res$out.list$mean)
-    }
+                           Position = Pos)))
+  nodeWhere("BioHMMWrapper")
+  if(inherits(res, "try-error")) {
+    return(res)
+  } else {
+    return(ffVecOut(res$out.list$mean))
+  }
 }
 
 
-pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres = -0.05, ...) {
-  stop.na.inf(x)
-  stop.na.inf(chrom.numeric)
-  warn.too.few.in.chrom(chrom.numeric)
+pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
+                           mergeLevels = FALSE, ...) {
+  ## We always use mergeLevels. OK for gain/loss/no-change,
+  ## but it breaks the underlying segments
+  tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
+  arrayNames <- levels(tableArrChrom$ArrayName)
+  narrays <- length(arrayNames)
+  ## Parallelized by arr by chrom
+  out0 <- sfClusterApplyLB(tableArrChrom$Index,
+                           internalCGHseg,
+                           tableArrChrom,
+                           cghRDataName,
+                           CGHseg.thres,
+                           mergeLevels)
+  nodeWhere("pSegmentCGHseg_0")
 
-  datalist <- data.frame(x)
-  out0 <- papply(datalist, function(z) CGHsegWrapper(z,
-                                                     chrom.numeric = slave_chrom,
-                                                     s = slave_CGHseg.thres),
-                  list(slave_chrom = chrom.numeric, slave_CGHseg.thres = CGHseg.thres))
-  outl <- list()
-  outl$segm <- out0
-  outl$chrom.numeric <- chrom.numeric
-  outl <- add.names.as.attr(outl, colnames(x))
+  if(mergeLevels) {
+    ## Parallelized by array
+    out <- sfClusterApplyLB(1:narrays,
+                            internalMerge,
+                            out0,
+                            tableArrChrom,
+                            cghRDataName)
+    nodeWhere("pSegmentCGHseg_YES_merge")
+  } else { ## of course, could be done sequentially
+    ## but if many arrays and long chromosomes, probably
+    ## better over several nodes
+    out <- sfClusterApplyLB(1:narrays,
+                            puttogetherCGHseg,
+                            out0,
+                            tableArrChrom)
+    nodeWhere("pSegmentCGHseg_No_merge")
+  }  
+  nodeWhere("pSegmentCGHseg_1")
+  return(outToffdf(out, arrayNames))
+}
+
+puttogetherCGHseg <- function(index, out, tableArrChrom) {
+  ## could probably be done more efficiently
+  return(ffListOut(vectorForArrayL2(tableArrChrom, index, out, 1),
+                   vectorForArrayL2(tableArrChrom, index, out, 2)))
+}
+
+internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres,
+                           mergeLevels) {
+  ## the following could be parameters
   
-  class(outl) <- c("adacgh.generic.out", "CGHseg")
-  return(outl)
-}
+  maxseg <- NULL
+  verbose <- TRUE
+  maxk <- NULL
+  arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
+  chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
+  nodeWhere("internalCGHseg")
+  n <- chromPos[2] - chromPos[1] + 1
+  y <- getCGHValue(cghRDataName, arrayIndex, chromPos)
+  obj1 <- tilingArray:::segment(y,
+                                maxseg = ifelse(is.null(maxseg), n/2, maxseg),
+                                maxk = ifelse(is.null(maxk), n, maxk))
+  optk <- piccardsKO(obj1@logLik, n, CGHseg.thres)
+  if (verbose) {
+    cat("\n Index ", tableIndex, ";  Optimal k ", optk, "\n")
+  }
+  nodeWhere("internalCGHseg")
 
-CGHsegWrapper <- function(logratio, chrom.numeric,
-                          s, maxseg = NULL,
-                          maxk = NULL,
-                          verbose = TRUE,
-                          domergeLevels = TRUE) {
-    ## Using merge levels now if domergeLevels = TRUE
-    uchrom <- unique(chrom.numeric)
-    segmeans <- NULL
-    segstates <- NULL
-    for (ic in uchrom) {
-        y <- logratio[chrom.numeric == ic]
-        n <- length(y)
-        obj1 <- tilingArray:::segment(y,
-                                      maxseg = ifelse(is.null(maxseg), n/2, maxseg),
-                                      maxk = ifelse(is.null(maxk), n, maxk))
-        optk <- piccardsKO(obj1@logLik, n, s)
-        if (verbose) {
-            cat("\n Chromosome ", ic, ";  Optimal k ", optk, "\n")
-        }
-        finalsegm <- piccardsStretch01(obj1, optk, n, y)
-        segmeans <- c(segmeans, finalsegm[, 1])
-        segstates <- c(segstates, finalsegm[, 2])
-    }
-    if(domergeLevels) {
-        tmp <- ourMerge(logratio, segmeans)
-        segmeans <- tmp[, 2]
-        segstates <- tmp[, 3]
-    }
-    return(cbind(Observed = logratio, SmoothedMean = segmeans,
-                 Alteration = segstates))
+  return(piccardsStretch01(obj1, optk, n, y, mergeLevels))
+
+  ## Beware we do not use the original "states" of Piccard
+  ## as we always use mergeLevels
+  ## segstates <- c(segstates, finalsegm[, 2])
 }
 
 
-piccardsStretch01 <- function(obj, k, n, logratio) {
+
+piccardsStretch01 <- function(obj, k, n, logratio, mergeLevels) {
+  ## note return object differs if mergeLevels TRUE or FALSE
     if(k > 1) {
         poss <- obj@breakpoints[[k]]
         start <- c(1, poss)
@@ -850,12 +919,18 @@ piccardsStretch01 <- function(obj, k, n, logratio) {
         smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
         reps <- diff(c(start, n + 1))
         smoothed <- rep(smoothedC, reps)
-        state <- rep(1:k, reps)
+        if(!mergeLevels)
+          state <- rep(1:k, reps)
     } else { ## only one segment
         smoothed <- rep(mean(logratio), n)
-        state <- rep(1, n)
+        if(!mergeLevels)
+          state <- rep(1, n)
     }
-    return(cbind(smoothed = smoothed, state = state))
+    if(mergeLevels)
+      return(ffVecOut(smoothed))
+    else
+      return(list(ffVecOut(smoothed),
+                  ffVecOut(state, vmode = "integer")))
 }
 
 
@@ -1001,8 +1076,7 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 ## FIXME: qué pasa si solo un array o solo un chrom?
   ### con plot y con segmentacion
 
-pChromPlot <- function(tableArrChrom,
-                       outRDataName,
+pChromPlot <- function(outRDataName,
                        cghRDataName,
                        chromRDataName,
                        probenamesRDataName,
@@ -1014,6 +1088,8 @@ pChromPlot <- function(tableArrChrom,
                          "blue", "black"),
                        ...) {
 
+  tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
+  
   null <- sfClusterApplyLB(tableArrChrom$Index,
                            internalChromPlot,
                            tableArrChrom = tableArrChrom,

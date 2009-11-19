@@ -117,6 +117,54 @@ getbdry <- DNAcopy:::getbdry
 
 
 
+snowfallInit <- function(universeSize = NULL, 
+                         wdir = getwd(), minUniverseSize = 15,
+                         exit_on_fail = TRUE) {
+
+  ### FIXME: maxi. number of CPUs!!!!
+  trythis <- try({
+    require(snowfall)
+    require(Rmpi)
+    if(! is.null(universeSize))
+      minUniverseSize <- universeSize
+    if(mpi.universe.size() < minUniverseSize) {
+      if(exit_on_fail)
+        stop("MPI problem: universe size < minUniverseSize")
+      else
+        warning("MPI problem: universe size < minUniverseSize")
+    }
+      
+    ##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
+    if(! is.null(universeSize)) {
+      sfInit(parallel = TRUE, cpus = universeSize, type = "MPI")
+    } else {
+      sfInit(parallel = TRUE, cpus = mpi.universe.size(), type = "MPI")
+    }
+    sfClusterEval(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
+    sfClusterSetupRNG(type = "SPRNG")
+    sfExport("wdir")
+    setwd(wdir)
+    sfClusterEval(setwd(wdir))
+    ## FIXME!!! all excepto ADaCGH will not be needed soon
+    sfLibrary(ff)
+    sfLibrary(GLAD)
+    sfLibrary(snapCGH)
+    sfLibrary(ADaCGH)
+## FIXME!!
+
+    source("/home/ramon/bzr-local-repos/adacgh2/R-packages/ADaCGH/R/ADaCGH-2.R")
+    sfClusterEval(source("/home/ramon/bzr-local-repos/adacgh2/R-packages/ADaCGH/R/ADaCGH-2.R"))
+    
+    })
+  if(inherits(trythis, "try-error")) {
+    cat("\nSnowfall error\n", file = "Status.msg")
+    ## is the above enough? Could we write another file?
+    if(exit_on_fail) quit(save = "yes", status = 12, runLast = FALSE)
+  } 
+}
+
+  
+
 
 ###  Visible stuff
 
@@ -229,9 +277,9 @@ getOutValue <- function(outRDataName, components, array, posInitEnd = NULL) {
   ## component: 1 for Smoothed, 2 for State, 3 for both.
   nmobj <- load(outRDataName)
 
-  if(!inherits(get(nmobj[[1]], inherits = FALSE), "ffdf"))
+  if(!inherits(get(nmobj, inherits = FALSE)[[1]], "ffdf"))
     stop("outRDataName must be a list of ffdf")
-  if(!inherits(get(nmobj[[2]], inherits = FALSE), "ffdf"))
+  if(!inherits(get(nmobj, inherits = FALSE)[[2]], "ffdf"))
     stop("outRDataName must be a list of ffdf")
   
   if((components == 1) | (components == 3)) {
@@ -491,14 +539,14 @@ less than 10 observations.\n That is not allowed.\n")
   rm(probeNames)
   gcmessage("after rm probeNames")
 
-  chromData <- ff(inputData[, 2], vmode = "ubyte",
+  chromData <- ff(as.integer(inputData[, 2]), vmode = "integer",
                   pattern = ffpattern)
+  save(file = "chromData.RData", chromData, compress = FALSE)
+  rm(chromData)
   posData <- ff(inputData[, 3], vmode = "double",
                   pattern = ffpattern)
-
-  save(file = "chromData.RData", chromData, compress = FALSE)
   save(file = "posData.RData", posData, compress = FALSE)
-  rm(posData, chromData)
+  rm(posData)
   gcmessage("after rm posData and chromData")
   if(is.null(colnames(inputData))) {
     narr <- ncol(inputData) - 3
@@ -521,6 +569,33 @@ less than 10 observations.\n That is not allowed.\n")
 
  return(tableArrChr)
 }
+
+
+
+
+
+
+i1 <- function(ffpattern = paste(getwd(), "/", sep = ""),
+                                 filename = "inputData.RData") {
+  ## assume filename, when loaded, is "inputData"
+  load(filename)
+
+  chromData <- ff(as.integer(inputData[, 2]), vmode = "integer",
+                  pattern = ffpattern)
+  save(file = "chromData.RData", chromData, compress = FALSE)
+##  rm(chromData)
+
+  
+  ## posData <- ff(inputData[, 3], vmode = "double",
+  ##                 pattern = ffpattern)
+  ## save(file = "posData.RData", posData, compress = FALSE)
+##  rm(posData)
+##  gc()
+  gcmessage("after rm posData and chromData")
+##  inputData <- inputData[, -c(1, 2, 3)]
+}
+
+
 
 
 
@@ -1216,17 +1291,14 @@ internalChromPlot <- function(tableIndex,
         sep ="\t", ncolumns = 3)
 
 
-  ## we delay loading stuff
   rm(cghdata)
   rm(simplepos)
   rm(res)
   nodeWhere("internalChromPlot: before geneNames")
   
-  ## FIXME: borrar todo lo que se pueda de antes y hacer gc
-
+  ## we delay loading stuff
   probeNames <- getNames(probenamesRDataName, chromPos)
 
-  ## FIXME: arreglar esto: length(geneNames) es range index
   if ( (ncol(ccircle)/length(probeNames)) != 1)
     stop("Serious problem: number of arrays does not match")
   write(probeNames, 
@@ -1903,7 +1975,7 @@ caughtOurError <- function(message) {
 
 
 caughtOtherError.Web <- function(message) {
-    mpi.clean.quit.Web()
+    snowfall.clean.quit.Web()
     sink(file = "R_Error_msg.txt")
     cat(message)
     cat("\n")
@@ -1915,7 +1987,7 @@ caughtOtherError.Web <- function(message) {
 }
 
 caughtOtherPackageError.Web <- function(message) {
-    mpi.clean.quit.Web()
+    snowfall.clean.quit.Web()
     message <- paste("This is a known problem in a package we depend upon. ",
                      message)
     sink(file = "R_Error_msg.txt")
@@ -1930,6 +2002,10 @@ caughtOtherPackageError.Web <- function(message) {
 
 
 
+snowfall.clean.quit.Web <- function() {
+  try(sfStop(), silent = TRUE)
+}
+
 mpi.clean.quit.Web <- function() {
     if (is.loaded("mpi_initialize")){ 
         if (mpi.comm.size(1) > 0){ 
@@ -1941,7 +2017,7 @@ mpi.clean.quit.Web <- function() {
 
 
 caughtOurError.Web <- function(message) {
-    mpi.clean.quit.Web()
+    snowfall.clean.quit.Web()
     message <- paste("There was a problem with our code. Please let us know.\n", 
                      message)
     sink(file = "R_Error_msg.txt")
@@ -1957,7 +2033,7 @@ caughtOurError.Web <- function(message) {
 
 
 caughtUserError.Web <- function(message) {
-    mpi.clean.quit.Web()
+    snowfall.clean.quit.Web()
     message <- paste("There was a problem with something you did.\n",
                      "Check the error message, your data and options and try again.\n",
                      message, "\n")
@@ -1972,15 +2048,15 @@ caughtUserError.Web <- function(message) {
 }
 
 
-doCheckpoint <- function(num, save = TRUE) {
-##    checkpoint.num.new <- num
-  if(save) save.image()
-##    checkpoint.num <<- num
-    sink("checkpoint.num")
-    cat(num)
-    sink()
-    return(num)
-}
+## doCheckpoint <- function(num, save = TRUE) {
+## ##    checkpoint.num.new <- num
+##   if(save) save.image()
+## ##    checkpoint.num <<- num
+##     sink("checkpoint.num")
+##     cat(num)
+##     sink()
+##     return(num)
+## }
 
 
 

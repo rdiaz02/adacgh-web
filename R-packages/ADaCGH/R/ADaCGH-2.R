@@ -443,7 +443,7 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
   ## assume filename, when loaded, is "inputData"
   load(filename)
   gc()
-  rownames(inputData) <- NULL ## Don't? Takes a lot of time
+  rownames(inputData) <- NULL ## Don't? Takes a lot of memory not recoverd later
   if(any(is.na(inputData))) 
     caughtUserError.Web(paste("Your aCGH file contains missing values. \n",
                               "That is not allowed.\n"))
@@ -452,20 +452,47 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
     caughtUserError.Web(paste("Chromosome contains non-numeric data.\n",
                               "That is not allowed.\n"))
 
+  if(any(table(inputData$chromosome) < 10))
+    caughtUserError.Web("At least one of your chromosomes has
+less than 10 observations.\n That is not allowed.\n")
+
+  
   if(any(!sapply(inputData[, -c(1, 2, 3)], is.numeric)))
     caughtUserError.Web(paste("Your aCGH file contains non-numeric data. \n",
                               "That is not allowed.\n")   )
-  
   gc()
+
+  ## Do we have any identical MidPos in the same chromosome??  Just to solve
+  ## it quickly and without nasty downstream consequences, we add a runif to
+  ## midPos. But NO further averaging.
+   
+  tmp <- paste(inputData[, 2], inputData[, 3], sep = ".")
+  if (sum(duplicated(tmp))) {
+    cat("\n We have identical MidPos!!! \n")
+    capture.output(print("We have identical MidPos!!!"), file = "WARNING.DUPLICATED")
+    ## add a random variate, to break ties:
+    inputData[duplicated(tmp), 3] <-
+      inputData[duplicated(tmp), 3] +
+        runif(sum(duplicated(tmp)))
+    ## check it worked
+    tmp <- paste(inputData[, 2], inputData[, 3], sep = ".")
+    if (sum(duplicated(tmp)))
+      caughtOurError.Web("still duplicated MidPoints; shouldn't happen")
+    rm(tmp)
+    gc()
+    ## Reorder, just in case
+    reorder <- order(inputData[, 2],
+                     inputData[, 3])
+    inputData <- inputData[reorder, ]
+    }
+  
   probeNames <- inputData$ID
   save(file = "probeNames.RData", probeNames, compress = FALSE)
   rm(probeNames)
   gcmessage("after rm probeNames")
 
- 
   chromData <- ff(inputData[, 2], vmode = "ubyte",
                   pattern = ffpattern)
-
   posData <- ff(inputData[, 3], vmode = "double",
                   pattern = ffpattern)
 
@@ -481,6 +508,7 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
   tableArrChr <- createTableArrChrom(colnames(inputData)[-c(1, 2, 3)],
                                      inputData[, 2])
   inputData <- inputData[, -c(1, 2, 3)]
+
   cghData <- as.ffdf(inputData, pattern = ffpattern)
   rm(inputData)
   save(file = "cghData.RData", cghData, compress = FALSE)

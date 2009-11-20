@@ -206,9 +206,9 @@ sizesobj <- function(n = 1,  minsizeshow = 0.5) {
     for(i in 1:length(l1)) sizes[i] <- object.size(get(l1[i],
                                                        env = parent.frame(n = n)))
     names(sizes) <- l1
-    size <- sizes[sizes > minsizeshow]
     sizes <- sort(sizes, decreasing = TRUE)
     sizes <- round(as.matrix(sizes/10^6), 1)
+    sizes <- sizes[sizes >= minsizeshow, , drop = FALSE]
     colnames(sizes) <- "Size(MB)"
     print(sizes)
   }

@@ -1,3 +1,7 @@
+### FIXME: if using fork or parallel, probably don't want
+##  to call quit.
+
+
 ## .__ADaCGH_WEB_APPL <- TRUE in web appl!
 if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv))
 {

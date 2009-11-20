@@ -107,25 +107,15 @@ if(package_version(packageDescription("snapCGH")$Version) > "1.11") {
 ## in the help for fit.model.
 
 
-## Other vars
-getbdry <- DNAcopy:::getbdry
 
-## where do we live? to call the python script
-.python.toMap.py <- system.file("Python", "toMap.py", package = "ADaCGH")
     
-##############################################
-
-## We work with objects from disk.
-## For managemente, much easier if RData and dirs for
-## ff objects are the same.
-
-
 
 snowfallInit <- function(universeSize = NULL, 
                          wdir = getwd(), minUniverseSize = 15,
-                         exit_on_fail = TRUE) {
+                         exit_on_fail = TRUE,
+                         maxnumcpus = 500) {
 
-  ### FIXME: maxi. number of CPUs!!!!
+  sfSetMaxCPUs <- maxnumcpus
   trythis <- try({
     require(snowfall)
     require(Rmpi)
@@ -150,15 +140,10 @@ snowfallInit <- function(universeSize = NULL,
     setwd(wdir)
     sfClusterEval(setwd(wdir))
     ## FIXME!!! all excepto ADaCGH will not be needed soon
-    sfLibrary(ff)
-    sfLibrary(GLAD)
-    sfLibrary(snapCGH)
-    sfLibrary(ADaCGH)
-## FIXME!!
-
-    source("/home/ramon/bzr-local-repos/adacgh2/R-packages/ADaCGH/R/ADaCGH-2.R")
-    sfClusterEval(source("/home/ramon/bzr-local-repos/adacgh2/R-packages/ADaCGH/R/ADaCGH-2.R"))
-    
+    ## sfLibrary(ff)
+    ## sfLibrary(GLAD)
+    ## sfLibrary(snapCGH)
+    sfLibrary(ADaCGH2)
     })
   if(inherits(trythis, "try-error")) {
     cat("\nSnowfall error\n", file = "Status.msg")
@@ -168,54 +153,6 @@ snowfallInit <- function(universeSize = NULL,
 }
 
   
-
-
-###  Visible stuff
-
-mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
-                    universeSize = NULL, exit_on_fail = FALSE) {
-  
-    trythis <- try({
-        if(! is.null(universeSize))
-            minUniverseSize <- universeSize
-        require(Rmpi)
-### FIXME: this should be a warning, and only an error on "exit_on_fail"
-        if(mpi.universe.size() < minUniverseSize) {
-            if(exit_on_fail)
-                stop("MPI problem: universe size < minUniverseSize")
-            else
-                warning("MPI problem: universe size < minUniverseSize")
-        }
-        ##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
-        if(! is.null(universeSize)) {
-            mpi.spawn.Rslaves(nslaves = universeSize)
-        } else {
-            mpi.spawn.Rslaves(nslaves = mpi.universe.size())
-        }
-        ## mpi.setup.rngstream() ## or 
-        mpi.setup.sprng()
-        mpi.remote.exec(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
-        require(papply)
-##        mpi.remote.exec(require(ADaCGH, quietly = TRUE))
-## Note that if ADaCGH is NOT already installed, such as in R CMD check
-        ### a new, with multiple nodes, this will fail!!!!
-        mpi.remote.exec(library(ADaCGH, verbose = TRUE))
-        ## FIXME: should fail is setwd in slaves is not successf.
-        mpi.bcast.Robj2slave(wdir)
-        mpi.remote.exec(setwd(wdir))    
-    })
-    if(inherits(trythis, "try-error")) {
-        cat("\nRmpi error\n", file = "Status.msg")
-        if(exit_on_fail) quit(save = "yes", status = 12, runLast = FALSE)
-    }
-}
-
-
-## FIXME: all save de RData without compression!!!!
-
-
-## FIXME: use readonly where appropriate!!!
-
 ## Watch out for possible confusion:
 ## cghRdataName is the NAME of the RData file
 ##
@@ -645,6 +582,8 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             1e-04, merge.ansari.sign = 0.05,
                             merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
 
+  getbdry <- DNAcopy:::getbdry
+  
   if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
     sbdry <- default.DNAcopy.bdry
   } else {
@@ -767,8 +706,6 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
                             haarStartLevel,
                             haarEndLevel)
   nodeWhere("pSegmentHaarSeg")
-  ## FIXME: classes!! for all output!!
-  ## class(out) <- c("adacgh.generic.out", "adacghHaarSeg")
   return(outToffdf(outsf, arrayNames))
 }
 
@@ -780,8 +717,7 @@ internalHaarSeg <- function(index, cghRDataName, HaarSeg.m,
                             haarEndLevel) {
 
   xvalue <- getCGHValue(cghRDataName, index)
-## FIXME: when we have library, remove ADaCGH:::
-  haarout <- ADaCGH:::ad_HaarSeg(I = xvalue,
+  haarout <- ad_HaarSeg(I = xvalue,
                         chromPos = chromPos,
                         W = W, rawI = rawI,
                         breaksFdrQ = breaksFdrQ,
@@ -790,10 +726,6 @@ internalHaarSeg <- function(index, cghRDataName, HaarSeg.m,
   mad.subj <- median(abs(xvalue - haarout))/0.6745
   rm(xvalue)
   thresh <- HaarSeg.m * mad.subj
-  ## alteration <- rep(0, nvalues)
-  ## alteration[haarout > thresh] <- 1
-  ## alteration[haarout < -thresh] <- -1
-
   nodeWhere("internalHaarSeg")
   return(ffListOut(haarout,
                    ifelse( abs(haarout > thresh), 1, 0) * sign(haarout)))
@@ -914,8 +846,6 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
   
   nodeWhere("pSegmentBioHMM_1")
   return(outToffdf(out, arrayNames))
-
-  return(pSegmentBioHMM_axc(x, chrom.numeric, Pos, ...))
 }
 
 internalBioHMM <- function(tableIndex, tableArrChrom, cghRDataName, posRDataName) {
@@ -1168,8 +1098,6 @@ internalWaveHsu <- function(tableIndex, tableArrChrom,
 #######################################################
 #######################################################
 
-## FIXME: qué pasa si solo un array o solo un chrom?
-  ### con plot y con segmentacion
 
 pChromPlot <- function(outRDataName,
                        cghRDataName,
@@ -1271,10 +1199,9 @@ internalChromPlot <- function(tableIndex,
   rug(simplepos, ticksize = 0.01)
   lines(res[, 1] ~ simplepos,
         col = colors[4], lwd = 2, type = "l")
-  ## FIXME: quitar :::
-  dummy.coord <- ADaCGH:::usr2png(cbind(c(2, 0), c(0, 0)), im2)
+  dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
   cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-  ccircle <- rbind(t(ADaCGH:::usr2png(cbind(simplepos, cghdata), im2)),
+  ccircle <- rbind(t(usr2png(cbind(simplepos, cghdata), im2)),
                    rep(cc1.r, length(simplepos)))
   write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
         sep ="\t", ncolumns = 3)
@@ -1621,93 +1548,6 @@ segmentW <- function(obs.dat, rec.dat, minDiff=0.25, n.levels=10) {
 
 
 
-
-
-
-wave.aCGH <- function(dat, chrom, minDiff) {
-## level to use for wavelet decomposition and thresholding
-## The 'recommended' level is floor(log2(log(N))+1)), which
-## equals 3 for:  21 <= N <= 1096
-    thrLvl <- 3
-
-    ncloneschrom <- tapply(dat[, 1], chrom, function(x) length(x))
-    if((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21))
-        warningsForUsers <-
-            c(warningsForUsers,
-              paste("The number of clones/genes is either",
-                    "larger than 1096 or smaller than 21",
-                    "in at least one chromosome. The wavelet",
-                    "thresholding of 3 might not be appropriate."))
-    
-    Nsamps  <- ncol(dat)
-    uniq.chrom <- unique(chrom)
-
-## construct the list:
-## the code below gives some partial support for missings.
-    ##  but I need to carry that along, and since we are not dealing
-    ##  with missings now, I just re-writte ignoring any NA,
-    ##  since, by decree, we have no NAs.
-##     datalist <- list()
-##     klist <- 1
-##     for(i in 1:Nsamps) {
-##         ratio.i <- dat[,i]
-##         noNA  <- !is.na(ratio.i)
-##         for (j in uniq.chrom) {
-##             chr.j <- (chrom == j)
-##             use.ij <- which(noNA & chr.j)
-##             datalist[klist] <- ratio.i[use.ij]
-##             klist <- klist + 1
-##         }
-##     }
-
-    datalist <- list()
-    klist <- 1
-    for(i in 1:Nsamps) {
-        ratio.i <- dat[,i]
-        for (j in uniq.chrom) {
-            chr.j <- (chrom == j)
-            use.ij <- which(chr.j)
-            datalist[[klist]] <- ratio.i[use.ij]
-            klist <- klist + 1
-        }
-    }
-    
-    funwv <- function(ratio, thrLvl, minDiff) {
-        wc   <- modwt(ratio, "haar", n.levels=thrLvl)
-        ## These are the three different thresholding functions used
-        ##thH  <- our.sure(wc, max.level=thrLvl, hard=FALSE)
-        thH  <- our.hybrid(wc, max.level=thrLvl, hard=FALSE)
-        ##thH  <- nominal.thresh(wc, max.level=thrLvl, hard=FALSE, sig=.05)
-        ## reconstruct the thresheld ('denoised') data
-        recH <- imodwt(thH)
-        ## Categorize the denoised data then combine ("merge") levels that
-        ## have predicted values with an absolute difference < 'minDiff' 
-        pred.ij <- segmentW(ratio, recH, minDiff=minDiff)
-        labs <- as.character(1:length(unique(pred.ij)))
-        state <- as.integer(factor(pred.ij, labels=labs))
-        return(list(pred.ij = pred.ij, state = state))
-    }
-
-    papout <- papply(datalist,
-                     function(z) funwv(z,
-                                       thrLvl = slave_thrLvl,
-                                       minDiff = slave_minDiff),
-                      list(slave_thrLvl = thrLvl,
-                           slave_minDiff = minDiff))
-    pred <- matrix(unlist(lapply(papout, function(x) x$pred.ij)),
-                   ncol = Nsamps)
-    state <- matrix(unlist(lapply(papout, function(x) x$state)),
-                   ncol = Nsamps)
-                   
-    out <- list(Predicted =pred, State = state)
-    return(out)
-}
-
- 
-
-
-
-
 #######################################################
 #######################################################
 #######################################################
@@ -1720,128 +1560,128 @@ wave.aCGH <- function(dat, chrom, minDiff) {
 #######################################################
 
 
-writeResults <- function(obj, ...) {
-    UseMethod("writeResults")
-}
+## writeResults <- function(obj, ...) {
+##     UseMethod("writeResults")
+## }
 
 
-writeResults.CGH.wave <- function(obj, acghdata, commondata,
-                                  file = "wavelet.output.txt", ...) {
-    if(inherits(obj, "CGH.wave.merged")) {pals <- TRUE} else {pals <- FALSE}
-    print.adacgh.generic.results(obj, acghdata, commondata, output = file,
-                                 send_to_pals = pals)
-}
+## writeResults.CGH.wave <- function(obj, acghdata, commondata,
+##                                   file = "wavelet.output.txt", ...) {
+##     if(inherits(obj, "CGH.wave.merged")) {pals <- TRUE} else {pals <- FALSE}
+##     print.adacgh.generic.results(obj, acghdata, commondata, output = file,
+##                                  send_to_pals = pals)
+## }
 
-writeResults.DNAcopy <- function(obj, acghdata, commondata, 
-                                 file = "CBS.output.txt", ...) {
-  print.adacgh.generic.results(obj, acghdata,
-                               commondata, output = file)
-}
+## writeResults.DNAcopy <- function(obj, acghdata, commondata, 
+##                                  file = "CBS.output.txt", ...) {
+##   print.adacgh.generic.results(obj, acghdata,
+##                                commondata, output = file)
+## }
 
-writeResults.CGHseg <- function(obj, acghdata, commondata, 
-                                 file = "CGHseg.output.txt", ...) {
-    print.adacgh.generic.results(obj, acghdata,
-                                commondata, output = file,
-                                 send_to_pals = FALSE)
-}
+## writeResults.CGHseg <- function(obj, acghdata, commondata, 
+##                                  file = "CGHseg.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file,
+##                                  send_to_pals = FALSE)
+## }
 
-writeResults.adacghHaarSeg <- function(obj, acghdata, commondata, 
-                                 file = "HaarSeg.output.txt", ...) {
-    print.adacgh.generic.results(obj, acghdata,
-                                 commondata, output = file)
-}
+## writeResults.adacghHaarSeg <- function(obj, acghdata, commondata, 
+##                                  file = "HaarSeg.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                  commondata, output = file)
+## }
 
 
 
-writeResults.mergedHMM <- function(obj, acghdata, commondata, 
-                                 file = "HMM.output.txt", ...) {
-    print.adacgh.generic.results(obj, acghdata,
-                                commondata, output = file)
-}
+## writeResults.mergedHMM <- function(obj, acghdata, commondata, 
+##                                  file = "HMM.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file)
+## }
 
-writeResults.adacghGLAD <- function(obj, acghdata, commondata, 
-                                 file = "GLAD.output.txt", ...) {
-    print.adacgh.generic.results(obj, acghdata,
-                                commondata, output = file)
-}
+## writeResults.adacghGLAD <- function(obj, acghdata, commondata, 
+##                                  file = "GLAD.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file)
+## }
 
-writeResults.mergedBioHMM <- function(obj, acghdata, commondata, 
-                                 file = "BioHMM.output.txt", ...) {
-    print.adacgh.generic.results(obj, acghdata,
-                                commondata, output = file)
-}
+## writeResults.mergedBioHMM <- function(obj, acghdata, commondata, 
+##                                  file = "BioHMM.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file)
+## }
 
-print.adacgh.generic.results <- function(res, xcenter,
-                                 commondata,
-                                 output = "ADaCGH.results.txt",
-                                 send_to_pals = TRUE){
+## print.adacgh.generic.results <- function(res, xcenter,
+##                                  commondata,
+##                                  output = "ADaCGH.results.txt",
+##                                  send_to_pals = TRUE){
 
-    out <- data.frame(commondata)
-    if(ncol(out) > 5) {
-        stop("This sucks, but if your commondata has more than 5 columns, this function will blow up.")
-    }
+##     out <- data.frame(commondata)
+##     if(ncol(out) > 5) {
+##         stop("This sucks, but if your commondata has more than 5 columns, this function will blow up.")
+##     }
 
-    for(i in 1:ncol(xcenter)) {
-      out <- cbind(out, res$segm[[i]])
-    }
-    colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
-        paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
-              c(".Original", ".Smoothed", ".Status"),
-              sep = "")
+##     for(i in 1:ncol(xcenter)) {
+##       out <- cbind(out, res$segm[[i]])
+##     }
+##     colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
+##         paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
+##               c(".Original", ".Smoothed", ".Status"),
+##               sep = "")
 
-    write.table(out, file = output,
-                sep = "\t", col.names = NA,
-                row.names = TRUE, quote = FALSE)
+##     write.table(out, file = output,
+##                 sep = "\t", col.names = NA,
+##                 row.names = TRUE, quote = FALSE)
 
-    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals) {
-        cols.look <- seq(from = 8, to = ncol(out), by = 3)
+##     if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals) {
+##         cols.look <- seq(from = 8, to = ncol(out), by = 3)
 
-        Ids <- apply(out[, cols.look, drop = FALSE], 2,
-                     function(z) commondata$ID[which( z == -1)])
-        writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
+##         Ids <- apply(out[, cols.look, drop = FALSE], 2,
+##                      function(z) commondata$ID[which( z == -1)])
+##         writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
         
-        Ids <- apply(out[, cols.look, drop = FALSE], 2,
-                     function(z) commondata$ID[which( z == 1)])
-        writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
+##         Ids <- apply(out[, cols.look, drop = FALSE], 2,
+##                      function(z) commondata$ID[which( z == 1)])
+##         writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
 
-        Ids <- apply(out[, cols.look, drop = FALSE], 2,
-                     function(z) commondata$ID[which( z != 0)])
-        writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
-    }
+##         Ids <- apply(out[, cols.look, drop = FALSE], 2,
+##                      function(z) commondata$ID[which( z != 0)])
+##         writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
+##     }
 
-}
+## }
 
-writeForPaLS <- function(alist, names, outfile) {
-    ## alist: a list with as many lists as subjects; each sublist are the
-    ##        genes of interest.
-    ## names: subject or array names
-    ## outfile: guess what? is the name of the output file
+## writeForPaLS <- function(alist, names, outfile) {
+##     ## alist: a list with as many lists as subjects; each sublist are the
+##     ##        genes of interest.
+##     ## names: subject or array names
+##     ## outfile: guess what? is the name of the output file
 
     
-  if(is.array(alist) | is.matrix(alist) )
-    if (dim(alist)[2] == 1) alist <- as.vector(alist)
+##   if(is.array(alist) | is.matrix(alist) )
+##     if (dim(alist)[2] == 1) alist <- as.vector(alist)
 
-    if(!is.list(alist) & is.vector(alist) & (length(names) == 1)) {
-        ## we suppose we are dealing with a one-array data set
-        alist <- list(alist)
-    }
-  if(length(alist) == 0) {
-      write("", file = outfile)
-  } else if(length(names) != length(alist)) {
-      print("names are ")
-      print(names)
-      print("alist is ")
-      print(alist)
-      stop("ERROR in writeForPaLS: names and alist should have the same length")
-  } else {
-      write(
-            unlist(
-                   mapply(function(x, y) return(c(paste("#", y, sep = ""), as.character(x))),
-                          alist, names)
-                   ),
-            file = outfile)
-  }
-}
+##     if(!is.list(alist) & is.vector(alist) & (length(names) == 1)) {
+##         ## we suppose we are dealing with a one-array data set
+##         alist <- list(alist)
+##     }
+##   if(length(alist) == 0) {
+##       write("", file = outfile)
+##   } else if(length(names) != length(alist)) {
+##       print("names are ")
+##       print(names)
+##       print("alist is ")
+##       print(alist)
+##       stop("ERROR in writeForPaLS: names and alist should have the same length")
+##   } else {
+##       write(
+##             unlist(
+##                    mapply(function(x, y) return(c(paste("#", y, sep = ""), as.character(x))),
+##                           alist, names)
+##                    ),
+##             file = outfile)
+##   }
+## }
 
 
 

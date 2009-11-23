@@ -219,7 +219,7 @@ pSegmentHaarSeg <- function(x, chrom.numeric, HaarSeg.m = 3,
     out$segm[[subj]] <- cbind(Observed = x[, subj],
                               Smoothed = haarout,
                               Alteration =
-                              ifelse( abs(haarout > thresh), 1, 0) * sign(haarout))
+                              ifelse( (abs(haarout) > thresh), 1, 0) * sign(haarout))
   }
   cat("\n")
   out$chrom.numeric <- chrom.numeric

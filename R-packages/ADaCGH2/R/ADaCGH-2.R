@@ -150,7 +150,8 @@ snowfallInit <- function(universeSize = NULL,
   if(inherits(trythis, "try-error")) {
     cat("\nSnowfall error\n", file = "Status.msg")
     ## is the above enough? Could we write another file?
-    if(exit_on_fail) quit(save = "yes", status = 12, runLast = FALSE)
+    if(exit_on_fail) quit(save = "yes", status = 12, runLast = FALSE,
+                          compress = FALSE)
   } 
 }
 

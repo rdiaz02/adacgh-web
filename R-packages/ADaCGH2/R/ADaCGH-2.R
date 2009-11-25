@@ -579,13 +579,16 @@ internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
 }
 
 pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
-                            mergeSegs = TRUE, smooth = TRUE,
+                            merge = "mergeLevels", smooth = TRUE,
                             alpha=0.01, nperm=10000, kmax=25, nmin=200,
                             eta = 0.05, overlap=0.25, trim = 0.025,
                             undo.prune=0.05, undo.SD=3, merge.pv.thresh =
                             1e-04, merge.ansari.sign = 0.05,
                             merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
 
+  ## temporary hack
+  mergeSegs <- ifelse(merge == "mergeLevels", TRUE, FALSE)
+  
   getbdry <- DNAcopy:::getbdry
   
   if (nperm == 10000 & alpha == 0.01 & eta == 0.05) {
@@ -678,7 +681,7 @@ internalDNAcopy <- function(index, cghRDataName, chromRDataName,
 
 
 pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
-                            HaarSeg.m = 3,
+                            mad.threshold = 3,
                             W = vector(),
                             rawI = vector(), 
                             breaksFdrQ = 0.001,			  
@@ -702,7 +705,7 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
   
   outsf <- sfClusterApplyLB(1:narrays,
                             internalHaarSeg,
-                            HaarSeg.m = HaarSeg.m,
+                            mad.threshold = mad.threshold,
                             cghRDataName = cghRDataName,
                             chromPos,
                             W, rawI,
@@ -713,7 +716,7 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
   return(outToffdf(outsf, arrayNames))
 }
 
-internalHaarSeg <- function(index, cghRDataName, HaarSeg.m,
+internalHaarSeg <- function(index, cghRDataName, mad.threshold,
                             chromPos,
                             W, rawI,
                             breaksFdrQ,
@@ -729,7 +732,7 @@ internalHaarSeg <- function(index, cghRDataName, HaarSeg.m,
                         haarEndLevel = haarEndLevel)[[2]]
   mad.subj <- median(abs(xvalue - haarout))/0.6745
   rm(xvalue)
-  thresh <- HaarSeg.m * mad.subj
+  thresh <- mad.threshold * mad.subj
   nodeWhere("internalHaarSeg")
   return(ffListOut(haarout,
                    ifelse( (abs(haarout) > thresh), 1, 0) * sign(haarout)))

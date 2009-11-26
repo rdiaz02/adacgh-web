@@ -489,7 +489,6 @@ less than 10 observations.\n That is not allowed.\n")
     inputData <- inputData[reorder, ]
     }
   
-  probeNames <- inputData$ID
   save(file = "probeNames.RData", probeNames, compress = FALSE)
   rm(probeNames)
   gcmessage("after rm probeNames")
@@ -512,7 +511,7 @@ less than 10 observations.\n That is not allowed.\n")
 
   tableArrChr <- createTableArrChrom(colnames(inputData)[-c(1, 2, 3)],
                                      inputData[, 2])
-  inputData <- inputData[, -c(1, 2, 3)]
+  inputData <- inputData[, -c(1, 2, 3), drop = FALSE]
 
   cghData <- as.ffdf(inputData, pattern = ffpattern)
   close(cghData)

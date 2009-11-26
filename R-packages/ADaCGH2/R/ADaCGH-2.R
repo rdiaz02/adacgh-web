@@ -488,7 +488,7 @@ less than 10 observations.\n That is not allowed.\n")
                      inputData[, 3])
     inputData <- inputData[reorder, ]
     }
-  
+  probeNames <- inputData$ID
   save(file = "probeNames.RData", probeNames, compress = FALSE)
   rm(probeNames)
   gcmessage("after rm probeNames")
@@ -526,6 +526,20 @@ less than 10 observations.\n That is not allowed.\n")
 
  return(tableArrChr)
 }
+
+
+## this is not used now
+break.and.write.vector <- function(i, pos.start, pos.end, infile, outfile) {
+  nmobj <- load(infile)
+  if(inherits(get(nmobj, inherits = FALSE), "ff"))
+    open(get(nmobj, inherits = FALSE), readonly = TRUE)
+  ## maybe write the txt also?? FIXME
+  oname <- paste(outfile, i, sep = "")
+  assign(oname, get(nmobj, inherits = FALSE)[pos.start[i] : pos.end[i]])
+  save(file = paste(oname, ".RData", sep = ""),
+       list = c(oname), compress = FALSE)
+}
+
 
 
 

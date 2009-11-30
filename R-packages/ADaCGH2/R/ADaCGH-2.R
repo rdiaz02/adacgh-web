@@ -572,7 +572,7 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
                           internalGLAD,
                           cghRDataName, chromRDataName, nvalues)
 
-  nodeWhere("pSegmentGLAD")
+  ## nodeWhere("pSegmentGLAD")
   return(outToffdf(outsf, arrayNames))
 }
 
@@ -586,7 +586,7 @@ internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
   class(tmpf) <- "profileCGH"
   outglad <- glad.profileCGH(tmpf)
   rm(tmpf)
-  nodeWhere("internalGLAD")
+  ## nodeWhere("internalGLAD")
   return(ffListOut(outglad$profileValues$Smoothing,
                    outglad$profileValues$ZoneGNL))
 }
@@ -641,7 +641,7 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             merge.thresMax = merge.thresMax
                             )                 
 
-  nodeWhere("pSegmentDNAcopy")
+  ## nodeWhere("pSegmentDNAcopy")
   ## FIXME: classes!! for all output!!
   ## class(out) <- c("adacgh.generic.out", "adacghHaarSeg")
   return(outToffdf(outsf, arrayNames))
@@ -686,7 +686,7 @@ internalDNAcopy <- function(index, cghRDataName, chromRDataName,
                        merge.thresMin = merge.thresMin,
                        merge.thresMax = merge.thresMax)
   rm(cghdata)
-  nodeWhere("internalDNAcopy")
+  ## nodeWhere("internalDNAcopy")
   return(ffListOut(outseg[, 1], outseg[, 2]))
 }
 
@@ -725,7 +725,7 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
                             breaksFdrQ,
                             haarStartLevel,
                             haarEndLevel)
-  nodeWhere("pSegmentHaarSeg")
+  ## nodeWhere("pSegmentHaarSeg")
   return(outToffdf(outsf, arrayNames))
 }
 
@@ -746,7 +746,7 @@ internalHaarSeg <- function(index, cghRDataName, mad.threshold,
   mad.subj <- median(abs(xvalue - haarout))/0.6745
   rm(xvalue)
   thresh <- mad.threshold * mad.subj
-  nodeWhere("internalHaarSeg")
+  ## nodeWhere("internalHaarSeg")
   return(ffListOut(haarout,
                    ifelse( (abs(haarout) > thresh), 1, 0) * sign(haarout)))
 }
@@ -772,7 +772,7 @@ pSegmentHMM <- function(cghRDataName, chromRDataName, ...) {
                             internalHMM,
                             tableArrChrom,
                             cghRDataName)
-  nodeWhere("pSegmentHMM_0")
+  ## nodeWhere("pSegmentHMM_0")
   ## Parallelized by array
   out <- sfClusterApplyLB(1:narrays,
                           internalMerge,
@@ -780,14 +780,14 @@ pSegmentHMM <- function(cghRDataName, chromRDataName, ...) {
                           tableArrChrom,
                           cghRDataName)
   
-  nodeWhere("pSegmentHMM_1")
+  ## nodeWhere("pSegmentHMM_1")
   return(outToffdf(out, arrayNames))
 }
 
 internalHMM <- function(tableIndex, tableArrChrom, cghRDataName) {
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
-  nodeWhere("internalHMM")
+  ## nodeWhere("internalHMM")
   return(hmmWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos)))
 }
 
@@ -804,7 +804,7 @@ hmmWrapper <- function(logratio) {
   ## we could wrap this in "capture.output"
   res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
   hmm(obj.aCGH) <- res
-  nodeWhere("hmmWrapper")
+  ## nodeWhere("hmmWrapper")
   return(ffVecOut(obj.aCGH$hmm$states.hmm[[1]][, 6]))
 }
 
@@ -819,7 +819,7 @@ internalMADCall <- function(index, smoothedff, tableArrChrom, cghRDataName,
                          smoothed
                          ))/0.6745
   thresh <- mad.threshold * mad.subj
-  nodeWhere("internalMADCall")
+  ## nodeWhere("internalMADCall")
 ##  cat("\n MADCall: thresh is ", thresh)
   return(ffListOut(smoothed,
                    ifelse( (abs(smoothed) > thresh), 1, 0) * sign(smoothed)))
@@ -841,7 +841,7 @@ internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
                      getCGHValue(cghRDataName, index),
                      vectorForArray(tableArrChrom, index, smoothedff)
                      )
-  nodeWhere("internalMerge")
+  ## nodeWhere("internalMerge")
   return(ffListOut(outseg[, 1], outseg[, 2]))
 }
 
@@ -863,7 +863,7 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
                            tableArrChrom,
                            cghRDataName,
                            posRDataName)
-  nodeWhere("pSegmentBioHMM_0")
+  ## nodeWhere("pSegmentBioHMM_0")
   te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
   if(any(te)) {
     m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
@@ -881,14 +881,14 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
                           tableArrChrom,
                           cghRDataName)
   
-  nodeWhere("pSegmentBioHMM_1")
+  ## nodeWhere("pSegmentBioHMM_1")
   return(outToffdf(out, arrayNames))
 }
 
 internalBioHMM <- function(tableIndex, tableArrChrom, cghRDataName, posRDataName) {
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
-  nodeWhere("internalBioHMM")
+  ## nodeWhere("internalBioHMM")
   return(BioHMMWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos),
                        getPosValue(posRDataName, chromPos)))
 }
@@ -900,7 +900,7 @@ BioHMMWrapper <- function(logratio, Pos) {
   res <- try(myfit.model(sample = 1, chrom = 1, dat = matrix(ydat, ncol = 1),
                          datainfo = data.frame(Name = 1:n, Chrom = rep(1, n),
                            Position = Pos)))
-  nodeWhere("BioHMMWrapper")
+  ## nodeWhere("BioHMMWrapper")
   if(inherits(res, "try-error")) {
     return(res)
   } else {
@@ -930,7 +930,7 @@ pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
                            cghRDataName,
                            CGHseg.thres,
                            merge)
-    nodeWhere("pSegmentCGHseg_0")
+    ## nodeWhere("pSegmentCGHseg_0")
 
   if(merge == "mergeLevels") {
     ## Parallelized by array
@@ -939,7 +939,7 @@ pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
                             out0,
                             tableArrChrom,
                             cghRDataName)
-    nodeWhere("pSegmentCGHseg_mergeLevels")
+    ## nodeWhere("pSegmentCGHseg_mergeLevels")
   } else if(merge == "MAD") {
     out <- sfClusterApplyLB(1:narrays,
                             internalMADCall,
@@ -947,7 +947,7 @@ pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
                             tableArrChrom,
                             cghRDataName,
                             mad.threshold)
-    nodeWhere("pSegmentCGHseg_MADCall")
+    ## nodeWhere("pSegmentCGHseg_MADCall")
   } else if(merge == "none") {
     ## of course, could be done sequentially
     ## but if many arrays and long chromosomes, probably
@@ -959,11 +959,11 @@ pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
                             puttogetherCGHseg,
                             out0,
                             tableArrChrom)
-    nodeWhere("pSegmentCGHseg_No_merge")
+    ## nodeWhere("pSegmentCGHseg_No_merge")
   } else {
     stop("This merging method not recognized")
   }
-  nodeWhere("pSegmentCGHseg_1")
+  ## nodeWhere("pSegmentCGHseg_1")
   return(outToffdf(out, arrayNames))
 }
 
@@ -984,7 +984,7 @@ internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres
   maxk <- NULL
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
-  nodeWhere("internalCGHseg")
+  ## nodeWhere("internalCGHseg")
   n <- chromPos[2] - chromPos[1] + 1
   y <- getCGHValue(cghRDataName, arrayIndex, chromPos)
   obj1 <- tilingArray:::segment(y,
@@ -994,7 +994,7 @@ internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres
   ## if (verbose) {
   ##   cat("\n Index ", tableIndex, ";  Optimal k ", optk, "\n")
   ## }
-  nodeWhere("internalCGHseg")
+  ## nodeWhere("internalCGHseg")
 
   return(piccardsStretch01(obj1, optk, n, y, merge))
 
@@ -1085,7 +1085,7 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
                            minDiff = thismdiff,
                            initClusterLevels = initClusterLevels,
                            merge = merge)
-  nodeWhere("pSegmentWavelets_0")
+  ## nodeWhere("pSegmentWavelets_0")
  ## Parallelized by arr by chrom
   ## if merge != "none", then it returns ONLY the smoothed values
   if(merge == "mergeLevels") {
@@ -1094,7 +1094,7 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
                             out0,
                             tableArrChrom,
                             cghRDataName)
-    nodeWhere("pSegmentWavelets_mergeLevels")
+    ## nodeWhere("pSegmentWavelets_mergeLevels")
   } else if(merge == "MAD") {
     out <- sfClusterApplyLB(1:narrays,
                             internalMADCall,
@@ -1102,7 +1102,7 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
                             tableArrChrom,
                             cghRDataName,
                             mad.threshold)
-    nodeWhere("pSegmentWavelets_MADCall")
+    ## nodeWhere("pSegmentWavelets_MADCall")
   } else if(merge == "none") {
     ## of course, could be done sequentially
     ## but if many arrays and long chromosomes, probably
@@ -1111,11 +1111,11 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
                             puttogetherCGHseg,
                             out0,
                             tableArrChrom)
-    nodeWhere("pSegmentWavelets_No_merge")
+    ## nodeWhere("pSegmentWavelets_No_merge")
   } else {
     stop("This merging method not recognized")
   }
-  nodeWhere("pSegmentWavelets_1")
+  ## nodeWhere("pSegmentWavelets_1")
   return(outToffdf(out, arrayNames))
 }
 
@@ -1126,7 +1126,7 @@ internalWaveHsu <- function(tableIndex, tableArrChrom,
                             merge) {
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
-  nodeWhere("internalWaveHsu")
+  ## nodeWhere("internalWaveHsu")
   ratio <- getCGHValue(cghRDataName, arrayIndex, chromPos)
   
   wc   <- modwt(ratio, "haar", n.levels=thrLvl)
@@ -1213,7 +1213,7 @@ internalChromPlot <- function(tableIndex,
                               ...) {
 
 
-  nodeWhere("starting internalChromPlot")
+  ## nodeWhere("starting internalChromPlot")
   
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   cnum <- tableArrChrom[tableIndex, "Chrom"]
@@ -1261,7 +1261,7 @@ internalChromPlot <- function(tableIndex,
        main = nameChrIm,
        pch = pch) ##ylim
 
-  nodeWhere("internalChromPlot: right after plot")
+  ## nodeWhere("internalChromPlot: right after plot")
   
   box()
   axis(2)
@@ -1280,7 +1280,7 @@ internalChromPlot <- function(tableIndex,
   rm(cghdata)
   rm(simplepos)
   rm(res)
-  nodeWhere("internalChromPlot: before geneNames")
+  ## nodeWhere("internalChromPlot: before geneNames")
   
   ## we delay loading stuff
   probeNames <- getNames(probenamesRDataName, chromPos)
@@ -1296,7 +1296,7 @@ internalChromPlot <- function(tableIndex,
   ##   system(paste(.python.toMap.py, nameChrIm, 
   ##                idtype, organism, sep = " "))
 
-  nodeWhere("internalChromPlot: end")
+  ## nodeWhere("internalChromPlot: end")
 
 }
 
@@ -1443,7 +1443,7 @@ ourMerge <- function(observed, predicted,
     ref[segmentus2 > classes.ref] <- 1
     ref[segmentus2 < classes.ref] <- -1
     ## cat("\n        Done  merge \n")
-    nodeWhere(" ourMerge")
+    ## nodeWhere(" ourMerge")
     return(cbind(MergedMean = segmentus2,
                  Alteration = ref))
 }

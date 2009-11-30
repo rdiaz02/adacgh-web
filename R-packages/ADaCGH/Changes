@@ -1,3 +1,7 @@
+1.5-3  2009-11-30
+       - Fixed bug in merging in Haar Seg
+       - Fixed bug in wavelets (putting together lists of results)
+
 1.5-2  2009-10-28
        - png figures have a max. size so huge chromosomes do not
          result in black figures

@@ -535,17 +535,18 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
                          slave_minDiff = thismdiff,
                          slave_initClusterLevels = initClusterLevels))
 
-    ## list with one entry per array
-    out <- list()
-    klist <- 1
-    for(i in 1:Nsamps) {
-        out[[i]] <- out0[[klist]]
-        for(j in uniq.chrom[-1]) {
-            klist <- klist + 1
-            out[[i]] <- rbind(out[[i]], out0[[klist]])
-        }
-    }
+  out <- list()
+  
+  nchrom <- length(uniq.chrom)
+  for(i in 1:Nsamps) {
+    si <- (i - 1) * nchrom + 1
+    se <- i * nchrom
+    out[[i]] <- do.call("rbind", out0[si:se])
+  }
 
+
+
+  
     ## if merging, call ourMerge
     if(!mergeSegs) {
         outl <- list()
@@ -573,6 +574,16 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
     }
         
 }
+
+
+### There were bugs above. Look at this:
+## cc <- cghE1[, c(5:7, 5:7, 5:7)]
+## wv.nm2 <- pSegmentWavelets(cc, chrom.numeric, mergeSegs = FALSE)
+## wv.m2 <- pSegmentWavelets(cc, chrom.numeric, mergeSegs = TRUE)
+## lapply(wv.nm2[[1]], function(x) summary(x))
+## lapply(wv.m2[[1]], function(x) summary(x))
+## without merging, even observed were wrong
+## with merging, duplicates are not the same in output
 
 
 pSegmentDNAcopy <- function(x, chrom.numeric, parall = "arr", ...) {

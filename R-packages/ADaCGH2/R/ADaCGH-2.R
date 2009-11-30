@@ -592,7 +592,7 @@ internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
 }
 
 pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
-                            merge = "mergeLevels", smooth = TRUE,
+                            merging = "mergeLevels", smooth = TRUE,
                             alpha=0.01, nperm=10000, kmax=25, nmin=200,
                             eta = 0.05, overlap=0.25, trim = 0.025,
                             undo.prune=0.05, undo.SD=3, merge.pv.thresh =
@@ -600,7 +600,7 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
 
   ## temporary hack
-  mergeSegs <- ifelse(merge == "mergeLevels", TRUE, FALSE)
+  mergeSegs <- ifelse(merging == "mergeLevels", TRUE, FALSE)
   
   getbdry <- DNAcopy:::getbdry
   
@@ -909,7 +909,7 @@ BioHMMWrapper <- function(logratio, Pos) {
 }
 
 pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
-                           merge = "MAD", mad.threshold = 3, ...) {
+                           merging = "MAD", mad.threshold = 3, ...) {
   ## merge: "MAD", "mergeLevels", "none"
   ## We always use mergeSegs. OK for gain/loss/no-change,
   ## but it breaks the underlying segments
@@ -929,10 +929,10 @@ pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
                            tableArrChrom,
                            cghRDataName,
                            CGHseg.thres,
-                           merge)
+                           merging)
     ## nodeWhere("pSegmentCGHseg_0")
 
-  if(merge == "mergeLevels") {
+  if(merging == "mergeLevels") {
     ## Parallelized by array
     out <- sfClusterApplyLB(1:narrays,
                             internalMerge,
@@ -940,7 +940,7 @@ pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
                             tableArrChrom,
                             cghRDataName)
     ## nodeWhere("pSegmentCGHseg_mergeLevels")
-  } else if(merge == "MAD") {
+  } else if(merging == "MAD") {
     out <- sfClusterApplyLB(1:narrays,
                             internalMADCall,
                             out0,
@@ -948,7 +948,7 @@ pSegmentCGHseg <- function(cghRDataName, chromRDataName, CGHseg.thres = -0.05,
                             cghRDataName,
                             mad.threshold)
     ## nodeWhere("pSegmentCGHseg_MADCall")
-  } else if(merge == "none") {
+  } else if(merging == "none") {
     ## of course, could be done sequentially
     ## but if many arrays and long chromosomes, probably
     ## better over several nodes
@@ -976,7 +976,7 @@ puttogetherCGHseg <- function(index, out, tableArrChrom) {
 }
 
 internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres,
-                           merge) {
+                           merging) {
   ## the following could be parameters
   
   maxseg <- NULL
@@ -996,7 +996,7 @@ internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres
   ## }
   ## nodeWhere("internalCGHseg")
 
-  return(piccardsStretch01(obj1, optk, n, y, merge))
+  return(piccardsStretch01(obj1, optk, n, y, merging))
 
   ## Beware we do not use the original "states" of Piccard
   ## as we always use mergeSegs
@@ -1005,7 +1005,7 @@ internalCGHseg <- function(tableIndex, tableArrChrom, cghRDataName, CGHseg.thres
 
 
 
-piccardsStretch01 <- function(obj, k, n, logratio, merge) {
+piccardsStretch01 <- function(obj, k, n, logratio, merging) {
   ## note return object differs if mergeSegs TRUE or FALSE
     if(k > 1) {
         poss <- obj@breakpoints[[k]]
@@ -1014,14 +1014,14 @@ piccardsStretch01 <- function(obj, k, n, logratio, merge) {
         smoothedC <- mapply(function(start, end) mean(logratio[start: end]), start, end)
         reps <- diff(c(start, n + 1))
         smoothed <- rep(smoothedC, reps)
-        if(merge == "none")
+        if(merging == "none")
           state <- rep(1:k, reps)
     } else { ## only one segment
         smoothed <- rep(mean(logratio), n)
-        if(merge == "none")
+        if(merging == "none")
           state <- rep(1, n)
     }
-    if(merge!= "none")
+    if(merging!= "none")
       return(ffVecOut(smoothed))
     else
       return(list(ffVecOut(smoothed),
@@ -1060,7 +1060,7 @@ piccardsKO <- function(loglik, n, s) {
 ## Picard's paper.
 
 
-pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
+pSegmentWavelets <- function(cghRDataName, chromRDataName, merging = "MAD",
                              minDiff = 0.25,
                              minMergeDiff = 0.05,
                              thrLvl = 3, initClusterLevels = 10,
@@ -1075,7 +1075,7 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
   nvalues <- nrow(get(nameCgh))
   close(get(nameCgh))
 
-  thismdiff <- if(merge == "mergeLevels") minMergeDiff else minDiff
+  thismdiff <- if(merging == "mergeLevels") minMergeDiff else minDiff
 
   out0 <- sfClusterApplyLB(tableArrChrom$Index,
                            internalWaveHsu,
@@ -1084,18 +1084,18 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
                            thrLvl = thrLvl,
                            minDiff = thismdiff,
                            initClusterLevels = initClusterLevels,
-                           merge = merge)
+                           merging = merging)
   ## nodeWhere("pSegmentWavelets_0")
  ## Parallelized by arr by chrom
   ## if merge != "none", then it returns ONLY the smoothed values
-  if(merge == "mergeLevels") {
+  if(merging == "mergeLevels") {
     out <- sfClusterApplyLB(1:narrays,
                             internalMerge,
                             out0,
                             tableArrChrom,
                             cghRDataName)
     ## nodeWhere("pSegmentWavelets_mergeLevels")
-  } else if(merge == "MAD") {
+  } else if(merging == "MAD") {
     out <- sfClusterApplyLB(1:narrays,
                             internalMADCall,
                             out0,
@@ -1103,7 +1103,7 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
                             cghRDataName,
                             mad.threshold)
     ## nodeWhere("pSegmentWavelets_MADCall")
-  } else if(merge == "none") {
+  } else if(merging == "none") {
     ## of course, could be done sequentially
     ## but if many arrays and long chromosomes, probably
     ## better over several nodes
@@ -1123,7 +1123,7 @@ pSegmentWavelets <- function(cghRDataName, chromRDataName, merge = "MAD",
 internalWaveHsu <- function(tableIndex, tableArrChrom,
                             cghRDataName,
                             thrLvl, minDiff, initClusterLevels,
-                            merge) {
+                            merging) {
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
   ## nodeWhere("internalWaveHsu")
@@ -1135,12 +1135,12 @@ internalWaveHsu <- function(tableIndex, tableArrChrom,
   ## cluster levels
   pred.ij <- segmentW(ratio, recH, minDiff=minDiff,
                       n.levels = initClusterLevels)
-  if(merge == "none") {
+  if(merging == "none") {
     labs <- as.character(1:length(unique(pred.ij)))
     state <- as.integer(factor(pred.ij, labels=labs))
   }
   
-  if(merge != "none")
+  if(merging != "none")
     return(ffVecOut(pred.ij))
   else
     return(list(ffVecOut(pred.ij),

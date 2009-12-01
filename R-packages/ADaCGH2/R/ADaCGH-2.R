@@ -2629,12 +2629,19 @@ the.time.with.ms <- function() {
                        collapse = ""), sep = ""))
 }
 
+the.time.with.sec <- function() {
+    uu <- as.POSIXlt(Sys.time())
+    return(paste(uu$hour, uu$min, round(uu$sec), sep = "."))
+}
+
+
+
 tempdir2 <- function() {
     direxists <- TRUE
     while(direxists) {
         p1 <-  paste(round(runif(1, 1, 9999)),
-                     the.time.with.ms(), sep = "_")
-        p1 <- paste(tempfile(pattern = "tmpdir_ADaCGH_",
+                     the.time.with.sec(), sep = "_")
+        p1 <- paste(tempfile(pattern = "tmpdir_ADaCGH2_",
                              tmpdir = "."),
                     p1, sep = "_")
         if(!file.exists(p1)) direxists <- FALSE
@@ -2728,6 +2735,91 @@ my.usr2png <- function(xy, imWidth, imHeight) {
           ceiling((1-xy[,2])*imHeight)
           )
 }
+
+
+
+
+convertAndSave <- function(probeNames, chromosome, position, inputData,
+                           ffpattern = paste(getwd(), "/", sep = "")) {
+
+
+  if(!(is.data.frame(inputData)))
+    stop("inputData must be a data frame")
+  ## Minimal checking
+
+  rownames(inputData) <- NULL ## Don't? Takes a lot of memory not recoverd later
+  if(any(is.na(inputData))) 
+    stop(paste("Your aCGH file contains missing values. \n",
+                              "That is not allowed.\n"))
+  if(!is.numeric(chromosome))
+    stop(paste("Chromosome contains non-numeric data.\n",
+                              "That is not allowed.\n"))
+
+  if(any(table(chromosome) < 10))
+    stop("At least one of your chromosomes has
+less than 10 observations.\n That is not allowed.\n")
+
+  if(!all(is.wholeposnumber(chromosome)))
+    stop("Chromosome is NOT a positive integer!!\n")
+  if(max(chromosome) > 65000)
+    stop("Chromosome has more than 65000 levels!!\n")
+  
+  if(any(!sapply(inputData, is.numeric)))
+    stop(paste("Your aCGH file contains non-numeric data. \n",
+                              "That is not allowed.\n")   )
+
+  ## Do we have any identical MidPos in the same chromosome??  Just to solve
+  ## it quickly and without nasty downstream consequences, we add a runif to
+  ## midPos. But NO further averaging.
+   
+  tmp <- paste(chromosome, position, sep = ".")
+  if (sum(duplicated(tmp))) {
+    cat("\n We have identical MidPos!!! \n")
+    capture.output(print("We have identical MidPos!!!"), file = "WARNING.DUPLICATED")
+    ## add a random variate, to break ties:
+    position <-  positions +  runif(sum(duplicated(tmp)))
+    ## check it worked
+    tmp <- paste(chromosome, position, sep = ".")
+    if (sum(duplicated(tmp)))
+      stop("still duplicated MidPoints; shouldn't happen")
+    rm(tmp)
+    gc()
+    ## Reorder, just in case
+    reorder <- order(chromosome, position)
+    inputData <- inputData[reorder, ]
+    }
+  
+  save(file = "probeNames.RData", probeNames, compress = FALSE)
+
+  chromData <- ff(as.integer(chromosome), vmode = "ushort",
+                  pattern = ffpattern)
+  close(chromData)
+  save(file = "chromData.RData", chromData, compress = FALSE)
+  rm(chromData)
+  posData <- ff(position, vmode = "double",
+                  pattern = ffpattern)
+  close(posData)
+  save(file = "posData.RData", posData, compress = FALSE)
+  rm(posData)
+  if(is.null(colnames(inputData))) {
+    narr <- ncol(inputData)
+    colnames(inputData) <- paste("A", 1:narr, sep = "")
+  }
+
+  cghData <- as.ffdf(inputData, pattern = ffpattern)
+  close(cghData)
+  rm(inputData)
+  save(file = "cghData.RData", cghData, compress = FALSE)
+  rm(cghData)
+
+  cat("\n Files saved in current directory \n", getwd(),
+      " with names :\n",
+      "chromData.RData, posData.RData, cghData.RData, probeNames.RData \n")
+
+}
+
+
+
 
 
 

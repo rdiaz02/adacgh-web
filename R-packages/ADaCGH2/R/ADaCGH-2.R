@@ -427,7 +427,8 @@ createTableArrChrom <- function(arraynames, chrom) {
   return(data.frame(Index = 1:(narrays * ncrom),
                     ArrayNum = rep(1:narrays, ncrom),
                     ArrayName = rep(arraynames, ncrom),
-                    Chrom = rep(1:ncrom, rrc),
+                    ChromNum = rep(1:ncrom, rrc),
+                    ChromName = rep(rle.chr$values, rrc),
                     posInit = rep(chr.start, rrc),
                     posEnd  = rep(chr.end, rrc)))
 }
@@ -1216,7 +1217,7 @@ internalChromPlot <- function(tableIndex,
   ## nodeWhere("starting internalChromPlot")
   
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
-  cnum <- tableArrChrom[tableIndex, "Chrom"]
+  cname <- tableArrChrom[tableIndex, "ChromName"]
   arrayName <- tableArrChrom[tableIndex, "ArrayName"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
   
@@ -1232,7 +1233,7 @@ internalChromPlot <- function(tableIndex,
     simplepos <- 1:ndata
   } else simplepos <- getPosValue(posRDataName, chromPos)
 
-  nameChrIm <- paste("Chr", cnum, "@", arrayName, sep ="")
+  nameChrIm <- paste("Chr", cname, "@", arrayName, sep ="")
   
   ## cat("\n        internalChromPlot: doing array ", arrayIndex,
   ##     " chromosome ", cnum, 

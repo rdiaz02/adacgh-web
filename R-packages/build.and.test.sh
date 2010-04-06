@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## change the R we are using, if needed
-RDIR="/Part-ramon/sources.programs/R-tests/R-patched-2009-07-09"
+RDIR="/Part-ramon/sources.programs/R-devel-2010-04-05"
 #RDIR="/Part-ramon/sources.programs/R-tests/R-patched"
 alias R=$RDIR/bin/R
 

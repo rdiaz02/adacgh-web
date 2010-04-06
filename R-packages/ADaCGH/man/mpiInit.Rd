@@ -34,10 +34,10 @@ web-based application for the analysis of aCGH data. Tech. report.
 \url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
 \url{http://adacgh.bioinfo.cnio.es}. }
 \author{ Ramon Diaz-Uriarte \email{rdiaz02@gmail.com} }
-\note{
-  We have a somewhat similar function in
-  \code{\link[varSelRF]{basicClusterInit.Rd}}, but that is more
-  sophisticated.}
+% \note{
+%   We have a somewhat similar function in
+%   \code{\link[varSelRF]{basicClusterInit.Rd}}, but that is more
+%   sophisticated.}
 \examples{
 \dontrun{
 ## all slaves need a common dir to read and write.

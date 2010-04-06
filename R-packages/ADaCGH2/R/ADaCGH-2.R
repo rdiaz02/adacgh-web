@@ -594,11 +594,24 @@ internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
 
 pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             merging = "mergeLevels", smooth = TRUE,
-                            alpha=0.01, nperm=10000, kmax=25, nmin=200,
-                            eta = 0.05, overlap=0.25, trim = 0.025,
-                            undo.prune=0.05, undo.SD=3, merge.pv.thresh =
-                            1e-04, merge.ansari.sign = 0.05,
-                            merge.thresMin = 0.05, merge.thresMax = 0.5, ...) {
+                            alpha=0.01, nperm=10000,
+                            p.method = "hybrid",
+                            min.width = 2,
+                            kmax=25, nmin=200,
+                            eta = 0.05,
+                            ## sbdry = NULL,
+                            trim = 0.025,
+                            undo.splits = "none",
+                            undo.prune=0.05, undo.SD=3,
+                            ## following options for mergeLevels
+                            merge.pv.thresh = 1e-04,
+                            merge.ansari.sign = 0.05,
+                            merge.thresMin = 0.05,
+                            merge.thresMax = 0.5,                           
+                            ...) {
+
+  ## sbdry = NULL in segment. I.e., compute it if not default
+  ## We do that here.
 
   ## temporary hack
   mergeSegs <- ifelse(merging == "mergeLevels", TRUE, FALSE)
@@ -630,7 +643,6 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             kmax =          kmax,      
                             nmin =          nmin,
                             eta =           eta,
-                            overlap =       overlap,   
                             trim =          trim,      
                             undo.prune =    undo.prune,
                             undo.SD =       undo.SD,   
@@ -639,7 +651,10 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             merge.pv.thresh = merge.pv.thresh,
                             merge.ansari.sign = merge.ansari.sign,
                             merge.thresMin = merge.thresMin,
-                            merge.thresMax = merge.thresMax
+                            merge.thresMax = merge.thresMax,
+                            p.method = p.method,
+                            undo.splits = undo.splits,
+                            min.width =min.width
                             )                 
 
   ## nodeWhere("pSegmentDNAcopy")
@@ -651,12 +666,15 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
 internalDNAcopy <- function(index, cghRDataName, chromRDataName,
                             mergeSegs, smooth,
                             alpha, nperm, kmax, nmin,
-                            eta, overlap, trim,
+                            eta, trim,
                             undo.prune, undo.SD,
                             sbdry, sbn,
                             merge.pv.thresh,
                             merge.ansari.sign,
-                            merge.thresMin, merge.thresMax) {
+                            merge.thresMin, merge.thresMax,
+                            p.method,
+                            undo.splits,
+                            min.width) {
 
   cghdata <- getCGHValue(cghRDataName, index)
   chrom.numeric <- getChromValue(chromRDataName)
@@ -667,17 +685,20 @@ internalDNAcopy <- function(index, cghRDataName, chromRDataName,
                                 smooth.SD.scale = 2, trim = 0.025)
   outseg <-
     internalDNAcopySegm(cghdata,
-                        chrom.numeric = chrom.numeric,      
+                        chrom.numeric = chrom.numeric,
+                        sbdry =         sbdry,     
+                        sbn =           sbn,
                         alpha =         alpha,     
                         nperm =         nperm,    
                         kmax =          kmax,      
                         nmin =          nmin,      
-                        overlap =       overlap,   
                         trim =          trim,      
                         undo.prune =    undo.prune,
-                        undo.SD =       undo.SD,   
-                        sbdry =         sbdry,     
-                        sbn =           sbn)
+                        undo.SD =       undo.SD,
+                        p.method =      p.method,
+                        undo.splits =   undo.splits,
+                        min.width =     min.width
+                        )
   rm(chrom.numeric)
   
   if(mergeSegs)
@@ -1355,26 +1376,25 @@ internalDNAcopySmooth <- function(acghdata, chrom.numeric,
   }
 
 internalDNAcopySegm <- function(acghdata,
-                            chrom.numeric,
-                            sbdry,
-                            sbn,
-                            alpha,
-                            nperm,
-                            kmax,
-                            nmin,
-                            overlap, 
-                            trim,
-                            undo.prune,
-                              undo.SD) {
+                                chrom.numeric,
+                                sbdry,
+                                sbn,
+                                alpha,
+                                nperm,
+                                kmax,
+                                nmin,
+                                trim,
+                                undo.prune,
+                                undo.SD) {
     ## tries to follow the original "segment"
-    
+
+    ## p.method <- "hybrid"
+    ## undo.splits <- "none"
+    ## min.width <- 2
+  
     uchrom <- unique(chrom.numeric)
     data.type <- "logratio"
-    p.method <- "hybrid"
-    window.size <- NULL
-    undo.splits <- "none"
     genomdati <- acghdata
-    min.width <- 2
     ina <- which(!is.na(genomdati) & !(abs(genomdati)==Inf))
     
     ## The code allows for dealing with NA and Inf, but would need to
@@ -1397,8 +1417,6 @@ internalDNAcopySegm <- function(acghdata,
                               data.type = "logratio",
                               alpha = alpha, sbdry = sbdry, sbn = sbn,
                               nperm = nperm, p.method = p.method,
-##                               window.size = window.size, 
-##                               overlap = overlap,
                               kmax = kmax, nmin = nmin,
                               trimmed.SD = trimmed.SD,
                               undo.splits = undo.splits,

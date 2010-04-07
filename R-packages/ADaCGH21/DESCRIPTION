@@ -1,6 +1,6 @@
-Package: ADaCGH2
-Version: 2.0-0
-Date: 2009-11-20
+Package: ADaCGH21
+Version: 2.1-0
+Date: 2010-04-05
 Title: Analysis of data from aCGH experiments
 Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <rueda.om@gamil.com>. Wavelet-based aCGH smoothing code from Li Hsu <lih@fhcrc.org> and Douglas Grove <dgrove@fhcrc.org>. Imagemap code from Barry Rowlingson <B.Rowlingson@lancaster.ac.uk>. HaarSeg code from Erez Ben-Yaacov; downloaded from <http://www.ee.technion.ac.il/people/YoninaEldar/Info/software/HaarSeg.htm>
 Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>

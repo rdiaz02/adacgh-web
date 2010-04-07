@@ -145,7 +145,7 @@ snowfallInit <- function(universeSize = NULL,
     ## sfLibrary(ff)
     ## sfLibrary(GLAD)
     ## sfLibrary(snapCGH)
-    sfLibrary(ADaCGH2)
+    sfLibrary(ADaCGH21)
     })
   if(inherits(trythis, "try-error")) {
     cat("\nSnowfall error\n", file = "Status.msg")
@@ -553,7 +553,11 @@ break.and.write.vector <- function(i, pos.start, pos.end, infile, outfile) {
 #####################################################
 #####################################################
 
-pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
+pSegmentGLAD <- function(cghRDataName, chromRDataName,
+                         deltaN = 0.10,
+                         forceGL = c(-0.15, 0.15),
+                         deletion = -5,
+                         amplicon = 1, ...) {
 
   ## check appropriate class of objects
   
@@ -570,14 +574,25 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName, ...) {
   close(get(nameCgh))
 
   outsf <- sfClusterApplyLB(1:narrays,
-                          internalGLAD,
-                          cghRDataName, chromRDataName, nvalues)
+                            internalGLAD,
+                            cghRDataName,
+                            chromRDataName,
+                            nvalues,
+                            deltaN,
+                            forceGL,
+                            deletion,
+                            amplicon)
 
   ## nodeWhere("pSegmentGLAD")
   return(outToffdf(outsf, arrayNames))
 }
 
-internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
+internalGLAD <- function(index, cghRDataName, chromRDataName,
+                         nvalues,
+                         deltaN,
+                         forceGL,
+                         deletion,
+                         amplicon) {
 ##  cghvalues <- getCGHval(cghRDataName, index)
 ##  chromvalues <- getChromval(chromRDataName)
   tmpf <- list(profileValues = data.frame(
@@ -585,7 +600,7 @@ internalGLAD <- function(index, cghRDataName, chromRDataName, nvalues) {
                  PosOrder = 1:nvalues,
                  Chromosome = getChromValue(chromRDataName)))
   class(tmpf) <- "profileCGH"
-  outglad <- glad.profileCGH(tmpf)
+  outglad <- daglad(tmpf, deltaN, forceGL, deletion, amplicon)
   rm(tmpf)
   ## nodeWhere("internalGLAD")
   return(ffListOut(outglad$profileValues$Smoothing,
@@ -774,7 +789,7 @@ internalHaarSeg <- function(index, cghRDataName, mad.threshold,
 }
 
 
-pSegmentHMM <- function(cghRDataName, chromRDataName, ...) {
+pSegmentHMM <- function(cghRDataName, chromRDataName, aic.or.bic, ...) {
   ## The table exists. No need to re-create if
   ## really paranoid about speed
 
@@ -791,9 +806,10 @@ pSegmentHMM <- function(cghRDataName, chromRDataName, ...) {
   
   ## Parallelized by arr by chrom
   out0 <- sfClusterApplyLB(tableArrChrom$Index,
-                            internalHMM,
-                            tableArrChrom,
-                            cghRDataName)
+                           internalHMM,
+                           tableArrChrom,
+                           cghRDataName,
+                           aic.or.bic)
   ## nodeWhere("pSegmentHMM_0")
   ## Parallelized by array
   out <- sfClusterApplyLB(1:narrays,
@@ -806,14 +822,14 @@ pSegmentHMM <- function(cghRDataName, chromRDataName, ...) {
   return(outToffdf(out, arrayNames))
 }
 
-internalHMM <- function(tableIndex, tableArrChrom, cghRDataName) {
+internalHMM <- function(tableIndex, tableArrChrom, cghRDataName, aic.or.bic) {
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
   ## nodeWhere("internalHMM")
-  return(hmmWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos)))
+  return(hmmWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos), aic.or.bic))
 }
 
-hmmWrapper <- function(logratio) {
+hmmWrapper <- function(logratio, aic.or.bic) {
   ## Fit HMM, and return the predicted
   ## we do not pass Chrom since we only fit by Chrom.
   ##  cat("\n Disregard the 'sample is  1 	Chromosomes: 1' messages!!!\n")
@@ -824,7 +840,10 @@ hmmWrapper <- function(logratio) {
                                      Chrom = Chrom,
                                      kb = Pos))
   ## we could wrap this in "capture.output"
-  res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
+  if(aic.or.bic == "AIC")
+    res <- find.hmm.states(obj.aCGH, aic = TRUE, bic = FALSE)
+  else
+    res <- find.hmm.states(obj.aCGH, aic = FALSE, bic = TRUE)
   hmm(obj.aCGH) <- res
   ## nodeWhere("hmmWrapper")
   return(ffVecOut(obj.aCGH$hmm$states.hmm[[1]][, 6]))
@@ -869,7 +888,7 @@ internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
 
 
 
-pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
+pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bic, ...) {
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
 
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
@@ -884,7 +903,8 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
                            internalBioHMM,
                            tableArrChrom,
                            cghRDataName,
-                           posRDataName)
+                           posRDataName,
+                           aic.or.bic)
   ## nodeWhere("pSegmentBioHMM_0")
   te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
   if(any(te)) {
@@ -907,21 +927,25 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, ...) {
   return(outToffdf(out, arrayNames))
 }
 
-internalBioHMM <- function(tableIndex, tableArrChrom, cghRDataName, posRDataName) {
+internalBioHMM <- function(tableIndex, tableArrChrom, cghRDataName,
+                           posRDataName, aic.or.bic) {
   arrayIndex <- tableArrChrom[tableIndex, "ArrayNum"]
   chromPos <- unlist(tableArrChrom[tableIndex, c("posInit", "posEnd")])
   ## nodeWhere("internalBioHMM")
   return(BioHMMWrapper(getCGHValue(cghRDataName, arrayIndex, chromPos),
-                       getPosValue(posRDataName, chromPos)))
+                       getPosValue(posRDataName, chromPos), aic.or.bic))
 }
 
-BioHMMWrapper <- function(logratio, Pos) {
+BioHMMWrapper <- function(logratio, Pos, aic.or.bic) {
 ##  cat("\n       .... running BioHMMWrapper \n")
   ydat <- matrix(logratio, ncol=1)
   n <- length(ydat)
   res <- try(myfit.model(sample = 1, chrom = 1, dat = matrix(ydat, ncol = 1),
                          datainfo = data.frame(Name = 1:n, Chrom = rep(1, n),
-                           Position = Pos)))
+                           Position = Pos),
+                         aic = ifelse(aic.or.bic == "AIC", TRUE, FALSE),
+                         bic = ifelse(aic.or.bic == "BIC", TRUE, FALSE)
+                         ))
   ## nodeWhere("BioHMMWrapper")
   if(inherits(res, "try-error")) {
     return(res)

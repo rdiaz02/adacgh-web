@@ -514,7 +514,11 @@ less than 10 observations.\n That is not allowed.\n")
                                      inputData[, 2])
   inputData <- inputData[, -c(1, 2, 3), drop = FALSE]
 
-  cghData <- as.ffdf(inputData, pattern = ffpattern)
+  if( packageDescription("ff")$Version >= "2.1-2" )
+    cghData <- as.ffdf(inputData, col_args=list(pattern = ffpattern))
+  else
+    cghData <- as.ffdf(inputData, pattern = ffpattern)
+  
   close(cghData)
   rm(inputData)
   save(file = "cghData.RData", cghData, compress = FALSE)
@@ -600,7 +604,10 @@ internalGLAD <- function(index, cghRDataName, chromRDataName,
                  PosOrder = 1:nvalues,
                  Chromosome = getChromValue(chromRDataName)))
   class(tmpf) <- "profileCGH"
-  outglad <- daglad(tmpf, deltaN, forceGL, deletion, amplicon)
+  
+  outglad <- daglad(tmpf, deltaN = deltaN, forceGL = forceGL,
+                    deletion = deletion,
+                    amplicon = amplicon)
   rm(tmpf)
   ## nodeWhere("internalGLAD")
   return(ffListOut(outglad$profileValues$Smoothing,
@@ -1409,7 +1416,10 @@ internalDNAcopySegm <- function(acghdata,
                                 nmin,
                                 trim,
                                 undo.prune,
-                                undo.SD) {
+                                undo.SD,
+                                p.method,
+                                undo.splits,
+                                min.width) {
     ## tries to follow the original "segment"
 
     ## p.method <- "hybrid"
@@ -2849,7 +2859,11 @@ less than 10 observations.\n That is not allowed.\n")
     colnames(inputData) <- paste("A", 1:narr, sep = "")
   }
 
-  cghData <- as.ffdf(inputData, pattern = ffpattern)
+  if( packageDescription("ff")$Version >= "2.1-2" )
+    cghData <- as.ffdf(inputData, col_args=list(pattern = ffpattern))
+  else
+    cghData <- as.ffdf(inputData, pattern = ffpattern)
+
   close(cghData)
   rm(inputData)
   save(file = "cghData.RData", cghData, compress = FALSE)

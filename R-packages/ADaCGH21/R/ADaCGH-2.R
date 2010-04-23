@@ -587,6 +587,15 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName,
                             deletion,
                             amplicon)
 
+  te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
+  if(any(te)) {
+    m1 <- "The GLAD code occassionally crashes (don't blame us!)."
+    m2 <- "This often happens in function DelRegionTooSmal."
+    m3 <- "You might want to use another method"
+    mm <- paste(m1, m2, m3)
+    caughtError(mm)
+  }
+  
   ## nodeWhere("pSegmentGLAD")
   return(outToffdf(outsf, arrayNames))
 }
@@ -605,13 +614,18 @@ internalGLAD <- function(index, cghRDataName, chromRDataName,
                  Chromosome = getChromValue(chromRDataName)))
   class(tmpf) <- "profileCGH"
   
-  outglad <- daglad(tmpf, deltaN = deltaN, forceGL = forceGL,
+  outglad <- try(daglad(tmpf, deltaN = deltaN, forceGL = forceGL,
                     deletion = deletion,
-                    amplicon = amplicon)
+                    amplicon = amplicon))
+  
   rm(tmpf)
   ## nodeWhere("internalGLAD")
-  return(ffListOut(outglad$profileValues$Smoothing,
-                   outglad$profileValues$ZoneGNL))
+  if(inherits(outglad, "try-error")) {
+    return(outglad)
+  } else {
+    return(ffListOut(outglad$profileValues$Smoothing,
+                     outglad$profileValues$ZoneGNL))
+  }
 }
 
 pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
@@ -917,9 +931,10 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bi
   if(any(te)) {
     m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
     m2 <- "You can try rerunning it a few times."
+    m2b <- "You can use another method. "
     m3 <- "You can also tell the authors of the BioHMM package"
     m4 <- " that you get the error(s): \n\n "
-    mm <- paste(m1, m2, m3, m4, paste(out0[which(te)], collapse = "    \n   "))
+    mm <- paste(m1, m2, m2b, m3, m4, paste(out0[which(te)], collapse = "    \n   "))
     caughtError(mm)
   }
 

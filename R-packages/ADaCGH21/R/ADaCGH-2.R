@@ -586,8 +586,8 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName,
                             forceGL,
                             deletion,
                             amplicon)
-
-  te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
+  ## a hack to avoid sfClusterApply from catching the error and aborting
+  te <- unlist(unlist(lapply(outsf, function(x) inherits(x, "my-try-error"))))
   if(any(te)) {
     m1 <- "The GLAD code occassionally crashes (don't blame us!)."
     m2 <- "This often happens in function DelRegionTooSmal."
@@ -621,6 +621,8 @@ internalGLAD <- function(index, cghRDataName, chromRDataName,
   rm(tmpf)
   ## nodeWhere("internalGLAD")
   if(inherits(outglad, "try-error")) {
+    ## a hack to avoid sfClusterApply from catching the error and aborting
+    class(outglad) <- "my-try-error"
     return(outglad)
   } else {
     return(ffListOut(outglad$profileValues$Smoothing,
@@ -927,7 +929,7 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bi
                            posRDataName,
                            aic.or.bic)
   ## nodeWhere("pSegmentBioHMM_0")
-  te <- unlist(unlist(lapply(out0, function(x) inherits(x, "try-error"))))
+  te <- unlist(unlist(lapply(out0, function(x) inherits(x, "my-try-error"))))
   if(any(te)) {
     m1 <- "The BioHMM code occassionally crashes (don't blame us!)."
     m2 <- "You can try rerunning it a few times."
@@ -970,6 +972,7 @@ BioHMMWrapper <- function(logratio, Pos, aic.or.bic) {
                          ))
   ## nodeWhere("BioHMMWrapper")
   if(inherits(res, "try-error")) {
+    class(res) <- "my-try-error"
     return(res)
   } else {
     return(ffVecOut(res$out.list$mean))

@@ -418,6 +418,7 @@ wrapCreateTableArrChr <- function(cghRDataName, chromRDataName) {
 
 createTableArrChrom <- function(arraynames, chrom) {
   rle.chr <- intrle(as.integer(chrom))
+  if(is.null(rle.chr)) rle.chr <- rle(as.integer(chrom))
   chr.end <- cumsum(rle.chr$lengths)
   chr.start <- c(1, chr.end[-length(chr.end)] + 1)
   ncrom <- length(chr.start)

@@ -1,3 +1,26 @@
+### FIXME: eliminate all depdence on GDD. See email from B. Ripley
+
+
+
+## from	Prof Brian Ripley <ripley@stats.ox.ac.uk>
+## to	Ramon Diaz-Uriarte <rdiaz02@gmail.com>
+## cc	Uwe.Ligges@r-project.org,
+## Simon.Urbanek@r-project.org
+## date	Tue, Jul 27, 2010 at 10:57 AM
+## subject	ADaCGH's dependence on GDD
+## mailed-by	stats.ox.ac.uk
+	
+## hide details Jul 27 (13 days ago)
+	
+## As you will see from the CRAN package checks, GDD is not being built for Mac OS X nor 64-bit Windows.  As R 2.12.0 will be a 32/64-bit Windows build, GDD (and hence ADaCGH) will not be distributed in binary form for Windows.
+
+## If you care about this, please update the package.  Most people find that what GDD does the standard R devices (png(), bitmap() ...) do as well, and there is also package Cairo.
+
+## There are some hints in the code that GDD is only there for backwards compatibility: if necessary for that reason please make GDD 'Suggests' not 'Depends' and use require(GDD) (testing its value) in the code which makes use of it.
+
+## Brian Ripley
+
+
 ### FIXME: comment out nodeWhere!!!
 
 ### FIXME: if using fork or parallel, probably don't want

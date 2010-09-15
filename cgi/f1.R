@@ -546,7 +546,7 @@ if (sum(duplicated(tmp))) {
 
 tmp <- paste(positions.merge1$chromosome, positions.merge1$MidPoint, sep = ".")
 if (sum(duplicated(tmp)))
-    stopOurError("still duplicated MidPoints; shouldn't happen")
+    caughtOurError("still duplicated MidPoints; shouldn't happen")
 
 
 ## below, we fix the distance between first obs. of each chromos

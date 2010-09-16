@@ -1,27 +1,8 @@
-### FIXME: eliminate all depdence on GDD. See email from B. Ripley
-
-
-
-## from	Prof Brian Ripley <ripley@stats.ox.ac.uk>
-## to	Ramon Diaz-Uriarte <rdiaz02@gmail.com>
-## cc	Uwe.Ligges@r-project.org,
-## Simon.Urbanek@r-project.org
-## date	Tue, Jul 27, 2010 at 10:57 AM
-## subject	ADaCGH's dependence on GDD
-## mailed-by	stats.ox.ac.uk
-	
-## hide details Jul 27 (13 days ago)
-	
-## As you will see from the CRAN package checks, GDD is not being built for Mac OS X nor 64-bit Windows.  As R 2.12.0 will be a 32/64-bit Windows build, GDD (and hence ADaCGH) will not be distributed in binary form for Windows.
-
-## If you care about this, please update the package.  Most people find that what GDD does the standard R devices (png(), bitmap() ...) do as well, and there is also package Cairo.
-
-## There are some hints in the code that GDD is only there for backwards compatibility: if necessary for that reason please make GDD 'Suggests' not 'Depends' and use require(GDD) (testing its value) in the code which makes use of it.
-
-## Brian Ripley
-
-
 ### FIXME: comment out nodeWhere!!!
+
+### do I want put.part.rdata.together??
+
+
 
 ### FIXME: if using fork or parallel, probably don't want
 ##  to call quit.
@@ -464,29 +445,39 @@ is.wholeposnumber <- function(x, tol = .Machine$double.eps^0.5) {
 
 inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
                                  filename = "inputData.RData") {
-  ## assume filename, when loaded, is "inputData"
-  load(filename)
+
+  ## We could use eval(substitute or get(
+  ## but we modify the object for sure when eliminating rownames
+  ## and possibly when reordering. So might as well just load, copy,
+  ## remove, and gc.
+  
+  nmobj <- load(filename)
+  inputData <- get(nmobj)
+  rm(list = nmobj)
+  rm(nmobj)
   gc()
+  
   rownames(inputData) <- NULL ## Don't? Takes a lot of memory not recoverd later
+  ## but we don't want rownames in ffdf objects.
   if(any(is.na(inputData))) 
-    caughtUserError.Web(paste("Your aCGH file contains missing values. \n",
+    caughtUserError2(paste("Your aCGH file contains missing values. \n",
                               "That is not allowed.\n"))
   gc(); gc()
-  if(!is.numeric(inputData$chromosome))
-    caughtUserError.Web(paste("Chromosome contains non-numeric data.\n",
+  if(!is.numeric(inputData[, 2]))
+    caughtUserError2(paste("Chromosome contains non-numeric data.\n",
                               "That is not allowed.\n"))
 
-  if(any(table(inputData$chromosome) < 10))
-    caughtUserError.Web("At least one of your chromosomes has
+  if(any(table(inputData[, 2]) < 10))
+    caughtUserError2("At least one of your chromosomes has
 less than 10 observations.\n That is not allowed.\n")
 
-  if(!all(is.wholeposnumber(inputData$chromosome)))
-    caughtUserError.Web("Chromosome is NOT a positive integer!!\n")
+  if(!all(is.wholeposnumber(inputData[, 2])))
+    caughtUserError2("Chromosome is NOT a positive integer!!\n")
   if(max(inputData$chromosome) > 65000)
-    caughtUserError.Web("Chromosome has more than 65000 levels!!\n")
+    caughtUserError2("Chromosome has more than 65000 levels!!\n")
   
   if(any(!sapply(inputData[, -c(1, 2, 3)], is.numeric)))
-    caughtUserError.Web(paste("Your aCGH file contains non-numeric data. \n",
+    caughtUserError2(paste("Your aCGH file contains non-numeric data. \n",
                               "That is not allowed.\n")   )
   gc()
 
@@ -497,7 +488,9 @@ less than 10 observations.\n That is not allowed.\n")
   tmp <- paste(inputData[, 2], inputData[, 3], sep = ".")
   if (sum(duplicated(tmp))) {
     cat("\n We have identical MidPos!!! \n")
-    capture.output(print("We have identical MidPos!!!"), file = "WARNING.DUPLICATED")
+    if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv))
+      capture.output(print("We have identical MidPos!!!"),
+                     file = "WARNING.DUPLICATED")
     ## add a random variate, to break ties:
     inputData[duplicated(tmp), 3] <-
       inputData[duplicated(tmp), 3] +
@@ -505,7 +498,7 @@ less than 10 observations.\n That is not allowed.\n")
     ## check it worked
     tmp <- paste(inputData[, 2], inputData[, 3], sep = ".")
     if (sum(duplicated(tmp)))
-      caughtOurError.Web("still duplicated MidPoints; shouldn't happen")
+      caughtOurError2("still duplicated MidPoints; shouldn't happen")
     rm(tmp)
     gc()
     ## Reorder, just in case
@@ -513,7 +506,7 @@ less than 10 observations.\n That is not allowed.\n")
                      inputData[, 3])
     inputData <- inputData[reorder, ]
     }
-  probeNames <- inputData$ID
+  probeNames <- inputData[, 1]
   save(file = "probeNames.RData", probeNames, compress = FALSE)
   rm(probeNames)
   gcmessage("after rm probeNames")
@@ -536,6 +529,8 @@ less than 10 observations.\n That is not allowed.\n")
 
   tableArrChr <- createTableArrChrom(colnames(inputData)[-c(1, 2, 3)],
                                      inputData[, 2])
+  
+  ## not needed here; can be done inside as.ffdf
   inputData <- inputData[, -c(1, 2, 3), drop = FALSE]
 
   if( packageDescription("ff")$Version >= "2.1-2" )
@@ -1874,9 +1869,9 @@ caughtOtherError <- function(message) {
     png.pointsize <- 10
 
     if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
-        GDD("ErrorFigure.png", width = png.width,
-               height = png.height, 
-               ps = png.pointsize)
+        png("ErrorFigure.png", width = png.width,
+            height = png.height, 
+            pointsize = png.pointsize)
         plot(x = c(0, 1), y = c(0, 1),
              type = "n", axes = FALSE, xlab = "", ylab = "")
         box()
@@ -1906,9 +1901,9 @@ caughtError <- function(message) {
     png.pointsize <- 10
 
     if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
-        GDD("ErrorFigure.png", width = png.width,
-               height = png.height, 
-               ps = png.pointsize)
+        png("ErrorFigure.png", width = png.width,
+            height = png.height, 
+            pointsize = png.pointsize)
         plot(x = c(0, 1), y = c(0, 1),
              type = "n", axes = FALSE, xlab = "", ylab = "")
         box()
@@ -1932,39 +1927,39 @@ caughtError <- function(message) {
 
 
 
-caughtOurError <- function(message) {
-    png.height <- 400
-    png.width  <- 400
-    png.pointsize <- 10
+## caughtOurError <- function(message) {
+##     png.height <- 400
+##     png.width  <- 400
+##     png.pointsize <- 10
 
-    if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
-        GDD("ErrorFigure.png", width = png.width,
-               height = png.height, 
-               ps = png.pointsize)
-        plot(x = c(0, 1), y = c(0, 1),
-             type = "n", axes = FALSE, xlab = "", ylab = "")
-        box()
-        text(0.5, 0.7, "There was a PROBLEM with the code.")
-        text(0.5, 0.5,
-             "Please let us know (send us the URL),")
+##     if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
+##         png("ErrorFigure.png", width = png.width,
+##                height = png.height, 
+##                pointsize = png.pointsize)
+##         plot(x = c(0, 1), y = c(0, 1),
+##              type = "n", axes = FALSE, xlab = "", ylab = "")
+##         box()
+##         text(0.5, 0.7, "There was a PROBLEM with the code.")
+##         text(0.5, 0.5,
+##              "Please let us know (send us the URL),")
         
-        text(0.5, 0.3, "so that we can fix it.")
-        dev.off()
-        sink(file = "results.txt")
-        cat(message)
-        sink()
-        sink(file = "exitStatus")
-        cat("Error\n\n")
-        cat(message)
-        sink()
-        quit(save = "no", status = 11, runLast = TRUE)
-    } else if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
-        caughtOurError.Web(message)
-    } else {
-        message <- paste("It looks like you found a bug. Please let us know. ", message)
-        stop(message)
-    }
-}
+##         text(0.5, 0.3, "so that we can fix it.")
+##         dev.off()
+##         sink(file = "results.txt")
+##         cat(message)
+##         sink()
+##         sink(file = "exitStatus")
+##         cat("Error\n\n")
+##         cat(message)
+##         sink()
+##         quit(save = "no", status = 11, runLast = TRUE)
+##     } else if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
+##         caughtOurError2(message)
+##     } else {
+##         message <- paste("It looks like you found a bug. Please let us know. ", message)
+##         stop(message)
+##     }
+## }
     
 
 
@@ -2011,10 +2006,11 @@ mpi.clean.quit.Web <- function() {
 }
 
 
-caughtOurError.Web <- function(message) {
+caughtOurError2 <- function(message) {
+  message <- paste("There was a problem with our code. Please let us know.\n", 
+                   message)
+  if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
     snowfall.clean.quit.Web()
-    message <- paste("There was a problem with our code. Please let us know.\n", 
-                     message)
     sink(file = "R_Error_msg.txt")
     cat(message)
     cat("\n")
@@ -2023,15 +2019,18 @@ caughtOurError.Web <- function(message) {
     cat("Our Error\n\n")
     sink()
     quit(save = "no", status = 11, runLast = FALSE)
-
+  } else {
+    stop(message)
+  }
 }
 
 
-caughtUserError.Web <- function(message) {
-    snowfall.clean.quit.Web()
-    message <- paste("There was a problem with something you did.\n",
+caughtUserError2 <- function(message) {
+  message <- paste("There was a problem with something you did.\n",
                      "Check the error message, your data and options and try again.\n",
-                     message, "\n")
+                   message, "\n")
+  if(exists(".__ADaCGH_SERVER_APPL", env = .GlobalEnv)) {
+    snowfall.clean.quit.Web()
     sink(file = "R_Error_msg.txt")
     cat(message)
     cat("\n")
@@ -2040,6 +2039,9 @@ caughtUserError.Web <- function(message) {
     cat("User Error\n\n")
     sink()
     quit(save = "no", status = 11, runLast = FALSE)
+  } else {
+    stop(message)
+  }
 }
 
 
@@ -2106,8 +2108,8 @@ imClose3 <- function (im) {
 imagemap3 <- function(filename,width=480,height=480,
                       title='Imagemap from R', ps = 12){
 
-    GDD(file = paste(filename,".png",sep=''),w=width, h=height,
-        type = "png", ps = ps)	  
+    png(file = paste(filename,".png",sep=''),w=width, h=height,
+        type = "png", pointsize = ps)	  
 	  
     im <- list()
     im$Device <- dev.cur()
@@ -2924,3 +2926,44 @@ less than 10 observations.\n That is not allowed.\n")
 
 
 
+### For inputDataToADaCGHData check what is better if eval((substitute or get(
+
+
+## ## f0 <- function(z) get(z, inherits = FALSE)
+
+## f1 <- function(x) {
+##   nmobj <- load(x)
+##   any(is.na(get(nmobj, inherits = FALSE)))
+##   print(gc())
+##   tmp <- get(nmobj, inherits = FALSE)[, 1]
+##   print(gc())
+##   tmp2 <- get(nmobj, inherits = FALSE)[, 2]
+##   print(gc())
+## }
+
+## f2 <- function(x) {
+##   nmobj <- load(x)
+##   eval(substitute(any(is.na(x)), list(x = as.name(nmobj))))
+##   print(gc())
+##   eval(substitute(tmp <- x[, 1], list(x = as.name(nmobj))))
+##   print(gc())
+##   eval(substitute(tmp2 <- x[, 2], list(x = as.name(nmobj))))
+##   print(gc())
+## }
+
+## ## d1 and d2 are very large
+## gc(reset = TRUE)
+## unix.time(f1("d1.RData"))
+## gc()
+## gc(reset = TRUE)
+## unix.time(f2("d1.RData"))
+
+
+## gc(reset = TRUE)
+## unix.time(f2("d2.RData"))
+## gc()
+## gc(reset = TRUE)
+## unix.time(f1("d2.RData"))
+
+## ## There are no significant differences between the two.
+## ## what is memory consuming is the "load" No further increases.

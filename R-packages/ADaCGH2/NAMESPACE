@@ -1,4 +1,4 @@
-useDynLib(ADaCGH21, ad_rConvAndPeak, ad_rPulseConv,
+useDynLib(ADaCGH2, ad_rConvAndPeak, ad_rPulseConv,
           ad_rWConvAndPeak, ad_rThresAndUnify)
 
 export("snowfallInit",

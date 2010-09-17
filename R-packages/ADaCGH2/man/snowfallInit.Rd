@@ -1,0 +1,92 @@
+\name{snowfallInit}
+\alias{snowfallInit}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{
+Initialize a cluster of workstations
+}
+
+\description{ With either MPI or sockets, use snowfall to initialize a
+  cluster to have ADaCGH2 run in parallel. Check possible errors during
+  initialization.  }
+
+\usage{
+snowfallInit(universeSize = NULL, wdir = getwd(), minUniverseSize = 2,
+exit_on_fail = FALSE, maxnumcpus = 500, typecluster = "MPI", socketHosts = NULL)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{universeSize}{Desired size of cluster (number of CPUs). Can be
+    set to NULL. See details.
+  }
+  \item{wdir}{The common ---e.g., NFS mounted resource, a directory in
+    your machine if running on only one computer, etc --- directory. We need a
+    common directory for the graphics and ff files so that they are all found in the
+    same location.
+  }
+  \item{minUniverseSize}{The minimal LAM/MPI universe for the function to
+    return successfully. If the function determines that the available
+    number of slaves is smaller than minUniverseSize it will fail (if
+    exit\_on\_fail = TRUE) or give a warning.
+  }
+  \item{exit_on_fail}{If TRUE, kills R session if it cannot run
+    succesfully. Setting it to TRUE is something you probably only want
+    to do when running as an unattended service.    
+  }
+  \item{maxnumcpus}{
+    Passed directly to snowfall. This is the new value of
+    \code{\link[snowfall]{sfSetMaxCPUs}} set to a very large number to allow us
+    to use large clusters.
+  }
+  \item{typecluster}{Either "MPI" or "SOCK".
+  }
+  \item{socketHosts}{
+    Passed to \code{\link[snowfall]{snowfall-init}}.
+  }
+}
+
+\details{This function is designed to be used mainly with MPI, but
+  clusters with sockets might be easier to create in Windows machines
+  without additional software.
+
+  When using MPI, the recommended usage is to set only minUniverseSize,
+  leaving "universeSize" as NULL. Then, the cluster will use as many
+  nodes as available to MPI (found from "mpi.universe.size()"), or fail
+  if the available number of nodes is less than minUniverseSize. This
+  usage makes sense in many clusters where the actual number of nodes
+  available can vary, but you definitely do not want to run a job unless
+  a minimal number of nodes can be used. (Moreover, mpi.universe.size
+  returning a very small number can be an indication of a configuration
+  file problem).
+  
+  If "universeSize" is set, this will be the number of nodes of the
+  cluster (unless you are using MPI and mpi.universe.size is smaller, in
+  which case the function will fail).
+
+}
+\value{
+  This function is used to create a cluster.
+}
+% \references{
+% %% ~put references to the literature/web site here ~
+% }
+\author{
+Ramon Diaz-Uriarte \email{rdiaz02@gmail.com} 
+}
+
+% \seealso{
+% %% ~~objects to See Also as \code{\link{help}}, ~~~
+% }
+\examples{
+snowfallInit(universeSize = 4, typecluster = "SOCK")
+
+\dontrun{
+## If you are using MPI, a better approach would be
+snowfallInit(minUniverseSize = 4, typecluster = "MPI")
+## where minUniverseSize is set to whatever
+## you regard as an unacceptable minimum
+}
+
+}
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+\keyword{programming}

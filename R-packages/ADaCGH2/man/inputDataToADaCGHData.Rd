@@ -14,30 +14,29 @@ inputDataToADaCGHData(ffpattern = paste(getwd(), "/", sep = ""), filename = "inp
   \item{ffpattern}{ See argument \code{pattern} in
     \code{\link[ff]{ff}}. The default is to create the "ff" files in the
     current working directory. }
-}
 
-\item{filename}{ Name of data RData file that contains the data frame
-  with original, non-ff, data. Note: this is the name of the RData file
-  (possibly including path), NOT the name of the data frame.
-
-  The first three columns of the data frame are the IDs of the probes,
-  the chromosome number, and the position, and all remaining columns
-  contain the data for the arrays, one column per array. The names of
-  the first three column do not matter, but the order does. Names of the
-  remaining columns will be used if existing; otherwise, fake array
-  names will be created.}
-}
+  \item{filename}{ Name of data RData file that contains the data frame
+    with original, non-ff, data. Note: this is the name of the RData file
+    (possibly including path), NOT the name of the data frame.
+    
+    The first three columns of the data frame are the IDs of the probes,
+    the chromosome number, and the position, and all remaining columns
+    contain the data for the arrays, one column per array. The names of
+    the first three column do not matter, but the order does. Names of the
+    remaining columns will be used if existing; otherwise, fake array
+    names will be created.
+  }
 }
 \details{
   If there are identical positions (in the same chromosome) a small
   random uniform variate is added to get unique locations.
-%%  ~~ If necessary, more details than the description above ~~
+  %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
   This function is used mainly for its side effects: writing several ff
   files to the current working directory (the actual names are printed
   out).
-
+  
   In addition, and since we need to manipulate the complete set of
   original data, the return value is a data frame that is often used
   later to speed up certain calculations. Similar to a dictionary or
@@ -60,9 +59,9 @@ inputDataToADaCGHData(ffpattern = paste(getwd(), "/", sep = ""), filename = "inp
   \item{posEnd}{The last position of a probe of this chromosome.}
 }
 
-\references{
-%% ~put references to the literature/web site here ~
-}
+% \references{
+% %% ~put references to the literature/web site here ~
+% }
 
 
 \note{
@@ -77,9 +76,9 @@ inputDataToADaCGHData(ffpattern = paste(getwd(), "/", sep = ""), filename = "inp
 \author{Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}}
 
 
-\seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
-}
+% \seealso{
+% %% ~~objects to See Also as \code{\link{help}}, ~~~
+% }
 \examples{
 
 fname <- list.files(path = system.file("data", package = "ADaCGH2"),
@@ -87,17 +86,14 @@ fname <- list.files(path = system.file("data", package = "ADaCGH2"),
 tableChromArray <- inputDataToADaCGHData(filename = fname)
 
 
-
-### In a separate process
-  library(multicore)
-  parallel(inputDataToADaCGHData(), silent = FALSE)
+### Running in a separate process
+  if(require(multicore)) {
+  parallel(inputDataToADaCGHData(filename = fname), silent = FALSE)
   tableChromArray <- collect()[[1]]
   if(inherits(tableChromArray, "try-error")) {
-    caughtOurError.Web("ERROR in input data conversion")
+    stop("ERROR in input data conversion")
   }
-
+}
 
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{ IO }

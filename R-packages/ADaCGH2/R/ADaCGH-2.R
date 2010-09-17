@@ -117,45 +117,46 @@ if(package_version(packageDescription("snapCGH")$Version) > "1.11") {
     
 
 snowfallInit <- function(universeSize = NULL, 
-                         wdir = getwd(), minUniverseSize = 15,
-                         exit_on_fail = TRUE,
-                         maxnumcpus = 500) {
+                         wdir = getwd(), minUniverseSize = 2,
+                         exit_on_fail = FALSE,
+                         maxnumcpus = 500,
+                         typecluster = "MPI",
+                         socketHosts = NULL) {
 
   sfSetMaxCPUs <- maxnumcpus
   trythis <- try({
     require(snowfall)
-    require(Rmpi)
     if(! is.null(universeSize))
       minUniverseSize <- universeSize
-    if(mpi.universe.size() < minUniverseSize) {
-      if(exit_on_fail)
-        stop("MPI problem: universe size < minUniverseSize")
-      else
-        warning("MPI problem: universe size < minUniverseSize")
+
+    if(typecluster == "MPI") {
+      require(Rmpi)
+      if(mpi.universe.size() < minUniverseSize) {
+        if(exit_on_fail)
+          stop("MPI problem: universe size < minUniverseSize")
+        else
+          warning("MPI problem: universe size < minUniverseSize")
+      }
+      if(! is.null(universeSize)) {
+        sfInit(parallel = TRUE, cpus = minUniverseSize, type = "MPI")
+      } else {
+        sfInit(parallel = TRUE, cpus = mpi.universe.size(), type = "MPI")
+      }
+    } else { ## sockets
+      sfInit(parallel = TRUE, cpus = minUniverseSize, type = "SOCK",
+               socketHosts = socketHosts)
     }
-      
-    ##    mpi.spawn.Rslaves(nslaves= mpi.universe.size())
-    if(! is.null(universeSize)) {
-      sfInit(parallel = TRUE, cpus = universeSize, type = "MPI")
-    } else {
-      sfInit(parallel = TRUE, cpus = mpi.universe.size(), type = "MPI")
-    }
+
     sfClusterEval(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
     sfClusterSetupRNG(type = "SPRNG")
     sfExport("wdir")
     setwd(wdir)
     sfClusterEval(setwd(wdir))
-    ## FIXME!!! all excepto ADaCGH will not be needed soon
-    ## sfLibrary(ff)
-    ## sfLibrary(GLAD)
-    ## sfLibrary(snapCGH)
-    sfLibrary(ADaCGH21)
-    })
+    sfLibrary(ADaCGH2)
+  })
   if(inherits(trythis, "try-error")) {
     cat("\nSnowfall error\n", file = "Status.msg")
-    ## is the above enough? Could we write another file?
-    if(exit_on_fail) quit(save = "yes", status = 12, runLast = FALSE,
-                          compress = FALSE)
+    if(exit_on_fail) quit(save = "yes", status = 12, runLast = FALSE)
   } 
 }
 
@@ -780,7 +781,8 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
                             rawI = vector(), 
                             breaksFdrQ = 0.001,			  
                             haarStartLevel = 1,
-                            haarEndLevel = 5, ...) {
+                            haarEndLevel = 5, merging,
+                            ...) {
 
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
   arrayNames <- colnames(get(nameCgh))
@@ -805,7 +807,8 @@ pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
                             W, rawI,
                             breaksFdrQ,
                             haarStartLevel,
-                            haarEndLevel)
+                            haarEndLevel,
+                            merging)
   ## nodeWhere("pSegmentHaarSeg")
   return(outToffdf(outsf, arrayNames))
 }
@@ -815,7 +818,8 @@ internalHaarSeg <- function(index, cghRDataName, mad.threshold,
                             W, rawI,
                             breaksFdrQ,
                             haarStartLevel,
-                            haarEndLevel) {
+                            haarEndLevel,
+                            merging) {
 
   xvalue <- getCGHValue(cghRDataName, index)
   haarout <- ad_HaarSeg(I = xvalue,
@@ -824,16 +828,23 @@ internalHaarSeg <- function(index, cghRDataName, mad.threshold,
                         breaksFdrQ = breaksFdrQ,
                         haarStartLevel = haarStartLevel,
                         haarEndLevel = haarEndLevel)[[2]]
-  mad.subj <- median(abs(xvalue - haarout))/0.6745
-  rm(xvalue)
-  thresh <- mad.threshold * mad.subj
-  ## nodeWhere("internalHaarSeg")
-  return(ffListOut(haarout,
-                   ifelse( (abs(haarout) > thresh), 1, 0) * sign(haarout)))
+  if(merging = "MAD") {
+    mad.subj <- median(abs(xvalue - haarout))/0.6745
+    rm(xvalue)
+    thresh <- mad.threshold * mad.subj
+    ## nodeWhere("internalHaarSeg")
+    return(ffListOut(haarout,
+                     ifelse( (abs(haarout) > thresh), 1, 0) * sign(haarout)))
+  } else if(merging = "mergeLevels") {
+    return(ffListOut(haarout,
+                     ourMerge(xvalue, haarout)))
+  }
 }
 
 
-pSegmentHMM <- function(cghRDataName, chromRDataName, aic.or.bic, ...) {
+pSegmentHMM <- function(cghRDataName, chromRDataName, aic.or.bic,
+                        merging = "mergeLevels", mad.threshold = 3,
+                        ...) {
   ## The table exists. No need to re-create if
   ## really paranoid about speed
 
@@ -856,11 +867,20 @@ pSegmentHMM <- function(cghRDataName, chromRDataName, aic.or.bic, ...) {
                            aic.or.bic)
   ## nodeWhere("pSegmentHMM_0")
   ## Parallelized by array
-  out <- sfClusterApplyLB(1:narrays,
-                          internalMerge,
-                          out0,
-                          tableArrChrom,
-                          cghRDataName)
+  if(merging == "mergeLevels") {
+    out <- sfClusterApplyLB(1:narrays,
+                            internalMerge,
+                            out0,
+                            tableArrChrom,
+                            cghRDataName)
+  } else if(merging == "MAD") {
+    out <- sfClusterApplyLB(1:narrays,
+                            internalMADCall,
+                            out0,
+                            tableArrChrom,
+                            cghRDataName,
+                            mad.threshold)
+  }
   
   ## nodeWhere("pSegmentHMM_1")
   return(outToffdf(out, arrayNames))
@@ -912,16 +932,6 @@ internalMADCall <- function(index, smoothedff, tableArrChrom, cghRDataName,
 }
 
 internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
-  ## Used when previously parallelized arr by chrom
-
-  
-  ## cghdata <- getCGHValue(cghRDataName, index)
-  ## smoothed <- vectorForArray(tableArrChrom, index, smoothedff)
-  ## outseg <- ourMerge(cghdata,
-  ##                    smoothed
-  ##                    )
-  ## rm(cghdata)
-  ## rm(smoothed)
   outseg <- ourMerge(
                      getCGHValue(cghRDataName, index),
                      vectorForArray(tableArrChrom, index, smoothedff)
@@ -932,7 +942,9 @@ internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
 
 
 
-pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bic, ...) {
+pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bic,
+                           merging = "mergeLevels", mad.threshold = 3,
+                           ...) {
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
 
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
@@ -941,8 +953,6 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bi
   nvalues <- nrow(get(nameCgh))
   close(get(nameCgh))
 
-
-  
   out0 <- sfClusterApplyLB(tableArrChrom$Index,
                            internalBioHMM,
                            tableArrChrom,
@@ -962,11 +972,20 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bi
   }
 
   ## Parallelized by array
-  out <- sfClusterApplyLB(1:narrays,
-                          internalMerge,
-                          out0,
-                          tableArrChrom,
-                          cghRDataName)
+ if(merging == "mergeLevels") {
+    out <- sfClusterApplyLB(1:narrays,
+                            internalMerge,
+                            out0,
+                            tableArrChrom,
+                            cghRDataName)
+  } else if(merging == "MAD") {
+    out <- sfClusterApplyLB(1:narrays,
+                            internalMADCall,
+                            out0,
+                            tableArrChrom,
+                            cghRDataName,
+                            mad.threshold)
+  }
   
   ## nodeWhere("pSegmentBioHMM_1")
   return(outToffdf(out, arrayNames))

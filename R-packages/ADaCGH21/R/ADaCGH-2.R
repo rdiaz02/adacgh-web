@@ -1,6 +1,6 @@
 ### FIXME: comment out nodeWhere!!!
 
-### do I want put.part.rdata.together??
+### do I want put.part.rdata.together in the package??
 
 
 
@@ -531,12 +531,14 @@ less than 10 observations.\n That is not allowed.\n")
                                      inputData[, 2])
   
   ## not needed here; can be done inside as.ffdf
-  inputData <- inputData[, -c(1, 2, 3), drop = FALSE]
+  ## inputData <- inputData[, -c(1, 2, 3), drop = FALSE]
 
   if( packageDescription("ff")$Version >= "2.1-2" )
-    cghData <- as.ffdf(inputData, col_args=list(pattern = ffpattern))
+    cghData <- as.ffdf(inputData[, -c(1, 2, 3), drop = FALSE],
+                       col_args=list(pattern = ffpattern))
   else
-    cghData <- as.ffdf(inputData, pattern = ffpattern)
+    cghData <- as.ffdf(inputData[, -c(1, 2, 3), drop = FALSE],
+                       pattern = ffpattern)
   
   close(cghData)
   rm(inputData)

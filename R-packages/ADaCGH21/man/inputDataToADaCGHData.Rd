@@ -81,7 +81,22 @@ inputDataToADaCGHData(ffpattern = paste(getwd(), "/", sep = ""), filename = "inp
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-%%% FIXME!!!!
+
+fname <- list.files(path = system.file("data", package = "ADaCGH2"),
+                     full.names = TRUE, pattern = "inputEx1")
+tableChromArray <- inputDataToADaCGHData(filename = fname)
+
+
+
+### In a separate process
+  library(multicore)
+  parallel(inputDataToADaCGHData(), silent = FALSE)
+  tableChromArray <- collect()[[1]]
+  if(inherits(tableChromArray, "try-error")) {
+    caughtOurError.Web("ERROR in input data conversion")
+  }
+
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

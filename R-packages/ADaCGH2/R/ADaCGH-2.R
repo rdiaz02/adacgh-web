@@ -653,7 +653,9 @@ internalGLAD <- function(index, cghRDataName, chromRDataName,
 }
 
 pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
-                            merging = "mergeLevels", smooth = TRUE,
+                            merging = "mergeLevels",
+                            mad.threshold = 3,
+                            smooth = TRUE,
                             alpha=0.01, nperm=10000,
                             p.method = "hybrid",
                             min.width = 2,
@@ -664,17 +666,25 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             undo.splits = "none",
                             undo.prune=0.05, undo.SD=3,
                             ## following options for mergeLevels
-                            merge.pv.thresh = 1e-04,
-                            merge.ansari.sign = 0.05,
-                            merge.thresMin = 0.05,
-                            merge.thresMax = 0.5,                           
+                            ## merge.pv.thresh = 1e-04,
+                            ## merge.ansari.sign = 0.05,
+                            ## merge.thresMin = 0.05,
+                            ## merge.thresMax = 0.5,
                             ...) {
 
   ## sbdry = NULL in segment. I.e., compute it if not default
   ## We do that here.
 
-  ## temporary hack
-  mergeSegs <- ifelse(merging == "mergeLevels", TRUE, FALSE)
+  ## temporary hack: Ein?? FIXME!!!
+  ## mergeSegs <- ifelse(merging == "mergeLevels", TRUE, FALSE)
+
+
+  
+  ## Nobody touches these options. So hard-code here.
+  merge.pv.thresh = 1e-04
+  merge.ansari.sign = 0.05
+  merge.thresMin = 0.05
+  merge.thresMax = 0.5
   
   getbdry <- DNAcopy:::getbdry
   
@@ -696,7 +706,7 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             internalDNAcopy,
                             cghRDataName =   cghRDataName,
                             chromRDataName = chromRDataName,
-                            mergeSegs =      mergeSegs,
+                            merging =      merging,
                             smooth =        smooth,
                             alpha =         alpha,     
                             nperm =         nperm,    
@@ -714,7 +724,8 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
                             merge.thresMax = merge.thresMax,
                             p.method = p.method,
                             undo.splits = undo.splits,
-                            min.width =min.width
+                            min.width =min.width,
+                            mad.threshold = mad.threshold
                             )                 
 
   ## nodeWhere("pSegmentDNAcopy")
@@ -724,7 +735,7 @@ pSegmentDNAcopy <- function(cghRDataName, chromRDataName,
 }
 
 internalDNAcopy <- function(index, cghRDataName, chromRDataName,
-                            mergeSegs, smooth,
+                            merging, smooth,
                             alpha, nperm, kmax, nmin,
                             eta, trim,
                             undo.prune, undo.SD,
@@ -734,7 +745,8 @@ internalDNAcopy <- function(index, cghRDataName, chromRDataName,
                             merge.thresMin, merge.thresMax,
                             p.method,
                             undo.splits,
-                            min.width) {
+                            min.width,
+                            mad.threshold) {
 
   cghdata <- getCGHValue(cghRDataName, index)
   chrom.numeric <- getChromValue(chromRDataName)
@@ -760,13 +772,22 @@ internalDNAcopy <- function(index, cghRDataName, chromRDataName,
                         min.width =     min.width
                         )
   rm(chrom.numeric)
-  
-  if(mergeSegs)
+
+  ## If there is no merging, outseg is as given above.
+  ## It is modified if we do merging
+  if(merging == "mergeLevels") {
     outseg <- ourMerge(cghdata, outseg[ , 1],
                        merge.pv.thresh = merge.pv.thresh,
                        merge.ansari.sign = merge.ansari.sign,
                        merge.thresMin = merge.thresMin,
                        merge.thresMax = merge.thresMax)
+  } else if(merging == "MAD") {
+    mad.subj <- median(abs(cghdata - outseg[, 1]))/0.6745
+    thresh <- mad.threshold * mad.subj
+    outseg[, 2] <- ifelse( (abs(outseg[, 1]) > thresh), 1, 0) * sign(outseg[, 1])
+  }
+
+  
   rm(cghdata)
   ## nodeWhere("internalDNAcopy")
   return(ffListOut(outseg[, 1], outseg[, 2]))
@@ -776,12 +797,13 @@ internalDNAcopy <- function(index, cghRDataName, chromRDataName,
 
 
 pSegmentHaarSeg <- function(cghRDataName, chromRDataName,
+                            merging = "MAD",
                             mad.threshold = 3,
                             W = vector(),
                             rawI = vector(), 
                             breaksFdrQ = 0.001,			  
                             haarStartLevel = 1,
-                            haarEndLevel = 5, merging,
+                            haarEndLevel = 5, 
                             ...) {
 
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
@@ -838,12 +860,14 @@ internalHaarSeg <- function(index, cghRDataName, mad.threshold,
   } else if(merging = "mergeLevels") {
     return(ffListOut(haarout,
                      ourMerge(xvalue, haarout)))
+  } else {
+    stop("This merging method not recognized")
   }
 }
 
 
-pSegmentHMM <- function(cghRDataName, chromRDataName, aic.or.bic,
-                        merging = "mergeLevels", mad.threshold = 3,
+pSegmentHMM <- function(cghRDataName, chromRDataName, merging = "mergeLevels", mad.threshold = 3,
+                        aic.or.bic == "AIC",
                         ...) {
   ## The table exists. No need to re-create if
   ## really paranoid about speed
@@ -880,6 +904,8 @@ pSegmentHMM <- function(cghRDataName, chromRDataName, aic.or.bic,
                             tableArrChrom,
                             cghRDataName,
                             mad.threshold)
+  } else {
+    stop("This merging method not recognized")
   }
   
   ## nodeWhere("pSegmentHMM_1")
@@ -931,6 +957,16 @@ internalMADCall <- function(index, smoothedff, tableArrChrom, cghRDataName,
 
 }
 
+simpleMADCall <- function(original, smoothed, mad.threshold) {
+  ## Like internal MADCall, but when you have the vectors already
+  ## Unlikely it makes sense to use it, because of duplication.
+  ## See what we do in internalDNAcopy
+  mad.subj <- median(abs(original - smoothed))/0.6745
+  thresh <- mad.threshold * mad.subj
+  return(cbind(smoothed, ifelse( (abs(smoothed) > thresh), 1, 0) * sign(smoothed)))
+}
+
+
 internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
   outseg <- ourMerge(
                      getCGHValue(cghRDataName, index),
@@ -942,8 +978,9 @@ internalMerge <- function(index, smoothedff, tableArrChrom, cghRDataName) {
 
 
 
-pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bic,
+pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName,
                            merging = "mergeLevels", mad.threshold = 3,
+                           aic.or.bic = "AIC",                           
                            ...) {
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
 
@@ -985,6 +1022,8 @@ pSegmentBioHMM <- function(cghRDataName, chromRDataName, posRDataName, aic.or.bi
                             tableArrChrom,
                             cghRDataName,
                             mad.threshold)
+  } else {
+    stop("This merging method not recognized")
   }
   
   ## nodeWhere("pSegmentBioHMM_1")
@@ -1172,10 +1211,10 @@ piccardsKO <- function(loglik, n, s) {
 
 
 pSegmentWavelets <- function(cghRDataName, chromRDataName, merging = "MAD",
+                             mad.threshold = 3, 
                              minDiff = 0.25,
                              minMergeDiff = 0.05,
                              thrLvl = 3, initClusterLevels = 10,
-                             mad.threshold = 3, 
                              ...) {
 
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)

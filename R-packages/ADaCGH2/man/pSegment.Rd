@@ -9,7 +9,6 @@
 \alias{pSegment}
 
 
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Parallelized/"unified" versions of several aCGH segementation algorithms/methods}
 
 \description{
@@ -41,11 +40,11 @@ pSegmentHaarSeg(cghRDataName, chromRDataName,
 
 pSegmentHMM(cghRDataName, chromRDataName,
             merging = "mergeLevels", mad.threshold = 3,
-            aic.or.bic == "AIC", ...)
+            aic.or.bic = "AIC", ...)
 
 
 
-pSegmentBioHMM(cghRDataName, chromRDataName, PosRDataName,
+pSegmentBioHMM(cghRDataName, chromRDataName, posRDataName,
                merging = "mergeLevels", mad.threshold = 3,
                aic.or.bic = "AIC",
                ...)
@@ -86,7 +85,7 @@ pSegmentWavelets(cghRDataName, chromRDataName, merging = "MAD",
     vector with the chromosome indicator. Function
     \code{\link{inputDataToADaCGHData}} produces these type of files. }
   
-  \item{PosRDataName}{The RData file name with the ff double vector with
+  \item{posRDataName}{The RData file name with the ff double vector with
     the location (e.g., position in kbases) of each probe in
     the chromosome. Function
     \code{\link{inputDataToADaCGHData}} produces these type of files.}
@@ -104,13 +103,14 @@ pSegmentWavelets(cghRDataName, chromRDataName, merging = "MAD",
   
 
   \item{smooth}{For DNAcopy only. If TRUE (default) carry out smoothing as
-    explained in \code{\link{smooth.CNA}}.}
+    explained in \code{\link[DNAcopy]{smooth.CNA}}.}
 
   \item{alpha}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
   \item{nperm}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
   \item{p.method}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
   \item{min.width}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
-  \item{kmax}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
+  \item{kmax}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.}
+  \item{nmin}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.}
   \item{eta}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
   \item{trim}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
   \item{undo.splits}{For DNAcopy only. See \code{\link[DNAcopy]{segment}}.} 
@@ -185,71 +185,87 @@ modifications for parallelization and for using \code{\link[ff]{ff}}
 objects. The functions will not work if you try to use them with the
 regular R data frames, matrices, and vectors.
 
+We have parallelized all computations by array (in contrast to former
+versions of ADaCGH, where some computations, depending on number of
+samples, could be parallelized over array*chromosome). 
 
-HaarSeg has been turned into an R package, available from
-\url{https://r-forge.r-project.org/projects/haarseg/}. That package uses
-the same C code as we do. We have not used the available R package for
-historical reasons (we used the C and R code in the former ADaCGH
-package, before a proper R package was available).
+CGHseg has been implemented here following the original authors
+description. Note that several publications incorrectly claim they use
+the CGHseg approach when, actually, they are only using the "segment"
+function in the "tilingArray" package, but they are missing the key step
+of choosing the optimal number of segments (see p. 13 in Picard et al,
+2005). See out internal function "piccardsKO". 
 
 
-. For CGHseg, BioHMM and HMM the
-results are merged, by the mergeLevels algorithm, as recommended in
-\cite{Willenbrock and Fridlyand, 2005}. Merging is also done in GLAD
-(with GLAD's own merging algorithm). Merging is the default for DNAcopy
-(but this can be set by the user). Merging can also be used with the
-wavelet-based method of Hsu et al.; please note that the later is an
-experimental feature implemented by us, and there is no evidence of its
-performance. 
 
-Using the output of mergeLevels, we then map the results to states of
-  "Alteration", so that we categorize each probe as taking one, and only
-  one, of three possible values, -1 (loss of genomic DNA), 0 (no change
-  in DNA content), +1 (gain of genomic DNA). We have made the
-  assumption, in this mapping, that the "no change" class is the one
-  that has the absolute value closest to zero, and any other classes are
-  either gains or losses. When the data are normalized, the "no change"
-  class should be the most common one.
+
+
+For DNAcopy, BioHMM and HMM the smoothed results are merged, by default
+by the mergeLevels algorithm, as recommended in \cite{Willenbrock and
+Fridlyand, 2005}. Merging is also done in GLAD (with GLAD's own merging
+algorithm). For HaarSeg, calling/merging is carried out using MAD,
+following page i141 of Ben-Yaacov and Eldar, section 2.3, "Determining
+aberrant intervals": a MAD (per their definition) is computed and any
+segment with absolute value larger than mad.threshold * MAD is
+considered aberrant.  Merging is also performed for CGHseg (the default,
+however, is MAD, not mergeLevels).  Merging (using either of
+"mergeLevels" or "MAD") can also be used with the wavelet-based method
+of Hsu et al.; please note that the later is an experimental feature
+implemented by us, and there is no evidence of its performance.
+
+In summary, for all segmentation methods (except GLAD) merging is
+available as either "mergeLevels" or "MAD". For DNAcopy, CGHseg, and
+wavelets as in hsu et al., you can also choose no merging, though this
+will rarely be what you want (we offer this options, to allow using
+original authors' choices in their first descriptions of methods). 
+
+
+When using mergeLevels, we map the results to states of "Alteration", so
+  that we categorize each probe as taking one, and only one, of three
+  possible values, -1 (loss of genomic DNA), 0 (no change in DNA
+  content), +1 (gain of genomic DNA). We have made the assumption, in
+  this mapping, that the "no change" class is the one that has the
+  absolute value closest to zero, and any other classes are either gains
+  or losses. When the data are normalized, the "no change" class should
+  be the most common one. When using MAD this step is implicit in the
+  procedure ( any segment with absolute value larger
+than mad.threshold * MAD is considered aberrant).
+
   
-For HaarSeg, we use the approach in page i141 of Ben-Yaacov
-and Eldar, section 2.3, "Determining aberrant intervals": a MAD (per
-their definition) is computed and any segment with absolute value larger
-than m * MAD is considered aberrant.
+Note that "mergeLevels", in addition to being used for calling gains and
+losses, results in a decrease in the number of distinct smoothed values,
+since it can merge two or more adjacent smoothed levels. "MAD", in
+contrasts, performs no merging as such, but only calling.
 
-  
-For PSW, the method implemented here is a small departure from the one
-described originally in Price et al.: here we use all the data for a
-subject/array for the thresholding, but subsequent analyses (finding
-islands and robustness analysis and permutation tests) are carried out
-chromosome by chromosome. This should allow to detect cases where a
-complete chromosome is gained or lost, as well as cases where smaller
-regions are gained or lost. Note that this approach is probably not
-advisable for the X chromosome, at least for males. You probably want to
-analyze the X separately, since you only expect one copy of the genomic
-DNA in males. Finally, the function for calculating the threshold (the
-default used by T. Price originally, which we also use ---median + 0.2 *
-MAD---) was validated by Price and collaborators on a 75-probe dataset
-that spanned the telomeric 2MB of chromosome 16p, using subjects with
-well-characterized deletions in the region and healthy controls. But it
-has not been validated with whole-genome chips or other DNA sources. (If
-you want to play around with the code, the sources are available from
-http://www.well.ox.ac.uk/~tprice/cgh/ and as the R package
-\code{cgh}). (I thank Tom Price for his discussion on these issues; some
-sentences here are copied almost verbatim from his emails.)
 
-Beware that, with DNAcopy, parallelization over arrays by chromosome can
-lead to slightly different results than parallelization over arrays
-(and, thus, to the original function). This is because of the way the
-smoothing is carried out, which affects the timmed.SD used.
 
 }
 
 
-\value{
+\value{ A list of two components:
+
+  \item{outSmoothed}{An \code{\link[ff]{ffdf}} object with smoothed
+  values. Each column is an array or sample, and each row a probe.}
+
+\item{outState}{An \code{\link[ff]{ffdf}} object with calls for
+  probes. Each column is an array or sample, and each row a probe. For
+  methods that accept "none" as an argument to \option{merging}, the
+  states cannot be interpreted directly as gain or loss; they are simply
+  discrete codes for distinct segments.}
+
+Rows and columns of each element can be accessed in the usual way for
+\code{\link[ff]{ffdf}} objects, but accept also most of the usual R
+operations for data frames.
+
+}
+
   All the functions return an object of class "adacgh.generic.out". In
   addition, depending on the function, the returned object can also be
   of class "CGH.wave.merged","CGH.wave", "mergedHMM", "adacghGLAD", "mergedBioHMM",
   "CGHseg", "CGH.PSW".
+
+
+
 
   
   For methods DNAcopy, HMM, BioHMM, GLAD, CGHseg, and wavelet smoothing
@@ -279,9 +295,6 @@ smoothing is carried out, which affects the timmed.SD used.
   \code{\link[cgh]{sw.perm.test}}, \code{\link[cgh]{sw.rob}}.
 
 
-  Method ACE's output is a list. None of the elements of this list are
-  to be used directly by a user, and are later used by the function
-  \code{\link{summary.ACE}}.
   
 }
 
@@ -368,201 +381,256 @@ the Segmentation of aCGH Data, \emph{Bioinformatics}, \bold{24}: i139-i145.
 
 \author{
 
-The code for DNAcopy, HMM, BioHMM, PSW, and GLAD are basically
-wrappers around the original functions by their corresponding authors,
-with some modiffications for parallelization (packages
-\code{DNAcopy}, \code{aCGH}, \code{snapCGH}, \code{cgh}, \code{GLAD},
-respectively). The CGHseg method uses package \code{tilingArray}.
+The code for DNAcopy, HMM, BioHMM, and GLAD are basically wrappers
+around the original functions by their corresponding authors, with some
+modiffications for parallelization and usage of ff objects. The original
+packages are: \code{DNAcopy}, \code{aCGH}, \code{snapCGH}, \code{cgh},
+\code{GLAD}, respectively. The CGHseg method uses package
+\code{tilingArray}.
+
+
+HaarSeg has been turned into an R package, available from
+\url{https://r-forge.r-project.org/projects/haarseg/}. That package
+uses, at its core, the same R and C code as we do, from Ben-Yaacov and
+Eldar. We have not used the available R package for historical reasons
+(we used Eldar and Ben-Yaacov's C and R code in the former ADaCGH
+package, before a proper R package was available).
 
 
 For the wavelet-based method we have only wrapped the code that was
-kindly provided by L. Hsu and D. Grove, and parallelized a few calls. Their
-original code is included in the sources of the package.
+kindly provided by L. Hsu and D. Grove, and parallelized a few
+calls. Their original code is included in the sources of the package.
 
-The code for ACE is based on the original Java code for the CGHExplorer
-package. It was turned into C and R code by Oscar M. Rueda \email{omrueda@cnio.es}.
 
-Parallelization and other modifications and additions are by Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}
+Parallelization and modifications for using ff and additions are by
+Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}
 
 }
 
- \seealso{
-   \code{\link{segmentPlot}}
+\seealso{
+  \code{\link{segmentPlot}},
+  \code{\link{inputDataToADaCGHData}}
  }
 
 
 
  \examples{
-\dontrun{
-## all slaves need a common dir to read and write.
-dir.to.create <- tempdir2()
-setwd(dir.to.create)
-dir.to.create
-mpiInit()  ## this is used in SegmentPlotWrite, which is run first.
+## Start a socket cluster. Change the appropriate number of CPUs
+## for your hardware
+snowfallInit(universeSize = 4, typecluster = "SOCK")
+
+## Get input data in ff format
+
+fname <- list.files(path = system.file("data", package = "ADaCGH2"),
+                     full.names = TRUE, pattern = "inputEx1")
+tableChromArray <- inputDataToADaCGHData(filename = fname)
+
+
+### Run all segmentation methods
+
+cbs.out <- pSegmentDNAcopy("cghData.RData",
+                           "chromData.RData")
+cbs_mad.out <- pSegmentDNAcopy("cghData.RData",
+                           "chromData.RData", merging = "MAD")
+cbs_none.out <- pSegmentDNAcopy("cghData.RData",
+                           "chromData.RData", merging = "none")
+
+names(cbs.out)
+cbs.out$outState ## not the best way
+open(cbs.out$outSmoothed) ## better
+cbs.out$outSmoothed
+rle(cbs.out$outSmoothed[, 1])
+
+open(cbs_mad.out$outSmoothed)
+rle(cbs_mad.out$outSmoothed[, 1])
+
+
+
+hs_ml.out <- pSegmentHaarSeg("cghData.RData",
+                           "chromData.RData", merging = "mergeLevels")
+hs_mad.out <- pSegmentHaarSeg("cghData.RData",
+                           "chromData.RData", merging = "MAD")
+
+open(hs_ml.out[[2]])
+open(hs_mad.out[[2]])
+summary(hs_ml.out[[2]][,])
+summary(hs_mad.out[[2]][,])
+
+
+hmm_ml.out <- pSegmentHMM("cghData.RData",
+                           "chromData.RData", merging = "mergeLevels")
+hmm_mad.out <- pSegmentHMM("cghData.RData",
+                           "chromData.RData", merging = "MAD")
+hmm_mad_bic.out <- pSegmentHMM("cghData.RData",
+                           "chromData.RData", merging = "MAD",
+                            aic.or.bic = "BIC")
+
+
+open(hmm_ml.out[[2]])
+open(hmm_mad.out[[2]])
+rle(hmm_ml.out[[2]][, 3])$lengths
+rle(hmm_mad.out[[2]][, 3])$lengths
+
+## MAD and mergeLevels seem to make similar calls in second array
+rle(hmm_ml.out[[2]][, 2])$lengths
+rle(hmm_mad.out[[2]][, 2])$lengths
+
+## but smoothed values are grouped differently
+open(hmm_ml.out[[1]])
+open(hmm_mad.out[[1]])
+rle(hmm_ml.out[[1]][, 2])$lengths
+rle(hmm_mad.out[[1]][, 2])$lengths
+
+## And BIC leads to differences compared to AIC
+open(hmm_mad_bic.out[[2]])
+rle(hmm_mad_bic.out[[1]][, 2])$lengths
+rle(hmm_mad_bic.out[[2]][, 2])$lengths
+
+### 
+biohmm_ml.out <- pSegmentBioHMM("cghData.RData",
+                           "chromData.RData",
+                           "posData.RData",
+                            merging = "mergeLevels")
+biohmm_mad.out <- pSegmentBioHMM("cghData.RData",
+                           "chromData.RData",
+                           "posData.RData",
+                            merging = "MAD")
+biohmm_mad_bic.out <- pSegmentBioHMM("cghData.RData",
+                           "chromData.RData",
+                           "posData.RData",
+                            merging = "MAD",
+                            aic.or.bic = "BIC")
+
+## we can open the two ffdfs with lapply
+lapply(biohmm_ml.out, open)
+lapply(biohmm_mad.out, open)
+lapply(biohmm_mad_bic.out, open)
+
+summary(biohmm_ml.out[[2]][,])
+summary(biohmm_mad.out[[2]][,])
+summary(biohmm_mad_bic.out[[2]][,])
+
+summary(biohmm_ml.out[[1]][,])
+summary(biohmm_mad.out[[1]][,])
+summary(biohmm_mad_bic.out[[1]][,])
+
+
+
+cghseg_ml.out <- pSegmentCGHseg("cghData.RData",
+                           "chromData.RData", merging = "mergeLevels")
+cghseg_mad.out <- pSegmentCGHseg("cghData.RData",
+                           "chromData.RData", merging = "MAD")
+lapply(cghseg_ml.out, open)
+lapply(cghseg_mad.out, open)
+
+summary(cghseg_ml.out[[1]][,])
+summary(cghseg_mad.out[[1]][,])
+
+summary(cghseg_ml.out[[2]][,])
+summary(cghseg_mad.out[[2]][,])
+
+
+glad.out <- pSegmentGLAD("cghData.RData",
+                          "chromData.RData")
+
+
+waves_ml.out <- pSegmentWavelets("cghData.RData",
+                           "chromData.RData", merging = "mergeLevels")
+waves_mad.out <- pSegmentWavelets("cghData.RData",
+                           "chromData.RData", merging = "MAD")
+lapply(waves_ml.out, open)
+lapply(waves_mad.out, open)
+
+summary(waves_ml.out[[1]][,])
+summary(waves_mad.out[[1]][,])
+
+summary(waves_ml.out[[2]][,])
+summary(waves_mad.out[[2]][,])
 }
 
-## library(Rmpi)
-## try(mpi.spawn.Rslaves(nslaves = 1), silent = TRUE)
+% #### Writing
+% common <- cghE1[, 1:4]
+% writeResults(hmm.out, cghE1[, 5:7], common)
+% writeResults(glad.out, cghE1[, 5:7], common)        
+% writeResults(cghseg.out, cghE1[, 5:7], common)   
+% writeResults(ace.out.sum, cghE1[, 5:7], common)
+% writeResults(wave.out, cghE1[, 5:7], common)
+% writeResults(wave.nm.out, cghE1[, 5:7], common)
+% writeResults(cbs.out, cghE1[, 5:7], common)
+% writeResults(haar.out, cghE1[, 5:7], common)
 
-data(cghE1)
-tmpchr <- sub("chr", "", cghE1$Chromosome)
-chrom.numeric <- as.numeric(as.character(tmpchr))
-chrom.numeric[tmpchr == "X"] <- 23
-chrom.numeric[tmpchr == "Y"] <- 24
-rm(tmpchr)
-### we need the data ordered
-reorder <- order(chrom.numeric,
-                 cghE1$UG.Start,
-                 cghE1$UG.End,
-                 cghE1$Name)
-cghE1 <- cghE1[reorder, ]
-chrom.numeric <- chrom.numeric[reorder]
-
-
-## run all methods
-cbs.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric)
-cbs.ns.out <- pSegmentDNAcopy(cghE1[, 5:7], chrom.numeric, smooth = FALSE)
-glad.out <- pSegmentGLAD(cghE1[, 5:7], chrom.numeric)
-cghseg.out <- pSegmentCGHseg(cghE1[, 5:7], chrom.numeric, CGHseg.thres = -0.05)
-ace.out <- pSegmentACE(cghE1[, 5:7], chrom.numeric)
-
-hmm.out <- pSegmentHMM(cghE1[, 5:7], chrom.numeric)
-wave.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric)
-wave.nm.out <- pSegmentWavelets(cghE1[, 5:7], chrom.numeric, mergeSegs = FALSE)
-
-haar.out <- pSegmentHaarSeg(cghE1[, 5:7], chrom.numeric)
-
-## Next onew we try, as it could fail when it should not.
-try(psw.pos.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = 1))
-try(psw.neg.out <- pSegmentPSW(cghE1[, 5:7], chrom.numeric, sign = -1))
-
-## BioHMM is the only one that uses distances
-## it is the slowest, so do only two
-## We use try, as snapCGH sometimes fails and does not load its compiled C code
-try(biohmm.out <- pSegmentBioHMM(cghE1[, 5:6], chrom.numeric, cghE1$UG.Start))
-
-## With ACE we need to choose fdr
-ace.out.sum <- summary(ace.out)
-
-#### Writing
-common <- cghE1[, 1:4]
-writeResults(hmm.out, cghE1[, 5:7], common)
-writeResults(glad.out, cghE1[, 5:7], common)        
-writeResults(cghseg.out, cghE1[, 5:7], common)   
-writeResults(ace.out.sum, cghE1[, 5:7], common)
-writeResults(wave.out, cghE1[, 5:7], common)
-writeResults(wave.nm.out, cghE1[, 5:7], common)
-writeResults(cbs.out, cghE1[, 5:7], common)
-writeResults(haar.out, cghE1[, 5:7], common)
-
-try(writeResults(psw.pos.out, common))
-try(writeResults(psw.neg.out, common))
-try(writeResults(biohmm.out, cghE1[, 5:6], common))
+% try(writeResults(psw.pos.out, common))
+% try(writeResults(psw.neg.out, common))
+% try(writeResults(biohmm.out, cghE1[, 5:6], common))
 
 
 
+% segmentPlot(hmm.out, 
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
 
+% segmentPlot(glad.out,
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
 
-### plot all
+% segmentPlot(cghseg.out,
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
 
-\dontrun{
+% segmentPlot(wave.out, 
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
 
-## This will not work unless you have a working Python installation
+% segmentPlot(wave.out, 
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
 
-yminmax <- c(min(as.matrix(cghE1[, 5:7])),
-             max(as.matrix(cghE1[, 5:7])))
+% segmentPlot(haar.out,
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
 
-segmentPlot(hmm.out, 
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
+% segmentPlot(cbs.out, 
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
 
-segmentPlot(glad.out,
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
+% try(segmentPlot(psw.pos.out,
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs"))
 
-segmentPlot(cghseg.out,
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
+% try(segmentPlot(psw.neg.out,
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs"))
 
-segmentPlot(wave.out, 
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
+% try(segmentPlot(biohmm.out, 
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs"))
 
-segmentPlot(wave.out, 
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(haar.out,
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
-
-segmentPlot(cbs.out, 
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
-
-try(segmentPlot(psw.pos.out,
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs"))
-
-try(segmentPlot(psw.neg.out,
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs"))
-
-try(segmentPlot(biohmm.out, 
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs"))
-
-segmentPlot(ace.out.sum, 
-            geneNames = cghE1[, 1],
-            yminmax = yminmax,
-            idtype = "ug",
-            organism = "Hs")
-
-}
-
-## To verify we are doing the right thing with Picard et al.'s method,
-## compare with their figure 1. Need to get the txt files with the
-## original data.
-## We got the data from the GLAD BioC package, and then exported the txt.
-## For convenience, it is in the "/inst/txt-data" directory of our package.
-
-## This verifies the output (look at ADaCGH.R for further details and other
-## comparisons):
-
-## coriel.data <- read.table("gm03563.txt", header = TRUE)
-## cd3 <- coriel.data[coriel.data$Chromosome == 3, 3]
-    
-## out.our <- CGHsegWrapper(cd3, rep(1, length(cd3)), s = -0.5)  ## k = 2
-## out.our
-
-## so our implementation seems correct. Look at where the
-## breakpoint is located, etc, and it is like figure 1 of
-## Picard's paper.
-
-
-
-
-}
+% segmentPlot(ace.out.sum, 
+%             geneNames = cghE1[, 1],
+%             yminmax = yminmax,
+%             idtype = "ug",
+%             organism = "Hs")
+% }
 
 
 \keyword{ nonparametric }

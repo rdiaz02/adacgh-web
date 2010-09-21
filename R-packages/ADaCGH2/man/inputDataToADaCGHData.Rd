@@ -38,8 +38,10 @@ inputDataToADaCGHData(ffpattern = paste(getwd(), "/", sep = ""), filename = "inp
   out).
   
   In addition, and since we need to manipulate the complete set of
-  original data, the return value is a data frame that is often used
-  later to speed up certain calculations. Similar to a dictionary or
+  original data, the return value is a data frame that is could be used
+  later to speed up certain calculations. Right now, however, this is
+  not used for anything, except for information purposes.
+  This table is similar to a dictionary or
   hash table.  This data frame has (number of
   arrays * number of chromosomes) rows. The columns are
   

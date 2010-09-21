@@ -592,7 +592,7 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName,
   ## warn.too.few.in.chrom(chrom.numeric)
 
   require("GLAD") || stop("Package not loaded: GLAD")
-
+  sfLibrary(GLAD)
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
   arrayNames <- colnames(get(nameCgh))
   narrays <- ncol(get(nameCgh))
@@ -635,12 +635,19 @@ internalGLAD <- function(index, cghRDataName, chromRDataName,
                  PosOrder = 1:nvalues,
                  Chromosome = getChromValue(chromRDataName)))
   class(tmpf) <- "profileCGH"
-  
-  outglad <- try(daglad(tmpf, deltaN = deltaN, forceGL = forceGL,
-                    deletion = deletion,
-                    amplicon = amplicon))
+
+  ## GLAD produces lots of gratuitous output. Capture it
+  ## to ignore it
+  tmp <- capture.output(
+                        outglad <- try(daglad(tmpf, deltaN = deltaN,
+                                              forceGL = forceGL,
+                                              deletion = deletion,
+                                              amplicon = amplicon,
+                                              verbose = FALSE))
+  )
   
   rm(tmpf)
+  rm(tmp)
   ## nodeWhere("internalGLAD")
   if(inherits(outglad, "try-error")) {
     ## a hack to avoid sfClusterApply from catching the error and aborting
@@ -785,8 +792,9 @@ internalDNAcopy <- function(index, cghRDataName, chromRDataName,
     mad.subj <- median(abs(cghdata - outseg[, 1]))/0.6745
     thresh <- mad.threshold * mad.subj
     outseg[, 2] <- ifelse( (abs(outseg[, 1]) > thresh), 1, 0) * sign(outseg[, 1])
+  } else if(merging != "none") {
+    stop("This merging method not implemented")
   }
-
   
   rm(cghdata)
   ## nodeWhere("internalDNAcopy")
@@ -850,14 +858,14 @@ internalHaarSeg <- function(index, cghRDataName, mad.threshold,
                         breaksFdrQ = breaksFdrQ,
                         haarStartLevel = haarStartLevel,
                         haarEndLevel = haarEndLevel)[[2]]
-  if(merging = "MAD") {
+  if(merging == "MAD") {
     mad.subj <- median(abs(xvalue - haarout))/0.6745
     rm(xvalue)
     thresh <- mad.threshold * mad.subj
     ## nodeWhere("internalHaarSeg")
     return(ffListOut(haarout,
                      ifelse( (abs(haarout) > thresh), 1, 0) * sign(haarout)))
-  } else if(merging = "mergeLevels") {
+  } else if(merging == "mergeLevels") {
     return(ffListOut(haarout,
                      ourMerge(xvalue, haarout)))
   } else {
@@ -867,7 +875,7 @@ internalHaarSeg <- function(index, cghRDataName, mad.threshold,
 
 
 pSegmentHMM <- function(cghRDataName, chromRDataName, merging = "mergeLevels", mad.threshold = 3,
-                        aic.or.bic == "AIC",
+                        aic.or.bic = "AIC",
                         ...) {
   ## The table exists. No need to re-create if
   ## really paranoid about speed
@@ -2168,8 +2176,10 @@ imClose3 <- function (im) {
 imagemap3 <- function(filename,width=480,height=480,
                       title='Imagemap from R', ps = 12){
 
-    png(file = paste(filename,".png",sep=''),w=width, h=height,
-        type = "png", pointsize = ps)	  
+    png(file = paste(filename,".png",sep=''),
+        width=width,
+        height=height,
+        pointsize = ps)	  
 	  
     im <- list()
     im$Device <- dev.cur()
@@ -2896,88 +2906,88 @@ my.usr2png <- function(xy, imWidth, imHeight) {
 
 
 
-convertAndSave <- function(probeNames, chromosome, position, inputData,
-                           ffpattern = paste(getwd(), "/", sep = "")) {
+## convertAndSave <- function(probeNames, chromosome, position, inputData,
+##                            ffpattern = paste(getwd(), "/", sep = "")) {
 
 
-  if(!(is.data.frame(inputData)))
-    stop("inputData must be a data frame")
-  ## Minimal checking
+##   if(!(is.data.frame(inputData)))
+##     stop("inputData must be a data frame")
+##   ## Minimal checking
 
-  rownames(inputData) <- NULL ## Don't? Takes a lot of memory not recoverd later
-  if(any(is.na(inputData))) 
-    stop(paste("Your aCGH file contains missing values. \n",
-                              "That is not allowed.\n"))
-  if(!is.numeric(chromosome))
-    stop(paste("Chromosome contains non-numeric data.\n",
-                              "That is not allowed.\n"))
+##   rownames(inputData) <- NULL ## Don't? Takes a lot of memory not recoverd later
+##   if(any(is.na(inputData))) 
+##     stop(paste("Your aCGH file contains missing values. \n",
+##                               "That is not allowed.\n"))
+##   if(!is.numeric(chromosome))
+##     stop(paste("Chromosome contains non-numeric data.\n",
+##                               "That is not allowed.\n"))
 
-  if(any(table(chromosome) < 10))
-    stop("At least one of your chromosomes has
-less than 10 observations.\n That is not allowed.\n")
+##   if(any(table(chromosome) < 10))
+##     stop("At least one of your chromosomes has
+## less than 10 observations.\n That is not allowed.\n")
 
-  if(!all(is.wholeposnumber(chromosome)))
-    stop("Chromosome is NOT a positive integer!!\n")
-  if(max(chromosome) > 65000)
-    stop("Chromosome has more than 65000 levels!!\n")
+##   if(!all(is.wholeposnumber(chromosome)))
+##     stop("Chromosome is NOT a positive integer!!\n")
+##   if(max(chromosome) > 65000)
+##     stop("Chromosome has more than 65000 levels!!\n")
   
-  if(any(!sapply(inputData, is.numeric)))
-    stop(paste("Your aCGH file contains non-numeric data. \n",
-                              "That is not allowed.\n")   )
+##   if(any(!sapply(inputData, is.numeric)))
+##     stop(paste("Your aCGH file contains non-numeric data. \n",
+##                               "That is not allowed.\n")   )
 
-  ## Do we have any identical MidPos in the same chromosome??  Just to solve
-  ## it quickly and without nasty downstream consequences, we add a runif to
-  ## midPos. But NO further averaging.
+##   ## Do we have any identical MidPos in the same chromosome??  Just to solve
+##   ## it quickly and without nasty downstream consequences, we add a runif to
+##   ## midPos. But NO further averaging.
    
-  tmp <- paste(chromosome, position, sep = ".")
-  if (sum(duplicated(tmp))) {
-    cat("\n We have identical MidPos!!! \n")
-    capture.output(print("We have identical MidPos!!!"), file = "WARNING.DUPLICATED")
-    ## add a random variate, to break ties:
-    position <-  positions +  runif(sum(duplicated(tmp)))
-    ## check it worked
-    tmp <- paste(chromosome, position, sep = ".")
-    if (sum(duplicated(tmp)))
-      stop("still duplicated MidPoints; shouldn't happen")
-    rm(tmp)
-    gc()
-    ## Reorder, just in case
-    reorder <- order(chromosome, position)
-    inputData <- inputData[reorder, ]
-    }
+##   tmp <- paste(chromosome, position, sep = ".")
+##   if (sum(duplicated(tmp))) {
+##     cat("\n We have identical MidPos!!! \n")
+##     capture.output(print("We have identical MidPos!!!"), file = "WARNING.DUPLICATED")
+##     ## add a random variate, to break ties:
+##     position <-  positions +  runif(sum(duplicated(tmp)))
+##     ## check it worked
+##     tmp <- paste(chromosome, position, sep = ".")
+##     if (sum(duplicated(tmp)))
+##       stop("still duplicated MidPoints; shouldn't happen")
+##     rm(tmp)
+##     gc()
+##     ## Reorder, just in case
+##     reorder <- order(chromosome, position)
+##     inputData <- inputData[reorder, ]
+##     }
   
-  save(file = "probeNames.RData", probeNames, compress = FALSE)
+##   save(file = "probeNames.RData", probeNames, compress = FALSE)
 
-  chromData <- ff(as.integer(chromosome), vmode = "ushort",
-                  pattern = ffpattern)
-  close(chromData)
-  save(file = "chromData.RData", chromData, compress = FALSE)
-  rm(chromData)
-  posData <- ff(position, vmode = "double",
-                  pattern = ffpattern)
-  close(posData)
-  save(file = "posData.RData", posData, compress = FALSE)
-  rm(posData)
-  if(is.null(colnames(inputData))) {
-    narr <- ncol(inputData)
-    colnames(inputData) <- paste("A", 1:narr, sep = "")
-  }
+##   chromData <- ff(as.integer(chromosome), vmode = "ushort",
+##                   pattern = ffpattern)
+##   close(chromData)
+##   save(file = "chromData.RData", chromData, compress = FALSE)
+##   rm(chromData)
+##   posData <- ff(position, vmode = "double",
+##                   pattern = ffpattern)
+##   close(posData)
+##   save(file = "posData.RData", posData, compress = FALSE)
+##   rm(posData)
+##   if(is.null(colnames(inputData))) {
+##     narr <- ncol(inputData)
+##     colnames(inputData) <- paste("A", 1:narr, sep = "")
+##   }
 
-  if( packageDescription("ff")$Version >= "2.1-2" )
-    cghData <- as.ffdf(inputData, col_args=list(pattern = ffpattern))
-  else
-    cghData <- as.ffdf(inputData, pattern = ffpattern)
+##   if( packageDescription("ff")$Version >= "2.1-2" )
+##     cghData <- as.ffdf(inputData, col_args=list(pattern = ffpattern))
+##   else
+##     cghData <- as.ffdf(inputData, pattern = ffpattern)
 
-  close(cghData)
-  rm(inputData)
-  save(file = "cghData.RData", cghData, compress = FALSE)
-  rm(cghData)
+##   close(cghData)
+##   rm(inputData)
+##   save(file = "cghData.RData", cghData, compress = FALSE)
+##   rm(cghData)
 
-  cat("\n Files saved in current directory \n", getwd(),
-      " with names :\n",
-      "chromData.RData, posData.RData, cghData.RData, probeNames.RData \n")
+##   cat("\n Files saved in current directory \n", getwd(),
+##       " with names :\n",
+##       "chromData.RData, posData.RData, cghData.RData, probeNames.RData \n")
 
-}
+## }
 
 
 

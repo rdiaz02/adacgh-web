@@ -1,0 +1,194 @@
+% \VignetteIndexEntry{ADaCGH2 Overview}
+% \VignetteDepends{ADaCGH2}
+% \VignetteKeywords{ADaCGH2 CGH segmentation parallelization}
+% \VignettePackage{ADaCGH2}
+
+
+\documentclass[a4paper,11pt]{article}
+\usepackage{amsmath}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+\SweaveOpts{echo=TRUE}
+
+\usepackage[latin1]{inputenc}
+\title{Analysis of data from aCGH experiments using parallel computing and
+ff objects}
+\author{Ram\'on D\'{\i}az-Uriarte$^{1}$}
+\begin{document}
+\maketitle
+
+\begin{center}
+1. Structural Computational Biology Group. 
+Spanish National Cancer Center (CNIO), Madrid
+(SPAIN).
+{\tt rueda.om@gmail.com}, {\tt rdiaz02@gmail.com}
+\end{center}
+
+\tableofcontents
+
+\section{Overview:}
+ADaCGH2 is a package for the analysis of CGH data. ADaCGH2 provides the
+segmentation routines for the waviCGH \cite{Carro2010} (\url{http://wavi.bioinfo.cnio.es})
+web-server application for the analysis and visualization of array-CGH
+data. 
+
+The main features of ADaCGH2 are:
+\begin{itemize}
+\item Parallelization of (several of) the main segmentation/calling
+  algorithms currently available, allow efficient usage of computing
+  clusters.
+  
+\item Data access data using the \textit{ff} package
+  (\url{http://cran.r-project.org/web/packages/ff/index.html}), making
+  it possible to analyze data from very large projects. 
+  
+\item Parallelization and \textit{ff} are used simultaneously. WaviCGH
+  consitutes a clear demonstration of the usage of \textit{ff} on a
+  computing cluster with shared storage over NFS.
+  
+\end{itemize}
+
+
+ADaCGH2 is a major re-write of our former package ADaCGH
+\cite{Diaz-Uriarte2007}. We have improved the parallelization and,
+specially, changed completely the data handling routines. Thanks to the
+usage of the \textit{ff} package, ADaCGH2 can now
+analyze data sets of more than four million probes in machines with no
+more than 2 GB of RAM.    
+  
+
+\section{A  commented example}
+
+
+For both interactive and non-interactive executions we will often execute
+the following in sequence:
+
+\begin{enumerate}
+\item Convert the original data to \textit{ff} objects
+\item Initialize the computing cluster
+\item Carry out segmentation and calling
+\item Plot the results
+\end{enumerate}
+
+
+
+We cover each in turn in the remaining of this section.
+
+<<>>=
+library(ADaCGH2)
+@ 
+
+\subsection{Convert original data to \texttt{ff} objects}
+
+The first two steps need not be carried out in that sequence. Conversion
+of original data does not use the computing cluster, but can be done after
+initialization of the cluster. The purpose of this step is to write down
+the \texttt{ff} files to disk, so they are available for the segmentation
+and ploting functions.  To allow the conversion to be carried out in data
+from previous sessions, the conversion takes as input the name of an
+RData.
+
+<<>>=
+fname <- list.files(path = system.file("data", package = "ADaCGH2"),
+                     full.names = TRUE, pattern = "inputEx1")
+tableChromArray <- inputDataToADaCGHData(filename = fname)
+tableChromArray
+@ 
+
+The first command is used in this example to find the complete path of the
+example data set. The actual call to the function is the second expression. The
+return object is not used for anything further and can be deleted (or not saved).
+
+
+
+With large data sets that can be the single step that consumes the most
+RAM, since we need to load the original data into R. Even if we remove the
+original data and call \texttt{gc()}, R might not return all of the memory
+to the operating system, and this might be inconvenient in multiuser
+environments and/or long running processes. Thus, it is possible to
+execute the above in a separate R process that is spawned exclusively just
+for the conversion. For instance, we could use the \texttt{multicore}
+package and do:
+
+<<eval=FALSE>>=
+
+require(multicore)
+parallel(inputDataToADaCGHData(filename = fname), silent = FALSE)
+tableChromArray <- collect()[[1]]
+if(inherits(tableChromArray, "try-error")) {
+  stop("ERROR in input data conversion")
+}
+
+@ 
+
+That way, the \texttt{ff} are produced and stored locally in the hard
+drive, but the R process where the original data was loaded (and the
+conversion to \texttt{ff} carried out) dies after the conversion, freeing
+back the memory to the operating system.
+
+
+
+
+\subsection{Initialize computing cluster}
+Initialization is done with the function \texttt{snowfallInit}, a function
+which uses the package \texttt{snowfall} to initialize the cluster and set
+up the slave nodes. In the example we will use a sockect cluster, but MPI
+can also be used (our servers use LAM-MPI). In this example we will use 4 nodes.
+
+<<>>=
+snowfallInit(universeSize = 4, typecluster = "SOCK")
+@ 
+
+\subsection{Carry out segmentation and calling}
+
+Segmentation and calling are carried out with the \texttt{pSegment}
+functions. Here we show just one such example. Many more are available
+from the help.
+
+<<>>=
+help(pSegment)
+hs_mad.out <- pSegmentHaarSeg("cghData.RData",
+                           "chromData.RData", merging = "MAD")
+@ 
+
+We can take a quick look at the output. We first open the \texttt{ff}
+objects (the output is a list of \texttt{ff} objects) and then call
+\texttt{summary} on the smoothed list
+
+<<>>=
+lapply(hs_mad.out, open)
+summary(hs_mad.out[[1]][,])
+@ 
+
+
+\subsection{Plot the results}
+
+Plotting produces PNG files for easier sharing over the Internet. The
+plotting function takes as main arguments the names of RData files. We
+first write to disk the (\texttt{ff}) object with the results, and then
+call the plotting function:
+
+
+<<>>=
+save(hs_mad.out, file = "hs_mad.out.RData", compress = FALSE)
+
+pChromPlot(outRDataName = "hs_mad.out.RData",
+                            cghRDataName = "cghData.RData",
+                            chromRDataName = "chromData.RData",
+                            posRDataName = "posData.RData",
+                            probenamesRDataName = "probeNames.RData",
+                            imgheight = 350)
+@ 
+
+
+
+
+%% 
+
+%% \section{Implementation details}
+%\newpage
+\bibliographystyle{apalike}
+\bibliography{ADaCGH2}
+
+\end{document}
+

@@ -1,8 +1,8 @@
 Package: ADaCGH2
-Version: 2.1-0
-Date: 2010-09-15
-Title: Analysis of data from aCGH experiments
-Author: Ramon Diaz-Uriarte <rdiaz02@gamil.com>, Oscar M. Rueda <rueda.om@gamil.com>. Wavelet-based aCGH smoothing code from Li Hsu <lih@fhcrc.org> and Douglas Grove <dgrove@fhcrc.org>. Imagemap code from Barry Rowlingson <B.Rowlingson@lancaster.ac.uk>. HaarSeg code from Erez Ben-Yaacov; downloaded from <http://www.ee.technion.ac.il/people/YoninaEldar/Info/software/HaarSeg.htm>
+Version: 2.1.0
+Date: 2010-09-22
+Title: Analysis of data from aCGH experiments using parallel computing and ff objects
+Author: Ramon Diaz-Uriarte <rdiaz02@gmail.com>, Oscar M. Rueda <rueda.om@gmail.com>. Wavelet-based aCGH smoothing code from Li Hsu <lih@fhcrc.org> and Douglas Grove <dgrove@fhcrc.org>. Imagemap code from Barry Rowlingson <B.Rowlingson@lancaster.ac.uk>. HaarSeg code from Erez Ben-Yaacov; downloaded from <http://www.ee.technion.ac.il/people/YoninaEldar/Info/software/HaarSeg.htm>
 Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 Depends: R (>= 2.2.1), tilingArray, aCGH, waveslim, cluster, snapCGH,
 	 Hmisc, snowfall, ff
@@ -14,4 +14,4 @@ Description: Analysis and plotting of array CGH data. Allows usage of
 	     parallelized. 
 LazyLoad: Yes
 License: GPL (>= 3)
-URL: http://adacgh2.bioinfo.cnio.es, http://launchpad.net/adacgh
+URL: http://launchpad.net/adacgh, http://wavicgh.bioinfo.cnio.es

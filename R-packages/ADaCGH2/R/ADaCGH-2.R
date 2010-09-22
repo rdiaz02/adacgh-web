@@ -152,7 +152,7 @@ snowfallInit <- function(universeSize = NULL,
     sfExport("wdir")
     setwd(wdir)
     sfClusterEval(setwd(wdir))
-    sfLibrary(ADaCGH2)
+    sfLibrary("ADaCGH2", character.only = TRUE)
   })
   if(inherits(trythis, "try-error")) {
     cat("\nSnowfall error\n", file = "Status.msg")
@@ -294,7 +294,11 @@ getNames <- function(namesRDataName, posInitEnd = NULL) {
     tmp <- get(nmobj, inherits = FALSE)
   else
     tmp <- get(nmobj, inherits = FALSE)[posInitEnd[1]:posInitEnd[2]]
-  rm(list = nmobj) 
+  rm(list = nmobj)
+  if(is.factor(tmp)) {
+    warning("getNames operating on a factor object")
+    tmp <- as.character(tmp)
+  }
   return(tmp)
 }
   
@@ -508,6 +512,7 @@ less than 10 observations.\n That is not allowed.\n")
     inputData <- inputData[reorder, ]
     }
   probeNames <- inputData[, 1]
+  if(is.factor(probeNames)) probeNames <- as.character(probeNames)
   save(file = "probeNames.RData", probeNames, compress = FALSE)
   rm(probeNames)
   gcmessage("after rm probeNames")
@@ -592,7 +597,7 @@ pSegmentGLAD <- function(cghRDataName, chromRDataName,
   ## warn.too.few.in.chrom(chrom.numeric)
 
   require("GLAD") || stop("Package not loaded: GLAD")
-  sfLibrary(GLAD)
+  sfLibrary("GLAD", character.only = TRUE)
   nameCgh <- getffObj(cghRDataName, silent = TRUE)
   arrayNames <- colnames(get(nameCgh))
   narrays <- ncol(get(nameCgh))
@@ -1337,6 +1342,7 @@ pChromPlot <- function(outRDataName,
                        pch = 20,
                        colors = c("orange", "red", "green",
                          "blue", "black"),
+                       imagemap = FALSE,
                        ...) {
 
   tableArrChrom <- wrapCreateTableArrChr(cghRDataName, chromRDataName)
@@ -1352,7 +1358,9 @@ pChromPlot <- function(outRDataName,
                            imgheight = imgheight,
                            pixels.point = pixels.point,
                            pch = pch,
-                           colors = colors, ...)
+                           colors = colors,
+                           imagemap = imagemap,
+                           ...)
 
 }
 
@@ -1362,12 +1370,12 @@ internalChromPlot <- function(tableIndex,
                               cghRDataName,
                               chromRDataName,
                               probenamesRDataName,
-                              posRDataName = NULL,
-                              imgheight = 500,
-                              pixels.point = 3,
-                              pch = 20,
-                              colors = c("orange", "red", "green",
-                                         "blue", "black"),
+                              posRDataName,
+                              imgheight,
+                              pixels.point,
+                              pch,
+                              colors,
+                              imagemap, 
                               ...) {
 
 
@@ -1427,27 +1435,24 @@ internalChromPlot <- function(tableIndex,
   rug(simplepos, ticksize = 0.01)
   lines(res[, 1] ~ simplepos,
         col = colors[4], lwd = 2, type = "l")
-  dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
-  cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
-  ccircle <- rbind(t(usr2png(cbind(simplepos, cghdata), im2)),
-                   rep(cc1.r, length(simplepos)))
-  write(ccircle, file = paste("pngCoordChr_", nameChrIm, sep = ""),
-        sep ="\t", ncolumns = 3)
-
+  if(imagemap) {
+    dummy.coord <- usr2png(cbind(c(2, 0), c(0, 0)), im2)
+    cc1.r <- max(abs(dummy.coord[1, 1]  - dummy.coord[2, 1]), 4)
+    ccircle <- rbind(t(usr2png(cbind(simplepos, cghdata), im2)),
+                     rep(cc1.r, length(simplepos)))
+    write(ccircle, file = paste("pngCoord_", nameChrIm, sep = ""),
+          sep ="\t", ncolumns = 3)
+    probeNames <- getNames(probenamesRDataName, chromPos)
+    if ( (ncol(ccircle)/length(probeNames)) != 1)
+      stop("Serious problem: number of arrays does not match")
+    write(probeNames, 
+          file = paste("geneNames_", nameChrIm, sep = ""))
+  }
+  imClose3(im2)
 
   rm(cghdata)
   rm(simplepos)
   rm(res)
-  ## nodeWhere("internalChromPlot: before geneNames")
-  
-  ## we delay loading stuff
-  probeNames <- getNames(probenamesRDataName, chromPos)
-
-  if ( (ncol(ccircle)/length(probeNames)) != 1)
-    stop("Serious problem: number of arrays does not match")
-  write(probeNames, 
-        file = paste("geneNamesChr_", nameChrIm, sep = ""))
-  imClose3(im2)
   rm(probeNames)
   
   ## if(html_js) 

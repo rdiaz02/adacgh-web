@@ -2,13 +2,13 @@
 \alias{pChromPlot}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Segment plots for aCGH}
+  Segment plots for aCGH as PNG}
 
 
-\description{ Segment plots (by chromosome) for aCGH segmentation
+\description{ Produce PNG figures of egment plots (by chromosome) for aCGH segmentation
   results. Internal calls are parallelized for increased speed and we
   use ff objets to allow the handling of very large objects. The output
-  produces files (and associated png) with an image m} 
+  can include files for creating HTML with imagemaps.} 
 
 
 \usage{
@@ -19,6 +19,7 @@ pChromPlot(outRDataName, cghRDataName, chromRDataName,
            pixels.point = 3,
            pch = 20,
            colors = c("orange", "red", "green", "blue", "black"),
+           imagemap = FALSE,
            ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -78,28 +79,29 @@ pChromPlot(outRDataName, cghRDataName, chromRDataName,
     the horizontal line at the 0 level.
   }
 
+\item{imagemap}{If FALSE only the png figure is produced. If TRUE, for
+  each array * chromosome, to additional files are produced:
+  "pngCoord_ChrNN@MM" and "geneNames_ChrNN@MM", where "NN" is the
+  chromosome number and "MM" is the array name. The first file contains
+  the coordinates of the png and radius and the second the gene or probe
+  names, so that you can easily produce an HTML imagemap. (Former
+  versions of ADaCGH did this automatically with Python. In this version
+  we include the Python files under "imagemap-example".)}
+  
   \item{...}{Additional arguments; not used.}
 }
 
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
+% \details{
+% %%  ~~ If necessary, more details than the description above ~~
+% }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+   Used only for its side effects of producing PNG plots, stored in the
+   current working directory (\command{getwd()}.)
 }
-\references{
-%% ~put references to the literature/web site here ~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
+% \references{
+% %% ~put references to the literature/web site here ~
+% }
+\author{Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
@@ -124,6 +126,16 @@ pChromPlot(outRDataName = "hs_mad.out.RData",
                             posRDataName = "posData.RData",
                             probenamesRDataName = "probeNames.RData",
                             imgheight = 350)
+
+## Produce the coordinate and probe names files.
+pChromPlot(outRDataName = "hs_mad.out.RData",
+                            cghRDataName = "cghData.RData",
+                            chromRDataName = "chromData.RData",
+                            posRDataName = "posData.RData",
+                            probenamesRDataName = "probeNames.RData",
+                            imgheight = 350,
+                            imagemap = TRUE)
+
 
 }
 

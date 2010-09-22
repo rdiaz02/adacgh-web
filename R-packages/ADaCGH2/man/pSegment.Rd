@@ -362,7 +362,7 @@ Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}
 }
 
 \seealso{
-  \code{\link{segmentPlot}},
+  \code{\link{pChromPlot}},
   \code{\link{inputDataToADaCGHData}}
  }
 
@@ -419,9 +419,12 @@ hmm_mad_bic.out <- pSegmentHMM("cghData.RData",
                            "chromData.RData", merging = "MAD",
                             aic.or.bic = "BIC")
 
+## we can open the two ffdfs in the list with lapply
+lapply(hmm_ml.out, open)
+lapply(hmm_mad.out, open)
+lapply(hmm_mad_bic.out, open)
 
-open(hmm_ml.out[[2]])
-open(hmm_mad.out[[2]])
+
 rle(hmm_ml.out[[2]][, 3])$lengths
 rle(hmm_mad.out[[2]][, 3])$lengths
 
@@ -430,8 +433,6 @@ rle(hmm_ml.out[[2]][, 2])$lengths
 rle(hmm_mad.out[[2]][, 2])$lengths
 
 ## but smoothed values are grouped differently
-open(hmm_ml.out[[1]])
-open(hmm_mad.out[[1]])
 rle(hmm_ml.out[[1]][, 2])$lengths
 rle(hmm_mad.out[[1]][, 2])$lengths
 
@@ -440,7 +441,8 @@ open(hmm_mad_bic.out[[2]])
 rle(hmm_mad_bic.out[[1]][, 2])$lengths
 rle(hmm_mad_bic.out[[2]][, 2])$lengths
 
-### 
+### BioHMM is very slow and can crash
+\dontrun{
 biohmm_ml.out <- pSegmentBioHMM("cghData.RData",
                            "chromData.RData",
                            "posData.RData",
@@ -455,7 +457,6 @@ biohmm_mad_bic.out <- pSegmentBioHMM("cghData.RData",
                             merging = "MAD",
                             aic.or.bic = "BIC")
 
-## we can open the two ffdfs with lapply
 lapply(biohmm_ml.out, open)
 lapply(biohmm_mad.out, open)
 lapply(biohmm_mad_bic.out, open)
@@ -467,7 +468,7 @@ summary(biohmm_mad_bic.out[[2]][,])
 summary(biohmm_ml.out[[1]][,])
 summary(biohmm_mad.out[[1]][,])
 summary(biohmm_mad_bic.out[[1]][,])
-
+}
 
 
 cghseg_ml.out <- pSegmentCGHseg("cghData.RData",

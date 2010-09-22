@@ -8,7 +8,7 @@
 \description{ Segment plots (by chromosome) for aCGH segmentation
   results. Internal calls are parallelized for increased speed and we
   use ff objets to allow the handling of very large objects. The output
-  produces files (and associated png) with an image m} }
+  produces files (and associated png) with an image m} 
 
 
 \usage{
@@ -117,7 +117,6 @@ hs_mad.out <- pSegmentHaarSeg("cghData.RData",
                            "chromData.RData", merging = "MAD")
 
 save(hs_mad.out, file = "hs_mad.out.RData", compress = FALSE)
-
 
 pChromPlot(outRDataName = "hs_mad.out.RData",
                             cghRDataName = "cghData.RData",

@@ -235,7 +235,7 @@ than mad.threshold * MAD is considered aberrant).
 Note that "mergeLevels", in addition to being used for calling gains and
 losses, results in a decrease in the number of distinct smoothed values,
 since it can merge two or more adjacent smoothed levels. "MAD", in
-contrasts, performs no merging as such, but only calling.
+contrast, performs no merging as such, but only calling.
 
 
 
@@ -243,69 +243,23 @@ contrasts, performs no merging as such, but only calling.
 
 
 \value{ A list of two components:
-
+  
   \item{outSmoothed}{An \code{\link[ff]{ffdf}} object with smoothed
-  values. Each column is an array or sample, and each row a probe.}
-
-\item{outState}{An \code{\link[ff]{ffdf}} object with calls for
-  probes. Each column is an array or sample, and each row a probe. For
-  methods that accept "none" as an argument to \option{merging}, the
-  states cannot be interpreted directly as gain or loss; they are simply
-  discrete codes for distinct segments.}
-
-Rows and columns of each element can be accessed in the usual way for
-\code{\link[ff]{ffdf}} objects, but accept also most of the usual R
-operations for data frames.
+    values. Each column is an array or sample, and each row a probe.}
+  
+  \item{outState}{An \code{\link[ff]{ffdf}} object with calls for
+    probes. Each column is an array or sample, and each row a probe. For
+    methods that accept "none" as an argument to \option{merging}, the
+    states cannot be interpreted directly as gain or loss; they are simply
+    discrete codes for distinct segments.}
+  
+  Rows and columns of each element can be accessed in the usual way for
+  \code{\link[ff]{ffdf}} objects, but accept also most of the usual R
+  operations for data frames.
 
 }
-
-  All the functions return an object of class "adacgh.generic.out". In
-  addition, depending on the function, the returned object can also be
-  of class "CGH.wave.merged","CGH.wave", "mergedHMM", "adacghGLAD", "mergedBioHMM",
-  "CGHseg", "CGH.PSW".
-
-
-
-
-  
-  For methods DNAcopy, HMM, BioHMM, GLAD, CGHseg, and wavelet smoothing
-  the output object is a list with two components:
-  \item{segm}{The output from the segmentation}
-  \item{chrom.numeric}{The same value as chrom.numeric in the function
-    call.}
-
-
-  The \code{segm} component is a list, with as many components as
-  subjects or arrays. Each of these lists is a matrix with three
-  columns. The first are the observed data, the second the
-  predicted/smoothed/merged data, and the third the state/alteration. When
-  the method performs a merging
-  step, we call the third column "Alteration", and it can only take
-  three values, -1 (loss of genomic DNA), 0, +1 (gain of genomic DNA).
-  
-
-  Method PSW's output contains two components. The second,
-  \code{plotData} with data that is used for plotting (and the details
-  are not docummented, since you are not supposed to use them, as this
-  is subject to change). The first component, \code{Data}, is a list
-  with as many components as arrays or subjects. Each of this is an
-  array with columns with original data, the sign, the value from the
-  robustness test, and the p-value from the permutation test. See
-  details in  \code{\link[cgh]{sw.threshold}},
-  \code{\link[cgh]{sw.perm.test}}, \code{\link[cgh]{sw.rob}}.
-
-
-  
-}
-
-
-
-
-
 
 \references{
-
-  
 
 Fridlyand, Jane   and Snijders, Antoine  M.  and Pinkel, Dan   and
 Albertson, Donna  G. (2004). Hidden Markov models approach to the

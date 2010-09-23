@@ -357,7 +357,8 @@ calls. Their original code is included in the sources of the package.
 
 
 Parallelization and modifications for using ff and additions are by
-Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}
+Ramon Diaz-Uriarte\\ 
+\email{rdiaz02@gmail.com}
 
 }
 
@@ -371,7 +372,7 @@ Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}
  \examples{
 ## Start a socket cluster. Change the appropriate number of CPUs
 ## for your hardware
-snowfallInit(universeSize = 4, typecluster = "SOCK")
+snowfallInit(universeSize = 2, typecluster = "SOCK")
 
 ## Get input data in ff format
 

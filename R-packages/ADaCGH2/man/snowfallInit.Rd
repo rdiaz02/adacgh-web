@@ -2,7 +2,7 @@
 \alias{snowfallInit}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Initialize a cluster of workstations
+Initialize a cluster of workstations using snowfall
 }
 
 \description{ With either MPI or sockets, use snowfall to initialize a
@@ -10,8 +10,10 @@ Initialize a cluster of workstations
   initialization.  }
 
 \usage{
-snowfallInit(universeSize = NULL, wdir = getwd(), minUniverseSize = 2,
-exit_on_fail = FALSE, maxnumcpus = 500, typecluster = "MPI", socketHosts = NULL)
+snowfallInit(universeSize = NULL, wdir = getwd(), 
+             minUniverseSize = 2, exit_on_fail = FALSE, 
+             maxnumcpus = 500, typecluster = "MPI", 
+             socketHosts = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

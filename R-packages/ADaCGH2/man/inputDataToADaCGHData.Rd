@@ -7,7 +7,8 @@
   data checked for potential errors and location duplications.
 }
 \usage{
-inputDataToADaCGHData(ffpattern = paste(getwd(), "/", sep = ""), filename = "inputData.RData")
+inputDataToADaCGHData(ffpattern = paste(getwd(), "/", sep = ""), 
+                      filename = "inputData.RData")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

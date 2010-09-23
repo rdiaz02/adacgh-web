@@ -261,6 +261,12 @@ contrast, performs no merging as such, but only calling.
 
 \references{
 
+
+Carro A, Rico D, Rueda O M, Diaz-Uriarte R, and Pisano DG.
+  (2010). waviCGH: a web application for the analysis and visualization of
+  genomic copy number alterations. \emph{Nucleic Acids Research}, \bold{38 Suppl}:W182--187.
+
+  
 Fridlyand, Jane   and Snijders, Antoine  M.  and Pinkel, Dan   and
 Albertson, Donna  G. (2004). Hidden Markov models approach to the
 analysis of array CGH data. \emph{Journal of Multivariate Analysis},
@@ -319,10 +325,9 @@ comparative genome hybridization data. \emph{Nucleic Acids Res.},
   
 
   
-  Diaz-Uriarte, R. and Rueda, O.M. (2006). ADaCGH: an R package and
-  web-based application for the analysis of aCGH data. Tech. report.
-  \url{http://www.ligarto.org/rdiaz/Papers/adacgh.pdf},
-  \url{http://adacgh.bioinfo.cnio.es}.
+  Diaz-Uriarte, R. and Rueda, O.M. (2007). ADaCGH: A parallelized
+  web-based application and R package for the analysis of aCGH data,
+  \emph{PLoS ONE}, \bold{2}: e737.
 
   Ben-Yaacov, E. and Eldar, Y.C. (2008). A Fast and Flexible Method for
 the Segmentation of aCGH Data, \emph{Bioinformatics}, \bold{24}: i139-i145.
@@ -357,7 +362,7 @@ calls. Their original code is included in the sources of the package.
 
 
 Parallelization and modifications for using ff and additions are by
-Ramon Diaz-Uriarte\\ 
+Ramon Diaz-Uriarte         
 \email{rdiaz02@gmail.com}
 
 }

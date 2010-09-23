@@ -45,7 +45,7 @@ pChromPlot(outRDataName, cghRDataName, chromRDataName,
  
 
   \item{probenamesRDataName}{The RData file name with the 
-    vector with the probe names. Function\\
+    vector with the probe names. Function 
     \code{\link{inputDataToADaCGHData}} produces these type of
     files. Note that this is not an ff file.
 

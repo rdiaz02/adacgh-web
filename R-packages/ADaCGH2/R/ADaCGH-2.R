@@ -560,6 +560,31 @@ less than 10 observations.\n That is not allowed.\n")
 }
 
 
+
+outputToCGHregions <- function(output, directory = getwd()) {
+  ## aqui cambiar el dir
+  the.former.dir <- getwd()
+  setwd(directory)
+  probeNames <- get(load("probeNames.RData"), inherits = FALSE)
+  posData <- get(load("posData.RData"), inherits = FALSE)
+  chromData <- get(load("chromData.RData"), inherits = FALSE)
+  open(posData)
+  open(chromData)
+  open(output[["outState"]])
+  
+  out <- data.frame(probes = probeNames, 
+                    chrom = chromData[],
+                    pos1 = posData[],
+                    pos2 = posData[],
+                    as.data.frame(output[["outState"]]))
+  setwd(the.former.dir)
+  close(posData)
+  close(chromData)
+  close(output[["outState"]])
+  out
+}
+
+
 ## this is not used now
 break.and.write.vector <- function(i, pos.start, pos.end, infile, outfile) {
   nmobj <- load(infile)

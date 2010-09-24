@@ -75,6 +75,13 @@ We cover each in turn in the remaining of this section.
 library(ADaCGH2)
 @ 
 
+
+\subsection{Choosing a working directory}
+
+This package reads and writes quite a few files to the hard drive. The
+easiest way to organize your work is to create a separated directory for
+each project. All plot files and ff data will be stored there.
+
 \subsection{Convert original data to \texttt{ff} objects}
 
 The first two steps need not be carried out in that sequence. Conversion
@@ -182,6 +189,30 @@ pChromPlot(outRDataName = "hs_mad.out.RData",
 @ 
 
 
+\section{Using CGHregions}
+
+The CGHregions package \cite{CGHregions-manual} is a BioConductor package
+that implements a well known method \cite{VandeWiel2007} for dimension
+reduction for aCGH data (see a review of common regions issues and methods
+in \cite{Rueda2010a}).
+
+The \texttt{CGHregions} function accepts different type of input, among
+others a data frame. The function \texttt{outputToCGHregions} produces
+that data frame, ready to be used as input to CGHregions (for the next
+example, you will need to have the \texttt{CGHregions} package installed).
+
+<<>>=
+forcghr <- outputToCGHregions(hs_mad.out)
+if(require(CGHregions)) {
+  regions1 <- CGHregions(forcghr)
+  regions1
+}
+@ 
+
+Please note that \texttt{outputToCGHregions} does NOT check if the calls
+are something that can be meaningfully passed to CGHregions. In
+particular, you probably do NOT want to use this function when
+\code{\link{pSegment}} has been called using \option{merging = "none"}.
 
 
 %% 
@@ -193,3 +224,71 @@ pChromPlot(outRDataName = "hs_mad.out.RData",
 
 \end{document}
 
+
+
+
+Using CGHregions. 
+First, check we use calls or segments
+
+<<>>=
+
+data(WiltingCalled)
+result <- CGHregions(WiltingCalled)
+sm <- segmented(WiltingCalled)
+ca <- calls(WiltingCalled)
+
+## This works
+
+cl2 <- data.frame(name = featureNames(WiltingCalled),
+                  chromosome = chromosomes(WiltingCalled),
+                  start = bpstart(WiltingCalled),
+                  end = bpstart(WiltingCalled),
+                  ca)
+r3 <- CGHregions(cl2)
+r3 ## compare to
+result
+
+
+
+## Using smoothed data does, of course, give different results:
+sm2 <- data.frame(name = featureNames(WiltingCalled),
+                  chromosome = chromosomes(WiltingCalled),
+                  start = bpstart(WiltingCalled),
+                  end = bpstart(WiltingCalled),
+                  sm)
+r4 <- CGHregions(sm2)
+r4 
+
+## And we do need the first four columns, as this thinks 
+## there are only 4 samples
+
+cl3 <- data.frame(name = featureNames(WiltingCalled),
+                  chromosome = chromosomes(WiltingCalled),
+                  start = bpstart(WiltingCalled),
+                  ca)
+r5 <- CGHregions(cl3)
+r5 
+
+
+
+
+
+
+
+idat <- data.frame(name = featureNames(WiltingCalled),
+                   chromosome = chromosomes(WiltingCalled),
+                   start = bpstart(WiltingCalled),
+                   end = bpend(WiltingCalled))
+
+sm1 <- data.frame(idat, sm)
+cl1 <- data.frame(idat, ca)
+
+
+
+set.seed(1)
+r1 <- CGHregions(cl1)
+set.seed(1)
+r2 <- CGHregions(sm1)
+
+
+@ 

@@ -6,7 +6,7 @@ Author: Ramon Diaz-Uriarte <rdiaz02@gmail.com>, Oscar M. Rueda <rueda.om@gmail.c
 Maintainer: Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 Depends: R (>= 2.2.1), tilingArray, aCGH, waveslim, cluster, snapCGH,
 	 Hmisc, snowfall, ff
-Suggests: Rmpi, GLAD, DNAcopy, rsprng, multicore
+Suggests: Rmpi, GLAD, DNAcopy, rsprng, multicore, CGHregions
 Description: Analysis and plotting of array CGH data. Allows usage of
 	     Circular Binary Segementation, wavelet-based smoothing 
 	     (both as in Liu et al., and HaarSeg as in Ben-Yaacov and Eldar), 

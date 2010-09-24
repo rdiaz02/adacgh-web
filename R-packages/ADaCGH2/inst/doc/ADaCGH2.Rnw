@@ -27,12 +27,7 @@ Spanish National Cancer Center (CNIO), Madrid
 \tableofcontents
 
 \section{Overview:}
-ADaCGH2 is a package for the analysis of CGH data. ADaCGH2 provides the
-segmentation routines for the waviCGH \cite{Carro2010} (\url{http://wavi.bioinfo.cnio.es})
-web-server application for the analysis and visualization of array-CGH
-data. 
-
-The main features of ADaCGH2 are:
+ADaCGH2 is a package for the analysis of CGH data. The main features of ADaCGH2 are:
 \begin{itemize}
 \item Parallelization of (several of) the main segmentation/calling
   algorithms currently available, allow efficient usage of computing
@@ -43,7 +38,9 @@ The main features of ADaCGH2 are:
   it possible to analyze data from very large projects. 
   
 \item Parallelization and \textit{ff} are used simultaneously. WaviCGH
-  consitutes a clear demonstration of the usage of \textit{ff} on a
+  \cite{Carro2010} (\url{http://wavi.bioinfo.cnio.es}), a web-server
+  application for the analysis and visualization of array-CGH data that
+  uses ADaCGH2,   consitutes a clear demonstration of the usage of \textit{ff} on a
   computing cluster with shared storage over NFS.
   
 \end{itemize}
@@ -145,8 +142,12 @@ Segmentation and calling are carried out with the \texttt{pSegment}
 functions. Here we show just one such example. Many more are available
 from the help.
 
-<<>>=
+<<eval=FALSE>>=
 help(pSegment)
+@ 
+
+
+<<>>=
 hs_mad.out <- pSegmentHaarSeg("cghData.RData",
                            "chromData.RData", merging = "MAD")
 @ 

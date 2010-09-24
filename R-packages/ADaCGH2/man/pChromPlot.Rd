@@ -127,6 +127,7 @@ pChromPlot(outRDataName = "hs_mad.out.RData",
                             probenamesRDataName = "probeNames.RData",
                             imgheight = 350)
 
+\dontrun{
 ## Produce the coordinate and probe names files.
 pChromPlot(outRDataName = "hs_mad.out.RData",
                             cghRDataName = "cghData.RData",
@@ -135,7 +136,7 @@ pChromPlot(outRDataName = "hs_mad.out.RData",
                             probenamesRDataName = "probeNames.RData",
                             imgheight = 350,
                             imagemap = TRUE)
-
+}
 
 }
 

@@ -13,7 +13,7 @@
 \usepackage[latin1]{inputenc}
 \title{Analysis of data from aCGH experiments using parallel computing and
 ff objects}
-\author{Ram\'on D\'{\i}az-Uriarte$^{1}$}
+\author{Ram\'on D\'{\i}az-Uriarte$^{1}$ and Daniel Rico$^{1}$}
 \begin{document}
 \maketitle
 
@@ -21,7 +21,7 @@ ff objects}
 1. Structural Computational Biology Group. 
 Spanish National Cancer Center (CNIO), Madrid
 (SPAIN).
-{\tt rueda.om@gmail.com}, {\tt rdiaz02@gmail.com}
+{\tt rdiaz02@gmail.com}, {\tt drico@cnio.es}
 \end{center}
 
 \tableofcontents

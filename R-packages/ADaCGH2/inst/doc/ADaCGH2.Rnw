@@ -88,7 +88,10 @@ The first two steps need not be carried out in that sequence. Conversion
 of original data does not use the computing cluster, but can be done after
 initialization of the cluster. The purpose of this step is to write down
 the \texttt{ff} files to disk, so they are available for the segmentation
-and ploting functions.  To allow the conversion to be carried out in data
+and ploting functions.  (See below, section \ref{snap} for examples of
+using objects from Limma and snapCGH).
+
+To allow the conversion to be carried out in data
 from previous sessions, the conversion takes as input the name of an
 RData.
 
@@ -199,7 +202,7 @@ in \cite{Rueda2010a}).
 The \texttt{CGHregions} function accepts different type of input, among
 others a data frame. The function \texttt{outputToCGHregions} produces
 that data frame, ready to be used as input to CGHregions (for the next
-example, you will need to have the \texttt{CGHregions} package installed).
+example, you will need to have the \textit{CGHregions} package installed).
 
 <<>>=
 forcghr <- outputToCGHregions(hs_mad.out)
@@ -212,7 +215,98 @@ if(require(CGHregions)) {
 Please note that \texttt{outputToCGHregions} does NOT check if the calls
 are something that can be meaningfully passed to CGHregions. In
 particular, you probably do NOT want to use this function when
-\code{\link{pSegment}} has been called using \option{merging = "none"}.
+\texttt{pSegment} has been called using \option{merging = "none"}.
+
+
+\section{\label{snap}Input data from Limma and snapCGH}
+
+Many aCGH studies use pre-processing steps similar to those of gene
+expression data. The \texttt{MAList} object, from \textit{Limma} and
+\texttt{SegList} object, from \textit{snapCGH}, are commonly used to store
+aCGH information. The following examples illustrate the usage of the
+function \texttt{inputDataToADaCGHData} to convert \texttt{MAList} and
+\texttt{SrgList} data into a format suitable for \textit{ADaCGH2}.
+
+
+We will start with objects produced by \textit{snapCGH}. The following
+code is copied from the \textit{snapCGH} vignette (pp.\ 2 and 3). Please
+check the original vignette for details. In summary, a set of array files
+are read, the data are normalized and, finally, averaged over
+clones. snapCGH uses limma for the initial import of data and, next, with
+the \texttt{read.clonesinfo} function adds additional information such as
+chromosome and position.  The \texttt{MA} object created is of class
+\texttt{MAList}, but with added information (compared to a basic,
+original, limma MAList object). \texttt{MA2} is of type \texttt{SegList}.
+
+
+<<>>=
+datadir <- system.file("testdata", package = "snapCGH")
+targets <- readTargets("targets.txt", path = datadir)
+RG1 <- read.maimages(targets$FileName, path = datadir, source = "genepix")
+
+RG1 <- read.clonesinfo("cloneinfo.txt", RG1, path = datadir) ## snapCGH-specific
+RG1$printer <- getLayout(RG1$genes)
+types <- readSpotTypes("SpotTypes.txt", path = datadir)
+RG1$genes$Status <- controlStatus(types, RG1)
+
+RG1$design <- c(-1, -1)
+
+RG2 <- backgroundCorrect(RG1, method = "minimum") ## class RGList
+MA <- normalizeWithinArrays(RG2, method = "median") ## class MAList
+class(MA)
+MA2 <- processCGH(MA, method.of.averaging = mean, ID = "ID") ## class SegList
+class(MA2)
+@ 
+
+
+All the information (intensity ratios and location) is available in the
+\texttt{MA} and \texttt{MA2} objects. We can directly convert them to
+\textit{ADaCGH2} objects (we set \texttt{na.omit = TRUE} as the data
+contain missing values). The first call process the \texttt{MAList} and
+the second the \texttt{SegList}. 
+
+
+<<>>=
+inputDataToADaCGHData(MAList = MA, na.omit = TRUE)
+
+inputDataToADaCGHData(MAList = MA2, na.omit = TRUE, 
+                      minNumPerChrom = 4)
+@ 
+
+We need to change the argument to \texttt{minNumPerChrom} because, after
+the data processing step in \texttt{processCGH}, chromosome 21 has only
+four observations. 
+
+
+
+The original \texttt{MAList} as produced directly from \textit{limma} do
+not have chromosome and position information. That is what the
+\texttt{read.clonesinfo} function from \textit{snapCGH} did. To allow
+using objects directly from \textit{limma} and incorporating position
+information, we will use an approach to directly mimicks that in
+\textit{snapCGH}. If you use and \texttt{MAList} you can also provide a
+\texttt{cloneinfo} argument; this can be either the full path to a file
+with the format required by \texttt{read.clonesinfo} or, else, the name of
+an object with (at least) three columns, names \texttt{ID}, \texttt{Chr},
+and \texttt{Position}. 
+
+
+We copy from the limma vignette (section 3.2, p.8), changing the names of
+objets by appending ``.limma''. 
+<<>>=
+targets.limma <- readTargets("targets.txt", path = datadir)
+RG.limma <- read.maimages(targets.limma, path = datadir, source="genepix")
+RG.limma <- backgroundCorrect(RG.limma, method="normexp", offset=50)
+MA.limma <- normalizeWithinArrays(RG.limma)
+@ 
+
+
+
+
+<<>>=
+@ 
+
+
 
 
 %% 
@@ -223,6 +317,43 @@ particular, you probably do NOT want to use this function when
 \bibliography{ADaCGH2}
 
 \end{document}
+
+
+
+
+Rout one: (viñeta snapCGH, p. 2 y 3)
+<<>>=
+
+datadir <- system.file("testdata", package = "snapCGH")
+targets <- readTargets("targets.txt", path = datadir)
+RG1 <- read.maimages(targets$FileName, path = datadir, source = "genepix")
+
+RG1 <- read.clonesinfo("cloneinfo.txt", RG1, path = datadir) ## snapCGH-specific
+RG1$printer <- getLayout(RG1$genes)
+types <- readSpotTypes("SpotTypes.txt", path = datadir)
+RG1$genes$Status <- controlStatus(types, RG1)
+
+RG1$design <- c(-1, -1)
+
+RG2 <- backgroundCorrect(RG1, method = "minimum") ## class RGList
+MA <- normalizeWithinArrays(RG2, method = "median") ## class MAList
+MA2 <- processCGH(MA, method.of.averaging = mean, ID = "ID") ## class SegList
+
+@ 
+
+From limma vignette (section 3.2, p.8). I change the name of objets
+appendin ``.limma''. Same as above, not using 
+<<>>=
+library(limma)
+targets.limma <- readTargets("targets.txt", path = datadir)
+RG.limma <- read.maimages(targets.limma, path = datadir, source="genepix")
+RG.limma <- backgroundCorrect(RG.limma, method="normexp", offset=50)
+MA.limma <- normalizeWithinArrays(RG.limma)
+@ 
+
+
+
+
 
 
 

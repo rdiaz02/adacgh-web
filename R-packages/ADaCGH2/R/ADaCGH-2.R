@@ -449,18 +449,81 @@ is.wholeposnumber <- function(x, tol = .Machine$double.eps^0.5) {
 }
 
 inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
-                                 filename = "inputData.RData") {
+                                  MAList = NULL,
+                                  cloneinfo = NULL,
+                                  filename = NULL,
+                                  sep = "\t",
+                                  quote = "\"",
+                                  na.omit = FALSE,
+                                  minNumPerChrom = 10) {
 
   ## We could use eval(substitute or get(
   ## but we modify the object for sure when eliminating rownames
   ## and possibly when reordering. So might as well just load, copy,
   ## remove, and gc.
+
+
+  if(!is.null(filename) & !is.null(MAList))
+    stop("You must provide only one of filename OR MAList")
+  if(is.null(filename) & is.null(MAList))
+    stop("You must provide exactly one of filename OR MAList")
+
+
+  if(!is.null(MAList)) {
+    if(!(inherits(MAList, c("SegList", "MAList"))))
+      stop("MAList must be an object of class SegList (as produced by snapCGH) ",
+           "or of class MAList (as produced by limma)")
+    
+    if((!all(c("Position", "Chr") %in% colnames(MAList$genes))) &
+       is.null(cloneinfo))
+      stop("If your MAList object does not have Position and Chr columns ",
+           "you must provide a cloneinfo argument with the name of an object with them")
+
+    if(is.null(cloneinfo))
+      inputData <- data.frame(ID = MAList$genes$ID,
+                              Chr = MAList$genes$Chr,
+                              Pos = MAList$genes$Position,
+                              MAList$M)
+    else {
+      #what is clone info?
+      if(typeof(cloneinfo) == "character") {## we assume path to a file
+        cat("Assuming cloneinfo is a file (possibly with full path)")
+        Table <- read.table(cloneinfo, sep = sep, quote = quote,
+                                header = TRUE)
+        ## Code directly from snapCGH
+        Chr <- as.character(Table$Chr)
+        indX <- which(Chr == "X" | Chr == "x")
+        indY <- which(Chr == "Y" | Chr == "y")
+        Chr[indX] <- 23
+        Chr[indY] <- 24
+        cloneinfo <- data.frame(Chr = Chr, Position = Position)
+      } else {
+        cat("Assuming cloneinfo is an R data frame")
+        cloneinfo <- get(deparse(substitute(cloneinfo)))
+      }
+      
+      inputData <- data.frame(ID = MAList$genes$ID,
+                              Chr = cloneinfo$Chr,
+                              Pos = cloneinfo$Position,
+                              MAList$M)
+    }
+    
+  }
   
-  nmobj <- load(filename)
-  inputData <- get(nmobj)
-  rm(list = nmobj)
-  rm(nmobj)
-  gc()
+  
+  if(!is.null(filename)) {
+    nmobj <- load(filename)
+    inputData <- get(nmobj, inherits = FALSE)
+    rm(list = nmobj)
+    rm(nmobj)
+    gc()
+  }
+
+  if(na.omit)
+    if(any(is.na(inputData))) {
+      warning("Eliminating all rows with missing values")
+      inputData <- na.omit(inputData)
+    }
   
   rownames(inputData) <- NULL ## Don't? Takes a lot of memory not recoverd later
   ## but we don't want rownames in ffdf objects.
@@ -472,13 +535,13 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
     caughtUserError2(paste("Chromosome contains non-numeric data.\n",
                               "That is not allowed.\n"))
 
-  if(any(table(inputData[, 2]) < 10))
-    caughtUserError2("At least one of your chromosomes has
-less than 10 observations.\n That is not allowed.\n")
+  if(any(table(inputData[, 2]) < minNumPerChrom))
+    caughtUserError2("At least one of your chromosomes has less than ",
+                     minNumPerChrom, " observations.\n That is not allowed.\n")
 
   if(!all(is.wholeposnumber(inputData[, 2])))
     caughtUserError2("Chromosome is NOT a positive integer!!\n")
-  if(max(inputData$chromosome) > 65000)
+  if(max(inputData[, 2]) > 65000)
     caughtUserError2("Chromosome has more than 65000 levels!!\n")
   
   if(any(!sapply(inputData[, -c(1, 2, 3)], is.numeric)))
@@ -506,11 +569,13 @@ less than 10 observations.\n That is not allowed.\n")
       caughtOurError2("still duplicated MidPoints; shouldn't happen")
     rm(tmp)
     gc()
-    ## Reorder, just in case
-    reorder <- order(inputData[, 2],
-                     inputData[, 3])
+  }
+  ## Reorder, just in case
+  reorder <- order(inputData[, 2],
+                   inputData[, 3])
+  if(!(identical(reorder, seq_len(nrow(inputData)))))
     inputData <- inputData[reorder, ]
-    }
+  
   probeNames <- inputData[, 1]
   if(is.factor(probeNames)) probeNames <- as.character(probeNames)
   save(file = "probeNames.RData", probeNames, compress = FALSE)

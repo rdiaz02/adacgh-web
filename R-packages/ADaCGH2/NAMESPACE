@@ -10,7 +10,8 @@ export("snowfallInit",
        "pSegmentCGHseg",
        "pSegmentHaarSeg",
        "pChromPlot",
-       "inputDataToADaCGHData")
+       "inputDataToADaCGHData",
+       "outputToCGHregions")
        ## "tempdir2",
        ## "convertAndSave")
 

@@ -487,7 +487,7 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
     else {
       #what is clone info?
       if(typeof(cloneinfo) == "character") {## we assume path to a file
-        cat("Assuming cloneinfo is a file (possibly with full path)")
+        cat("Assuming cloneinfo is a file (possibly with full path)  ")
         Table <- read.table(cloneinfo, sep = sep, quote = quote,
                                 header = TRUE)
         ## Code directly from snapCGH
@@ -496,9 +496,10 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
         indY <- which(Chr == "Y" | Chr == "y")
         Chr[indX] <- 23
         Chr[indY] <- 24
-        cloneinfo <- data.frame(Chr = Chr, Position = Position)
+        cloneinfo <- data.frame(Chr = as.numeric(Chr),
+                                Position = Table$Position)
       } else {
-        cat("Assuming cloneinfo is an R data frame")
+        cat("Assuming cloneinfo is an R data frame ")
         cloneinfo <- get(deparse(substitute(cloneinfo)))
       }
       

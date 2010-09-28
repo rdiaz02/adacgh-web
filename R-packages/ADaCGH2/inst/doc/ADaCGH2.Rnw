@@ -76,6 +76,13 @@ library(ADaCGH2)
 @ 
 
 
+
+<<echo=FALSE,eval=TRUE,results=hide>>=
+options(width = 70)
+@
+
+
+
 \subsection{Choosing a working directory}
 
 This package reads and writes quite a few files to the hard drive. The
@@ -215,7 +222,7 @@ if(require(CGHregions)) {
 Please note that \texttt{outputToCGHregions} does NOT check if the calls
 are something that can be meaningfully passed to CGHregions. In
 particular, you probably do NOT want to use this function when
-\texttt{pSegment} has been called using \option{merging = "none"}.
+\texttt{pSegment} has been called using \texttt{merging = "none"}.
 
 
 \section{\label{snap}Input data from Limma and snapCGH}
@@ -267,10 +274,10 @@ the second the \texttt{SegList}.
 
 
 <<>>=
-inputDataToADaCGHData(MAList = MA, na.omit = TRUE)
+tmp <- inputDataToADaCGHData(MAList = MA, na.omit = TRUE)
 
-inputDataToADaCGHData(MAList = MA2, na.omit = TRUE, 
-                      minNumPerChrom = 4)
+tmp <- inputDataToADaCGHData(MAList = MA2, na.omit = TRUE, 
+                             minNumPerChrom = 4)
 @ 
 
 We need to change the argument to \texttt{minNumPerChrom} because, after
@@ -300,12 +307,34 @@ RG.limma <- backgroundCorrect(RG.limma, method="normexp", offset=50)
 MA.limma <- normalizeWithinArrays(RG.limma)
 @ 
 
+We can add the chromosomal and position information in two different
+ways. First, as in  \texttt{read.clonesinfo} or, else, we can provide the
+name of a file (with the same format as required by
+\texttt{read.clonesinfo}). Note that \texttt{fclone} is a path (and, thus,
+a character vector).
 
 
 
 <<>>=
+fclone <- list.files(path = system.file("testdata", package = "snapCGH"),
+                     full.names = TRUE, pattern = "cloneinfo.txt")
+fclone
+tmp <- inputDataToADaCGHData(MAList = MA.limma, 
+                             cloneinfo = fclone,
+                             na.omit = TRUE)
 @ 
 
+Alternatively, we can provide the name of an object with the additional
+information. For illustrative purposes, we can use here the columns of the
+\texttt{MA} object.
+
+
+<<>>=
+acloneinfo <- MA$genes
+tmp <- inputDataToADaCGHData(MAList = MA.limma, 
+                             cloneinfo = acloneinfo,
+                             na.omit = TRUE)
+@ 
 
 
 
@@ -317,109 +346,3 @@ MA.limma <- normalizeWithinArrays(RG.limma)
 \bibliography{ADaCGH2}
 
 \end{document}
-
-
-
-
-Rout one: (viñeta snapCGH, p. 2 y 3)
-<<>>=
-
-datadir <- system.file("testdata", package = "snapCGH")
-targets <- readTargets("targets.txt", path = datadir)
-RG1 <- read.maimages(targets$FileName, path = datadir, source = "genepix")
-
-RG1 <- read.clonesinfo("cloneinfo.txt", RG1, path = datadir) ## snapCGH-specific
-RG1$printer <- getLayout(RG1$genes)
-types <- readSpotTypes("SpotTypes.txt", path = datadir)
-RG1$genes$Status <- controlStatus(types, RG1)
-
-RG1$design <- c(-1, -1)
-
-RG2 <- backgroundCorrect(RG1, method = "minimum") ## class RGList
-MA <- normalizeWithinArrays(RG2, method = "median") ## class MAList
-MA2 <- processCGH(MA, method.of.averaging = mean, ID = "ID") ## class SegList
-
-@ 
-
-From limma vignette (section 3.2, p.8). I change the name of objets
-appendin ``.limma''. Same as above, not using 
-<<>>=
-library(limma)
-targets.limma <- readTargets("targets.txt", path = datadir)
-RG.limma <- read.maimages(targets.limma, path = datadir, source="genepix")
-RG.limma <- backgroundCorrect(RG.limma, method="normexp", offset=50)
-MA.limma <- normalizeWithinArrays(RG.limma)
-@ 
-
-
-
-
-
-
-
-
-Using CGHregions. 
-First, check we use calls or segments
-
-<<>>=
-
-data(WiltingCalled)
-result <- CGHregions(WiltingCalled)
-sm <- segmented(WiltingCalled)
-ca <- calls(WiltingCalled)
-
-## This works
-
-cl2 <- data.frame(name = featureNames(WiltingCalled),
-                  chromosome = chromosomes(WiltingCalled),
-                  start = bpstart(WiltingCalled),
-                  end = bpstart(WiltingCalled),
-                  ca)
-r3 <- CGHregions(cl2)
-r3 ## compare to
-result
-
-
-
-## Using smoothed data does, of course, give different results:
-sm2 <- data.frame(name = featureNames(WiltingCalled),
-                  chromosome = chromosomes(WiltingCalled),
-                  start = bpstart(WiltingCalled),
-                  end = bpstart(WiltingCalled),
-                  sm)
-r4 <- CGHregions(sm2)
-r4 
-
-## And we do need the first four columns, as this thinks 
-## there are only 4 samples
-
-cl3 <- data.frame(name = featureNames(WiltingCalled),
-                  chromosome = chromosomes(WiltingCalled),
-                  start = bpstart(WiltingCalled),
-                  ca)
-r5 <- CGHregions(cl3)
-r5 
-
-
-
-
-
-
-
-idat <- data.frame(name = featureNames(WiltingCalled),
-                   chromosome = chromosomes(WiltingCalled),
-                   start = bpstart(WiltingCalled),
-                   end = bpend(WiltingCalled))
-
-sm1 <- data.frame(idat, sm)
-cl1 <- data.frame(idat, ca)
-
-
-
-set.seed(1)
-r1 <- CGHregions(cl1)
-set.seed(1)
-r2 <- CGHregions(sm1)
-
-
-@ 

@@ -23,8 +23,8 @@ outputToCGHregions(output, directory = getwd())
     carefull track of where you do what, you will run into trouble.
   }
 }
-\details{
-}
+% \details{
+% }
 \value{
   A data frame of 4 + k columns that can be used as input to the
   \code{\link[CGHregions]{CGHregions}} function. The first four columns

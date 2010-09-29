@@ -121,7 +121,8 @@ snowfallInit <- function(universeSize = NULL,
                          exit_on_fail = FALSE,
                          maxnumcpus = 500,
                          typecluster = "MPI",
-                         socketHosts = NULL) {
+                         socketHosts = NULL,
+                         RNG = "SPRNG") {
 
   sfSetMaxCPUs <- maxnumcpus
   trythis <- try({
@@ -148,7 +149,21 @@ snowfallInit <- function(universeSize = NULL,
     }
 
     sfClusterEval(rm(list = ls(env = .GlobalEnv), envir =.GlobalEnv))
-    sfClusterSetupRNG(type = "SPRNG")
+    rngenerators <- c("SPRNG", "RNGstream")
+    t1 <- try(sfClusterSetupRNG(type = RNG))
+    if(inherits(t1, "try-error")) {
+      othergen <- setdiff(rngenerators, RNG)
+      t2 <- try(sfClusterSetupRNG(type = othergen))
+      if(inherits(t2, "try-error"))
+        stop("No suitable random number generator found for the cluster. ",
+             "Please install the packages rsprng or rlecuyer")
+      else
+        warning("You requested random number generator ", RNG,
+                " but it was not available.  ",
+                "Using ", othergen, " instead.")
+    }
+      
+    
     sfExport("wdir")
     setwd(wdir)
     sfClusterEval(setwd(wdir))
@@ -537,8 +552,8 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
                               "That is not allowed.\n"))
 
   if(any(table(inputData[, 2]) < minNumPerChrom))
-    caughtUserError2("At least one of your chromosomes has less than ",
-                     minNumPerChrom, " observations.\n That is not allowed.\n")
+    caughtUserError2(paste("At least one of your chromosomes has less than ",
+                     minNumPerChrom, " observations.\n That is not allowed.\n"))
 
   if(!all(is.wholeposnumber(inputData[, 2])))
     caughtUserError2("Chromosome is NOT a positive integer!!\n")

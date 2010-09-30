@@ -1,7 +1,8 @@
-2.1.1	2010-09-29
+2.1.1	2010-09-30
 	- Output to CGHregions and input from limma and
 	  snapCGH. Changes in functions, help, vignnette.
 	- Can also use rlecuyer.
+	- Works with R-2.11 (adapted to differences in "inherits").
 
 2.1.0	2010-09-23
 	- First fully working version for BioC

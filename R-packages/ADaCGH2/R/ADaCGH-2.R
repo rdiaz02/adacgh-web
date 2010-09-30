@@ -484,8 +484,11 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
     stop("You must provide exactly one of filename OR MAList")
 
 
+  ## There is a subtle diff in behavior of inherits between R 2.11 and R 2.12.
+  ## The "any" after inherits would not be needed in R-2.12
+  
   if(!is.null(MAList)) {
-    if(!(inherits(MAList, c("SegList", "MAList"))))
+    if(!(any(inherits(MAList, c("SegList", "MAList")))))
       stop("MAList must be an object of class SegList (as produced by snapCGH) ",
            "or of class MAList (as produced by limma)")
     
@@ -2237,36 +2240,36 @@ caughtUserError2 <- function(message) {
 
 
 
-my.html.data.frame <- function (object, first.col = "Name",
-                             file = paste(first.word(deparse(substitute(object))), 
-                             "html", sep = "."), append = FALSE, link = NULL, linkCol = 1, 
-                             linkType = c("href", "name"), ...) 
-{
-    ## modifying html, from Hmisc: Their function always has first column
-    ## named "Name". I allow to pass a name.
+## my.html.data.frame <- function (object, first.col = "Name",
+##                              file = paste(first.word(deparse(substitute(object))), 
+##                              "html", sep = "."), append = FALSE, link = NULL, linkCol = 1, 
+##                              linkType = c("href", "name"), ...) 
+## {
+##     ## modifying html, from Hmisc: Their function always has first column
+##     ## named "Name". I allow to pass a name.
    
-    linkType <- match.arg(linkType)
-    x <- format.df(object, numeric.dollar = FALSE, ...)
-    adj <- attr(x, "col.just")
-    if (any(adj == "r")) 
-        for (i in seq(along = adj)[adj == "r"]) x[, i] <- paste("<div align=right>", 
-            x[, i], "</div>", sep = "")
-    if (length(r <- dimnames(x)[[1]])) 
-        x <- cbind(first.col = r, x)
-    colnames(x)[1] <- first.col
-    cat("<TABLE BORDER>\n", file = file, append = append)
-    cat("<tr>", paste("<td>", dimnames(x)[[2]], "</td>", sep = ""), 
-        "</tr>\n", sep = "", file = file, append = file != "")
-    if (length(link)) 
-        x[, linkCol] <- ifelse(link == "", x[, linkCol], paste("<a ", 
-            linkType, "=\"", link, "\">", x[, linkCol], "</a>", 
-            sep = ""))
-    for (i in 1:nrow(x)) cat("<tr>", paste("<td>", x[i, ], "</td>", 
-        sep = ""), "</tr>\n", sep = "", file = file, append = file != 
-        "")
-    cat("</TABLE>\n", file = file, append = file != "")
-    structure(list(file = file), class = "html")
-}
+##     linkType <- match.arg(linkType)
+##     x <- format.df(object, numeric.dollar = FALSE, ...)
+##     adj <- attr(x, "col.just")
+##     if (any(adj == "r")) 
+##         for (i in seq(along = adj)[adj == "r"]) x[, i] <- paste("<div align=right>", 
+##             x[, i], "</div>", sep = "")
+##     if (length(r <- dimnames(x)[[1]])) 
+##         x <- cbind(first.col = r, x)
+##     colnames(x)[1] <- first.col
+##     cat("<TABLE BORDER>\n", file = file, append = append)
+##     cat("<tr>", paste("<td>", dimnames(x)[[2]], "</td>", sep = ""), 
+##         "</tr>\n", sep = "", file = file, append = file != "")
+##     if (length(link)) 
+##         x[, linkCol] <- ifelse(link == "", x[, linkCol], paste("<a ", 
+##             linkType, "=\"", link, "\">", x[, linkCol], "</a>", 
+##             sep = ""))
+##     for (i in 1:nrow(x)) cat("<tr>", paste("<td>", x[i, ], "</td>", 
+##         sep = ""), "</tr>\n", sep = "", file = file, append = file != 
+##         "")
+##     cat("</TABLE>\n", file = file, append = file != "")
+##     structure(list(file = file), class = "html")
+## }
 
 
 

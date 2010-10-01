@@ -52,8 +52,21 @@ outputToCGHregions(output, directory = getwd())
 }
 \examples{
 snowfallInit(universeSize = 4, typecluster = "SOCK")
+
+## To speed up R CMD check, we do not use inputEx1, but a much smaller
+## data set. When you try the examples, you might one to use
+## inputEx1 instead.
+
+\dontrun{
+
 fname <- list.files(path = system.file("data", package = "ADaCGH2"),
                      full.names = TRUE, pattern = "inputEx1")
+}
+
+fname <- list.files(path = system.file("data", package = "ADaCGH2"),
+                     full.names = TRUE, pattern = "inputEx2")
+
+
 tableChromArray <- inputDataToADaCGHData(filename = fname)
 
 hs_mad.out <- pSegmentHaarSeg("cghData.RData",

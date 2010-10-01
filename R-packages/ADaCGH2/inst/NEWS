@@ -1,3 +1,9 @@
+2.1.2	2010-10-01
+	- rsprng no longer in depends; L'Ecuyer as default random number
+	generator.
+	- Using R's registration mechanism for C routines.
+	- Decreased size of example to speed up R CMD check.
+
 2.1.1	2010-09-30
 	- Output to CGHregions and input from limma and
 	  snapCGH. Changes in functions, help, vignnette.

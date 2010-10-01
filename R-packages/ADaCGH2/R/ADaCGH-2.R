@@ -599,7 +599,7 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
   if(is.factor(probeNames)) probeNames <- as.character(probeNames)
   save(file = "probeNames.RData", probeNames, compress = FALSE)
   rm(probeNames)
-  gcmessage("after rm probeNames")
+##   gcmessage("after rm probeNames")
 
   chromData <- ff(as.integer(inputData[, 2]), vmode = "ushort",
                   pattern = ffpattern)
@@ -611,7 +611,7 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
   close(posData)
   save(file = "posData.RData", posData, compress = FALSE)
   rm(posData)
-  gcmessage("after rm posData and chromData")
+##   gcmessage("after rm posData and chromData")
   if(is.null(colnames(inputData))) {
     narr <- ncol(inputData) - 3
     colnames(inputData) <- c("1", "2", "3", paste("A", 1:narr, sep = ""))
@@ -634,8 +634,8 @@ inputDataToADaCGHData <- function(ffpattern = paste(getwd(), "/", sep = ""),
   rm(inputData)
   save(file = "cghData.RData", cghData, compress = FALSE)
   rm(cghData)
-  gcmessage("after rm inputData")
-
+###  gcmessage("after rm inputData")
+  gcmessage("\n Calling gc before returning to track memory usage \n")
   cat("\n Files saved in current directory \n", getwd(),
       " with names :\n",
       "chromData.RData, posData.RData, cghData.RData, probeNames.RData \n")

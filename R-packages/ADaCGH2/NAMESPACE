@@ -1,5 +1,6 @@
-useDynLib(ADaCGH2, ad_rConvAndPeak, ad_rPulseConv,
-          ad_rWConvAndPeak, ad_rThresAndUnify)
+useDynLib(ADaCGH2, .registration = TRUE)
+## useDynLib(ADaCGH2, ad_rConvAndPeak, ad_rPulseConv,
+##           ad_rWConvAndPeak, ad_rThresAndUnify)
 
 export("snowfallInit",
        "pSegmentDNAcopy",

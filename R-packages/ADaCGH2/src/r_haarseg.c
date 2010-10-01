@@ -26,7 +26,14 @@
  *
  */
 
-#include "HaarSeg.h"
+/* #include "HaarSeg.h" /\*FIXME: I think I do not need it for anything*\/ */
+
+#include <math.h>
+#include <stdlib.h>
+
+/* #include <R.h> */
+#include <Rinternals.h>
+#include <R_ext/Rdynload.h>  /* For R registration */
 
 #define OK 0
 #define ERROR -1
@@ -248,7 +255,8 @@
  
  /*
   * CopyLocVec: copy source index vector to target index vector
-  */
+  FIXME: (RDU): it seems this is never used!!!*/
+
  int ad_CopyLocVec(const int * source, int * target) {
      int k;
      k = 0;
@@ -429,10 +437,69 @@ void ad_rAdjustBreaks(const double * signal,
 }//rAdjustBreaks
 
 void ad_rPulseConv(const double * signal,
-		 	  const int * signalSize, 
-		 	  const int * pulseSize,
-        const double * pulseHeight, 
-		 	  double * result) {
+		   const int * signalSize, 
+		   const int * pulseSize,
+		   const double * pulseHeight, 
+		   double * result) {
    ad_PulseConv(signal, *signalSize, *pulseSize, *pulseHeight, result);
 }//rPulseConv
 
+
+
+
+
+/* R registration code */
+
+
+/* static const R_CMethodDef cMethods[] = { */
+/*   {"ad_rConvAndPeak", (DL_FUNC) &ad_rConvAndPeak, 5, {REALSXP, INTSXP, INTSXP, REALSXP, INTSXP}}, */
+/*   {NULL, NULL, 0} */
+/* }; */
+
+
+
+/* static const R_CMethodDef cMethods[] = { */
+/*   {"ad_rConvAndPeak", (DL_FUNC) &ad_rConvAndPeak, 5,   */
+/*    { REALSXP, INTSXP, INTSXP, REALSXP, INTSXP } }, */
+/*   {NULL, NULL, 0} */
+/* }; */
+
+
+static R_NativePrimitiveArgType ad_rConvAndPeak_t[5] = { REALSXP, INTSXP, 
+							 INTSXP, REALSXP, 
+							 INTSXP };
+static R_NativePrimitiveArgType ad_rPulseConv_t[5] = {REALSXP, INTSXP, 
+						      INTSXP, REALSXP, 
+						      REALSXP};
+static R_NativePrimitiveArgType ad_rWConvAndPeak_t[6] = {REALSXP, REALSXP, 
+							 INTSXP, INTSXP, 
+							 REALSXP, INTSXP};
+static R_NativePrimitiveArgType ad_rThresAndUnify_t[7] = {REALSXP, INTSXP, 
+							  INTSXP, INTSXP, 
+							  REALSXP, INTSXP, 
+							  INTSXP};
+
+static const R_CMethodDef cMethods[] = {
+  {"ad_rConvAndPeak", (DL_FUNC) &ad_rConvAndPeak, 5,  ad_rConvAndPeak_t},
+  {"ad_rPulseConv", (DL_FUNC) &ad_rPulseConv, 5, ad_rPulseConv_t},
+  {"ad_rWConvAndPeak", (DL_FUNC) &ad_rWConvAndPeak, 6, ad_rWConvAndPeak_t},
+  {"ad_rThresAndUnify", (DL_FUNC) &ad_rThresAndUnify, 7, ad_rThresAndUnify_t},
+  {NULL, NULL, 0}
+};
+
+
+
+
+void
+R_init_ADaCGH2(DllInfo *info)
+{
+  R_registerRoutines(info, cMethods, NULL, NULL, NULL);
+}
+
+
+  /* {"ad_rPulseConv", (DL_FUNC) &ad_rPulseConv, 5, */
+  /*  {REALSXP, INTSXP, INTSXP, REALSXP, REALSXP}}, */
+  /* {"ad_rWConvAndPeak", (DL_FUNC) &ad_rWConvAndPeak, 6, */
+  /*  {REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, INTSXP}}, */
+  /* {"ad_rThresAndUnify", (DL_FUNC) &ad_rThresAndUnify, 7, */
+  /*  {REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP}}, */

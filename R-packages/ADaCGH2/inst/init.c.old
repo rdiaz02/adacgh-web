@@ -1,0 +1,26 @@
+/* #include <R.h> */
+/* #include <Rinternals.h> */
+/* #include "HaarSeg.h" */
+#include <R_ext/Rdynload.h>
+
+
+static const R_CMethodDef cMethods[] = {
+  {"ad_rConvAndPeak", (DL_FUNC) &ad_rConvAndPeak, 5, 
+   {REALSXP, INTSXP, INTSXP, REALSXP, INTSXP}},
+  {"ad_rPulseConv", (DL_FUNC) &ad_rPulseConv, 5,
+   {REALSXP, INTSXP, INTSXP, REALSXP, REALSXP}},
+  {"ad_rWConvAndPeak", (DL_FUNC) &ad_rWConvAndPeak, 6,
+   {REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, INTSXP}},
+  {"ad_rThresAndUnify", (DL_FUNC) &ad_rThresAndUnify, 7,
+   {REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP}},
+  {NULL, NULL, 0}
+};
+
+
+
+
+void
+R_init_ADaCGH2(DllInfo *info)
+{
+  R_registerRoutines(info, cMethods, NULL, NULL, NULL);
+}

@@ -14,7 +14,7 @@ snowfallInit(universeSize = NULL, wdir = getwd(),
              minUniverseSize = 2, exit_on_fail = FALSE, 
              maxnumcpus = 500, typecluster = "MPI", 
              socketHosts = NULL,
-             RNG = "SPRNG")
+             RNG = "RNGstream")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -45,11 +45,13 @@ snowfallInit(universeSize = NULL, wdir = getwd(),
   \item{socketHosts}{
     Passed to \code{\link[snowfall]{snowfall-init}}.
   }
-  \item{RNG}{The type of random number generator. One of "SPRNG" (to use
-    the \pkg{rsprng} package) or "RNGstrema" (to use \pkg{rlecuyer}). If
+  
+  \item{RNG}{The type of random number generator. One of "RNGstream" (to
+    use \pkg{rlecuyer}) or "SPRNG" (to use the \pkg{rsprng} package). If
     the generator requested is not available, the function tries to use
-    the other one (givin a warning).}
-}
+    the other one (givin a warning). To use either of these you need to
+    have the appropriate package installed.}  }
+
 
 \details{This function is designed to be used mainly with MPI, but
   clusters with sockets might be easier to create in Windows machines

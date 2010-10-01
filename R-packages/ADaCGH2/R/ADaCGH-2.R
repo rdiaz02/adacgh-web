@@ -122,7 +122,7 @@ snowfallInit <- function(universeSize = NULL,
                          maxnumcpus = 500,
                          typecluster = "MPI",
                          socketHosts = NULL,
-                         RNG = "SPRNG") {
+                         RNG = "RNGstream") {
 
   sfSetMaxCPUs <- maxnumcpus
   trythis <- try({

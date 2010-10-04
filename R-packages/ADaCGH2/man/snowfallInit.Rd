@@ -1,3 +1,4 @@
+
 \name{snowfallInit}
 \alias{snowfallInit}
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -12,7 +13,7 @@ Initialize a cluster of workstations using snowfall
 \usage{
 snowfallInit(universeSize = NULL, wdir = getwd(), 
              minUniverseSize = 2, exit_on_fail = FALSE, 
-             maxnumcpus = 500, typecluster = "MPI", 
+             maxnumcpus = 500, typecluster = "SOCK", 
              socketHosts = NULL,
              RNG = "RNGstream")
 }

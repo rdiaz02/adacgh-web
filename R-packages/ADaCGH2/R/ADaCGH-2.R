@@ -120,7 +120,7 @@ snowfallInit <- function(universeSize = NULL,
                          wdir = getwd(), minUniverseSize = 2,
                          exit_on_fail = FALSE,
                          maxnumcpus = 500,
-                         typecluster = "MPI",
+                         typecluster = "SOCK",
                          socketHosts = NULL,
                          RNG = "RNGstream") {
 

@@ -20,7 +20,6 @@ imagemap <- function(filename,width=480,height=480,title='Imagemap from R'){
   im$Objects <- list()
   im$HTML <- list()
   im$title <- title
-
   class(im) <- "imagemap"
   im
 }

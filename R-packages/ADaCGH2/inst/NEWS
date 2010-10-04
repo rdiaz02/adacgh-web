@@ -1,8 +1,9 @@
-2.1.2	2010-10-01
+2.1.2	2010-10-04
 	- rsprng no longer in depends; L'Ecuyer as default random number
 	generator.
 	- Using R's registration mechanism for C routines.
 	- Decreased size of example to speed up R CMD check.
+	- SOCK is default cluster, and Rmpi not loaded by us.
 
 2.1.1	2010-09-30
 	- Output to CGHregions and input from limma and

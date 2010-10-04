@@ -41,7 +41,9 @@ snowfallInit(universeSize = NULL, wdir = getwd(),
     \code{\link[snowfall]{sfSetMaxCPUs}} set to a very large number to allow us
     to use large clusters.
   }
-  \item{typecluster}{Either "MPI" or "SOCK".
+  \item{typecluster}{Either "MPI" or "SOCK". To use MPI, BEFORE calling
+    this function you must configure your MPI environment properly and
+    then load the R package \pkg{Rmpi}.
   }
   \item{socketHosts}{
     Passed to \code{\link[snowfall]{snowfall-init}}.
@@ -87,7 +89,7 @@ Ramon Diaz-Uriarte \email{rdiaz02@gmail.com}
 % %% ~~objects to See Also as \code{\link{help}}, ~~~
 % }
 \examples{
-snowfallInit(universeSize = 4, typecluster = "SOCK")
+snowfallInit(universeSize = 2, typecluster = "SOCK")
 
 \dontrun{
 ## If you are using MPI, a better approach would be

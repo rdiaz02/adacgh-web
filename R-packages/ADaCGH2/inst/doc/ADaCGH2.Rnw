@@ -147,10 +147,10 @@ back the memory to the operating system.
 Initialization is done with the function \texttt{snowfallInit}, a function
 which uses the package \texttt{snowfall} to initialize the cluster and set
 up the slave nodes. In the example we will use a sockect cluster, but MPI
-can also be used (our servers use LAM-MPI). In this example we will use 4 nodes.
+can also be used (our servers use LAM-MPI). In this example we will use 2 nodes.
 
 <<>>=
-snowfallInit(universeSize = 4, typecluster = "SOCK")
+snowfallInit(universeSize = 2, typecluster = "SOCK")
 @ 
 
 \subsection{Carry out segmentation and calling}

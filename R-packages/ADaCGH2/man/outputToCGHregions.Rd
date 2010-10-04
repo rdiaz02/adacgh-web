@@ -51,7 +51,7 @@ outputToCGHregions(output, directory = getwd())
   \code{\link{pSegment}}
 }
 \examples{
-snowfallInit(universeSize = 4, typecluster = "SOCK")
+snowfallInit(universeSize = 2, typecluster = "SOCK")
 
 ## To speed up R CMD check, we do not use inputEx1, but a much smaller
 ## data set. When you try the examples, you might one to use

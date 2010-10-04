@@ -1,8 +1,5 @@
 ### FIXME: comment out nodeWhere!!!
-
 ### do I want put.part.rdata.together in the package??
-
-
 
 ### FIXME: if using fork or parallel, probably don't want
 ##  to call quit.
@@ -131,7 +128,11 @@ snowfallInit <- function(universeSize = NULL,
       minUniverseSize <- universeSize
 
     if(typecluster == "MPI") {
-      require(Rmpi)
+      if(! ("package:Rmpi" %in% search()))
+        stop("To use MPI, configure your MPI environment and ",
+             "load the Rmpi package")
+      ## We do not want a "require(Rmpi) because this will
+      ## almost always lead to undesider configurations
       if(mpi.universe.size() < minUniverseSize) {
         if(exit_on_fail)
           stop("MPI problem: universe size < minUniverseSize")
@@ -2289,7 +2290,8 @@ imClose3 <- function (im) {
 
 imagemap3 <- function(filename,width=480,height=480,
                       title='Imagemap from R', ps = 12){
-
+## copied from "imagemap" function in imagemap.R from B. Rowlingson
+  
     png(file = paste(filename,".png",sep=''),
         width=width,
         height=height,

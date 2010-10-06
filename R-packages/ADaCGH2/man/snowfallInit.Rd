@@ -57,8 +57,17 @@ snowfallInit(universeSize = NULL, wdir = getwd(),
 
 
 \details{This function is designed to be used mainly with MPI, but
-  clusters with sockets might be easier to create in Windows machines
-  without additional software.
+  clusters with sockets might be easier to create in any operating
+  system without additional software. Moreover, installing Rmpi in
+  Windows and Mac is not easy. Thus, by default, the cluster is one of
+  sockets, and Rmpi is listed in "Enhances" (not "Depends" nor
+  "Suggests"). But this function will fail if you try to use an MPI
+  cluster and do not have \pkg{Rmpi} loaded. Moreover, even if you
+  successfully install and load \pkg{Rmpi}, note that the cluster that
+  gets created by default might not be the want you want (e.g., you
+  might end up with a universe size of one), so it is up to you to
+  configure and, if appropriate, start/boot your MPI environment before
+  loading \pkg{Rmpi}.
 
   When using MPI, the recommended usage is to set only minUniverseSize,
   leaving "universeSize" as NULL. Then, the cluster will use as many
@@ -74,6 +83,7 @@ snowfallInit(universeSize = NULL, wdir = getwd(),
   cluster (unless you are using MPI and mpi.universe.size is smaller, in
   which case the function will fail).
 
+  
 }
 \value{
   This function is used to create a cluster.

@@ -186,7 +186,7 @@ way.</p>
   application. If you have multiple spots per clone and missing data,
   we probably would suggest you impute and then replicates from the
   same spot using, for instance, our <a
-	 href="http://prep.bioinfo.cnio.es">preprocessor</a> tool.</p>
+	 href="http://prep.iib.uam.es">preprocessor</a> tool.</p>
 
 
 
@@ -208,7 +208,7 @@ that data be centered, and for others centering simplifies
 interpretation. We often prefer centering by subtracting the median,
 to avoid effects of outliers on the mean. If your data come from a
 normalization program such
-as <a href="http://dnmad.bioinfo.cnio.es">DNMAD</a>, the effect of
+as <a href="http://dnmad.iib.uam.es">DNMAD</a>, the effect of
 centering will often be very small.</p>
 
 <p>Note, however, that you might prefer to carry out the centering
@@ -619,7 +619,7 @@ of the aCGH file is  assumed to contain the ID information for genes, marker, or
 <p>We assume all the aCGH data are <b>normalized log ratios</b> or
   similar. We carry out no checking of this. You can normalize your data
   using our
-  <a href="http://dnmad.bioinfo.cnio.es">DNMAD</a> tool, though how
+  <a href="http://dnmad.iib.uam.es">DNMAD</a> tool, though how
   best to normalize aCGH data is very much an open question. Note that the
   base of the log is really immaterial (though base 2 logs are the ones
   commonly used). </p> 
@@ -684,15 +684,15 @@ alterations.)</p>
 
 <p>Where can you get position information? There are several sources
   available. You might want to check
-  our <a href="http://idconverter.bioinfo.cnio.es">IDconverter</a> tool.</p>
+  our <a href="http://idconverter.iib.uam.es">IDconverter</a> tool.</p>
 
 <h3><a name="idc">Type of gene identifier and species</a></h3>
 <p>If you use any of the currently standard identifiers for your gene IDs
 for either human, mouse, or rat genomes, you can obtain additional
 information by clicking on the names in the output figures. This
 information is returned from <a
-href="http://idclight.bioinfo.cnio.es">IDClight</a> based on that provided
-by our <a href="http://idconverter.bioinfo.cnio.es">IDConverter</a>
+href="http://idclight.iib.uam.es">IDClight</a> based on that provided
+by our <a href="http://idconverter.iib.uam.es">IDConverter</a>
 tool.</p>
 
 
@@ -705,7 +705,7 @@ testing of the procedures implemented with data sets with missing values,
 missing values. We plan to lift this restriction in the future. For
   now, you are adviced to impute the data; you can do this, for
   instance, with our <a
-	 href="http://gepas.bioinfo.cnio.es/cgi-bin/preprocess">preprocessor</a> tool.</p>
+	 href="http://gepas.iib.uam.es/cgi-bin/preprocess">preprocessor</a> tool.</p>
 
 
 
@@ -799,7 +799,7 @@ ID in place. To close,
 click on the "X". If, in addition, you have provided information on the
 type of id and organism (see <a href="#idc">above</a>) you can click on
 the link in the box with the ID, and you will be taken to <a
-href="http://idclight.bioinfo.cnio.es">IDClight</a> for additional
+href="http://idclight.iib.uam.es">IDClight</a> for additional
 information on that clone/gene. Please note that for the "All_arrays"
 plots, you need to click on the line at the log-ratio of 0, not on a dot at
 any other height.</p>
@@ -808,17 +808,17 @@ any other height.</p>
 
 
 <h3><a name="pals">Sending results to <a
-href="http://pals.bioinfo.cnio.es">PaLS</a> (<FONT
+href="http://pals.iib.uam.es">PaLS</a> (<FONT
 COLOR="red">New!!</FONT>) </h3>
 <p>It is now possible to send the results to <a
-href="http://pals.bioinfo.cnio.es">PaLS</a>, for those cases where
+href="http://pals.iib.uam.es">PaLS</a>, for those cases where
 assignment of genes to "gain", "loss", and "no change" is provided
 (for now, ACE, CBS with merge, and PSW). PaLS "analyzes sets
 of lists of genes or single lists of genes. It filters those
 genes/clones/proteins that are referenced by a given percentage of
 PubMed references, Gene Ontology terms, KEGG pathways or Reactome
 pathways." (from <a
-href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's
+href="http://pals.iib.uam.es/help/pals-help.html">PalS's
 help</a>). By sending your results to PaLS, it might be easier to make
 biological sense of your results, because you are "annotating" your
 results with additional biological information.</p>
@@ -828,7 +828,7 @@ results with additional biological information.</p>
 align="middle">PaLS icon and three lists t. When you click on any of the links, the
 corresponding list of genes will be sent to PaLS. There, you can
 configure the options as you want (please, consult <a
-href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's help</a>
+href="http://pals.iib.uam.es/help/pals-help.html">PalS's help</a>
 for details) and then submit the list. In PaLS, you can always go
 back, and keep playing with the very same gene list, modifying the options.</p>
 
@@ -942,17 +942,17 @@ back, and keep playing with the very same gene list, modifying the options.</p>
 
 
 <!-- <h3><a name="pals">Sending results to <a -->
-<!-- href="http://pals.bioinfo.cnio.es">PaLS</a> (<FONT -->
+<!-- href="http://pals.iib.uam.es">PaLS</a> (<FONT -->
 <!-- COLOR="red">New!!</FONT>) </h3> -->
 <!-- <p>It is now possible to send the results to <a -->
-<!-- href="http://pals.bioinfo.cnio.es">PaLS</a>, for those cases where -->
+<!-- href="http://pals.iib.uam.es">PaLS</a>, for those cases where -->
 <!-- assignment of genes to "gain", "loss", and "no change" is provided -->
 <!-- (for now, ACE, CBS with merge, and PSW). PaLS "analyzes sets -->
 <!-- of lists of genes or single lists of genes. It filters those -->
 <!-- genes/clones/proteins that are referenced by a given percentage of -->
 <!-- PubMed references, Gene Ontology terms, KEGG pathways or Reactome -->
 <!-- pathways." (from <a -->
-<!-- href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's -->
+<!-- href="http://pals.iib.uam.es/help/pals-help.html">PalS's -->
 <!-- help</a>). By sending your results to PaLS, it might be easier to make -->
 <!-- biological sense of your results, because you are "annotating" your -->
 <!-- results with additional biological information.</p> -->
@@ -962,7 +962,7 @@ back, and keep playing with the very same gene list, modifying the options.</p>
 <!-- align="middle">PaLS icon and three lists t. When you click on any of the links, the -->
 <!-- corresponding list of genes will be sent to PaLS. There, you can -->
 <!-- configure the options as you want (please, consult <a -->
-<!-- href="http://pals.bioinfo.cnio.es/help/pals-help.html">PalS's help</a> -->
+<!-- href="http://pals.iib.uam.es/help/pals-help.html">PalS's help</a> -->
 <!-- for details) and then submit the list. In PaLS, you can always go -->
 <!-- back, and keep playing with the very same gene list, modifying the options.</p> -->
 
@@ -972,9 +972,9 @@ back, and keep playing with the very same gene list, modifying the options.</p>
 
 <h2><a name="examples">Examples</a></h2>
 <p>An example with fictitious data is provided in <a
-href="http://adacgh.bioinfo.cnio.es/Examples/index.html">here</a>. You can
+href="http://adacgh.iib.uam.es/Examples/index.html">here</a>. You can
 play with the figures, get the additional information from <a
-href="http://idclight.bioinfo.cnio.es">IDCLight</a>, etc. Additional
+href="http://idclight.iib.uam.es">IDCLight</a>, etc. Additional
 examples (from a somewhat less interactive version) are also available there.</p>
 
 
@@ -1095,7 +1095,7 @@ statistical computing</a>.</p>
 <a href="http://www.plosone.org/article/fetchArticle.action?articleURI=info%3Adoi%2F10.1371%2Fjournal.pone.0000737">
 Diaz-Uriarte and Rueda, "ADaCGH: A Parallelized Web-Based Application and R Package for the Analysis of aCGH Data", PLoS ONE, 2007, 2 (8): e737</a>
 and a link to the main web site:
-	<a href="http://adacgh.bioinfo.cnio.es">http://adacgh2.bioinfo.cnio.es</a>).</li>
+	<a href="http://adacgh.iib.uam.es">http://adacgh2.iib.uam.es</a>).</li>
     <li>We appreciate if you give us feedback concerning bugs, errors or misconfigurations.
 	Complaints or suggestions are welcome.</li>
     </ul>

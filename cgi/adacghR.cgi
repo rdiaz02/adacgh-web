@@ -35,11 +35,12 @@ import cgitb
 cgitb.enable() ## zz: eliminar for real work?
 sys.stderr = sys.stdout
 
-MAX_adacgh =  5000000005 ## MAX_genesrf + 1 = Maximum number of R processes running 
-## at same time.
-MAX_time = 3600 * 24 * 5 ## 5 is days until deletion of a tmp directory
-R_MAX_time = 3600 * 12 ## 8 hours is max duration allowed for any process
-MAX_covariate_size = 363948523L ## a 500 * 40000 array of floats
+APP_NAME = "adacgh2"
+sys.path.append("/asterias-web-apps/web-apps-common")
+from web_apps_config import *
+from web_apps_common_funcs import *
+
+
 #MAX_time_size = 61897L
 ##  f5 <- rep(paste(paste(letters, collapse = ""),
 ##                  paste(LETTERS, collapse="")), 1000)
@@ -51,84 +52,84 @@ acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 
 acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
 
 
-def commonOutput():
-    print "Content-type: text/html\n\n"
-    print """
-    <html>
-    <head>
-    <title>ADaCGH</title>
-    </head>
-    <body>
-    """
+# def commonOutput():
+#     print "Content-type: text/html\n\n"
+#     print """
+#     <html>
+#     <head>
+#     <title>ADaCGH</title>
+#     </head>
+#     <body>
+#     """
 
 ## For redirections, from Python Cookbook
-def getQualifiedURL(uri = None):
-    """ Return a full URL starting with schema, servername and port.
-        *uri* -- append this server-rooted uri (must start with a slash)
-    """
-    schema, stdport = ('http', '80')
-    host = os.environ.get('HTTP_HOST')
-    if not host:
-        host = os.environ.get('SERVER_NAME')
-        port = os.environ.get('SERVER_PORT', '80')
-        if port != stdport: host = host + ":" + port
-    result = "%s://%s" % (schema, host)
-    if uri: result = result + uri
-    return result
+# def getQualifiedURL(uri = None):
+#     """ Return a full URL starting with schema, servername and port.
+#         *uri* -- append this server-rooted uri (must start with a slash)
+#     """
+#     schema, stdport = ('http', '80')
+#     host = os.environ.get('HTTP_HOST')
+#     if not host:
+#         host = os.environ.get('SERVER_NAME')
+#         port = os.environ.get('SERVER_PORT', '80')
+#         if port != stdport: host = host + ":" + port
+#     result = "%s://%s" % (schema, host)
+#     if uri: result = result + uri
+#     return result
 
-def getScriptname():
-    """ Return te scriptname part of the URL."""
-    return os.environ.get('SCRIPT_NAME', '')
+# def getScriptname():
+#     """ Return te scriptname part of the URL."""
+#     return os.environ.get('SCRIPT_NAME', '')
 
-def getBaseURL():
-    """ Return a fully qualified URL to this script. """
-    return getQualifiedURL(getScriptname())
+# def getBaseURL():
+#     """ Return a fully qualified URL to this script. """
+#     return getQualifiedURL(getScriptname())
 
-def fileUpload(fieldName):
-    """Upload and get the files and do some checking. We assume there is an existing call
-    to fs = cgi.FieldStorage()"""
-## we don't deal with OS specific "\n"
-## because R does not have a problem (at least with Windows files)
-## no problem in R either with empty carriage returns at end of file
+# def fileUpload(fieldName):
+#     """Upload and get the files and do some checking. We assume there is an existing call
+#     to fs = cgi.FieldStorage()"""
+# ## we don't deal with OS specific "\n"
+# ## because R does not have a problem (at least with Windows files)
+# ## no problem in R either with empty carriage returns at end of file
     
-    if fs.has_key(fieldName):
-        fileClient = fs[fieldName].file
-        if not fileClient:
-            shutil.rmtree(tmpDir)
-            commonOutput()
-            print "<h1> ADaCGH ERROR </h1>"    
-            print "<p> The ", fieldName, "file you entered is not a file </p>"
-            print "<p> Please fill up the required fields and try again</p>"
-            print "</body></html>"
-            sys.exit()
-    else:
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p> ", fieldName, "file required </p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
+#     if fs.has_key(fieldName):
+#         fileClient = fs[fieldName].file
+#         if not fileClient:
+#             shutil.rmtree(tmpDir)
+#             commonOutput()
+#             print "<h1> ADaCGH ERROR </h1>"    
+#             print "<p> The ", fieldName, "file you entered is not a file </p>"
+#             print "<p> Please fill up the required fields and try again</p>"
+#             print "</body></html>"
+#             sys.exit()
+#     else:
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p> ", fieldName, "file required </p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
             
-    # transferring files to final destination;
+#     # transferring files to final destination;
 
-    fileInServer = tmpDir + "/" + fieldName
-    srvfile = open(fileInServer, mode = 'w')
-    fileString = fs[fieldName].value
-    srvfile.write(fileString)
-    srvfile.close()
+#     fileInServer = tmpDir + "/" + fieldName
+#     srvfile = open(fileInServer, mode = 'w')
+#     fileString = fs[fieldName].value
+#     srvfile.write(fileString)
+#     srvfile.close()
 
-    os.chmod(fileInServer, 0666)
+#     os.chmod(fileInServer, 0666)
         
-    if os.path.getsize(fileInServer) == 0:
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"
-        print "<p>", fieldName, " file has size 0 </p>"
-        print "<p> Please enter a file with something in it.</p>"
-        print "<p> (Did you enter only a single file, but did not check 'One file'?\
-        If you are using only one file, the 'Two files' button should not be checked.)</p>"
-        print "</body></html>"
+#     if os.path.getsize(fileInServer) == 0:
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"
+#         print "<p>", fieldName, " file has size 0 </p>"
+#         print "<p> Please enter a file with something in it.</p>"
+#         print "<p> (Did you enter only a single file, but did not check 'One file'?\
+#         If you are using only one file, the 'Two files' button should not be checked.)</p>"
+#         print "</body></html>"
         sys.exit()
 
 
@@ -204,55 +205,55 @@ def valueNumUpload(fieldName, testNumber = 'float', minValue = 0, errorMessageNa
 
 
 
-def radioUpload(fieldName, acceptedValues):
-    """Upload and get the values and do some checking. For radio selections
-    with text data; check those are in acceptedValues.
-    We assume there is an existing call to fs = cgi.FieldStorage()"""
+# def radioUpload(fieldName, acceptedValues):
+#     """Upload and get the values and do some checking. For radio selections
+#     with text data; check those are in acceptedValues.
+#     We assume there is an existing call to fs = cgi.FieldStorage()"""
 
-    if not fs.has_key(fieldName):
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p>", fieldName, "required </p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
-    if fs[fieldName].filename:
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p> ", fieldName, "should not be a file. </p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
-    if type(fs[fieldName]) == type([]):
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p>", fieldName, "should be a single value.</p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
-    else:
-        tmp = fs[fieldName].value
+#     if not fs.has_key(fieldName):
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p>", fieldName, "required </p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
+#     if fs[fieldName].filename:
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p> ", fieldName, "should not be a file. </p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
+#     if type(fs[fieldName]) == type([]):
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p>", fieldName, "should be a single value.</p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
+#     else:
+#         tmp = fs[fieldName].value
             
-    if tmp not in acceptedValues:
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p> The", fieldName, "choosen is not valid.</p>"
-        print "<p> Please fill up the required fields and try again.</p>"
-        print "</body></html>"
-        sys.exit()
+#     if tmp not in acceptedValues:
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p> The", fieldName, "choosen is not valid.</p>"
+#         print "<p> Please fill up the required fields and try again.</p>"
+#         print "</body></html>"
+#         sys.exit()
 
-    fileInServer = tmpDir + "/" + fieldName
-    srvfile = open(fileInServer, mode = 'w')
-    fileString = tmp
-    srvfile.write(fileString)
-    srvfile.close()
-    os.chmod(fileInServer, 0666)
+#     fileInServer = tmpDir + "/" + fieldName
+#     srvfile = open(fileInServer, mode = 'w')
+#     fileString = tmp
+#     srvfile.write(fileString)
+#     srvfile.close()
+#     os.chmod(fileInServer, 0666)
 
-    return tmp
+#     return tmp
 
 
 
@@ -299,9 +300,9 @@ def radioUpload(fieldName, acceptedValues):
 ## NOT needed anymore; delete_old_dirs runs as cron job!
 #  YES: we are using it again!! cron-jobs are harder to keep track of
 currentTime = time.time()
-currentTmp = dircache.listdir("/http/adacgh2/www/tmp")
+currentTmp = dircache.listdir("/asterias-web-apps/adacgh2/www/tmp")
 for directory in currentTmp:
-    tmpS = "/http/adacgh2/www/tmp/" + directory
+    tmpS = "/asterias-web-apps/adacgh2/www/tmp/" + directory
     if (currentTime - os.path.getmtime(tmpS)) > MAX_time:
         shutil.rmtree(tmpS)
 #       print("\n deleting directory " + tmpS + "\n")
@@ -311,7 +312,7 @@ for directory in currentTmp:
 ### Creating temporal directories
 newDir = str(random.randint(1, 10000)) + str(os.getpid()) + str(random.randint(1, 100000)) + str(int(currentTime)) + str(random.randint(1, 10000))
 redirectLoc = "/tmp/" + newDir
-tmpDir = "/http/adacgh2/www/tmp/" + newDir
+tmpDir = "/asterias-web-apps/adacgh2/www/tmp/" + newDir
 os.mkdir(tmpDir)
 os.chmod(tmpDir, 0700)
 
@@ -421,14 +422,14 @@ elif twofiles == 'One.file':
 
 
 ## First, delete any R file left (e.g., from killing procs, etc).
-RrunningFiles = dircache.listdir("/http/adacgh2/www/R.running.procs")
+RrunningFiles = dircache.listdir("/asterias-web-apps/adacgh2/www/R.running.procs")
 for Rtouchfile in RrunningFiles:
-    tmpS = "/http/adacgh2/www/R.running.procs/" + Rtouchfile
+    tmpS = "/asterias-web-apps/adacgh2/www/R.running.procs/" + Rtouchfile
     if (currentTime - os.path.getmtime(tmpS)) > R_MAX_time:
         os.remove(tmpS)
 
 ## Now, verify any processes left
-numRadacgh = len(dircache.listdir("/http/adacgh2/www/R.running.procs"))
+numRadacgh = len(dircache.listdir("/asterias-web-apps/adacgh2/www/R.running.procs"))
 if numRadacgh > MAX_adacgh:
     shutil.rmtree(tmpDir)
     commonOutput()
@@ -595,9 +596,9 @@ tmp = os.system("cd " + tmpDir + """; sed -i 's/\//_/g' arrayNames""")
 
 ## touch Rout, o.w. checkdone can try to open a non-existing file
 touchRout = os.system("/bin/touch " + tmpDir + "/f1.Rout") 
-touchRrunning = os.system("/bin/touch /http/adacgh2/www/R.running.procs/R." + newDir +
+touchRrunning = os.system("/bin/touch /asterias-web-apps/adacgh2/www/R.running.procs/R." + newDir +
                           "@" + socket.gethostname())
-shutil.copy("/http/adacgh2/cgi/f1.R", tmpDir)
+shutil.copy("/asterias-web-apps/adacgh2/cgi/f1.R", tmpDir)
 checkpoint = os.system("echo 0 > " + tmpDir + "/checkpoint.num")
 createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
 
@@ -613,7 +614,7 @@ createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
 ## tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
 
 ## Launch the lam checking program 
-run_and_check = os.spawnv(os.P_NOWAIT, '/http/adacgh2/cgi/runAndCheck.py',
+run_and_check = os.spawnv(os.P_NOWAIT, '/asterias-web-apps/adacgh2/cgi/runAndCheck.py',
                       ['', tmpDir])
 os.system('echo "' + str(run_and_check) + ' ' + socket.gethostname() +\
            '"> ' + tmpDir + '/run_and_checkPID')
@@ -627,7 +628,7 @@ os.system('echo "' + str(run_and_check) + ' ' + socket.gethostname() +\
 ## Copy to tmpDir a results.html that redirects to checkdone.cgi
 ## If communication gets broken, there is always a results.html
 ## that will do the right thing.
-shutil.copy("/http/adacgh2/cgi/results-pre.html", tmpDir)
+shutil.copy("/asterias-web-apps/adacgh2/cgi/results-pre.html", tmpDir)
 os.system("/bin/sed 's/sustituyeme/" + newDir + "/g' " +
           tmpDir + "/results-pre.html > " +
           tmpDir + "/results.html; rm " +

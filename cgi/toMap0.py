@@ -33,7 +33,7 @@ def create_map():
                             coords[2], 
                             '" title="',gene_line,
                             '" onClick="fixedtooltip(',str(numline + 1),
-                            ', \'<a class="tip" href="javascript:hidetip(1)">X</a><a class=\'tip2\' href="http://idclight.bioinfo.cnio.es/idclight.prog?',
+                            ', \'<a class="tip" href="javascript:hidetip(1)">X</a><a class=\'tip2\' href="http://idclight.iib.uam.es/idclight.prog?',
                             gene_line,'&idtype=', idtype, '&org=', organism, '">',
                             gene_line, '</a>\', this, event, \'90px\'); return false"  >   '])
         outList.append(outstring)

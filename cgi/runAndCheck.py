@@ -17,7 +17,7 @@ import random
 import socket
 ##import fcntl
 
-sys.path = sys.path + ['/http/mpi.log']
+sys.path = sys.path + ['/asterias-web-apps/mpi.log']
 import counterApplications
 
 
@@ -27,7 +27,7 @@ MAX_MPI_CRASHES = 20
 
 
 tmpDir = sys.argv[1]
-ROOT_TMP_DIR = "/http/adacgh2/www/tmp/"
+ROOT_TMP_DIR = "/asterias-web-apps/adacgh2/www/tmp/"
 newDir = tmpDir.replace(ROOT_TMP_DIR, "")
 runningProcs = tmpDir.split('/tmp/')[0] + '/R.running.procs/'
 
@@ -99,7 +99,7 @@ def kill_pid_machine(pid, machine):
 
 
 def results_print_general(outf, tmpDir, newDir, Rresults):
-    outf.write('<h2>Segmented data plots <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#output">(help)</a></h2> \n')
+    outf.write('<h2>Segmented data plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#output">(help)</a></h2> \n')
     thumb(tmpDir, open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t'),
           outf, maxsthumb = 350)
     thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
@@ -116,7 +116,7 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
     ll1 = glob.glob('*.log')
     for dname in ll1:
         os.remove(dname)
-    outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
+    outf.write('<hr> <a href="http://adacgh2.iib.uam.es/tmp/' +
                newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
     try:
         outf.write(printPalsURLADaCGH(newDir))
@@ -132,7 +132,7 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
 
 
 
-def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.bioinfo.cnio.es"):
+def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.iib.uam.es"):
     """ Based on Pomelo II's Send_to_Pals.cgi."""
     f=open("idtype")
     idtype = f.read().strip()
@@ -150,15 +150,15 @@ def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.bioinfo.cnio.es
     gl3 = gl_base + 'Gained_or_Lost_for_PaLS.txt'
    
     outstr0 = '<br /> <hr> ' + \
-              '<h3> Send results to <a href = "http://pals.bioinfo.cnio.es">' + \
+              '<h3> Send results to <a href = "http://pals.iib.uam.es">' + \
               '<IMG BORDER="0" SRC="../../palsfavicon40.png" align="middle"></a></h3>'
    
     outstr = outstr0 + \
-             '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
+             '<p> Send set of <a href="http://pals.iib.uam.es?' + \
              url_org_id + 'datafile=' + gl1 + '"> genes with copy number LOSS to PaLS</a></p>' + \
-             '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
+             '<p> Send set of <a href="http://pals.iib.uam.es?' + \
              url_org_id + 'datafile=' + gl2 + '"> genes with copy number GAIN to PaLS</a></p>' + \
-             '<p> Send set of <a href="http://pals.bioinfo.cnio.es?' + \
+             '<p> Send set of <a href="http://pals.iib.uam.es?' + \
              url_org_id + 'datafile=' + gl3 + '"> genes with copy number ALTERATION (either gain or loss) to PaLS</a></p>'
     return(outstr)
 
@@ -192,7 +192,7 @@ def printPalsURLADaCGH(newDir, application_url = "http://adacgh2.bioinfo.cnio.es
 #         outf.write('<a href="' + rootname + '.' + str(fignum + 1) +
 #                    '.jpeg"> <img src="' + 'thumb.' + rootname + '.'
 #                   + str(fignum + 1) + '.jpeg"></a>\n')
-#     os.chdir('/http/adacgh2/cgi')
+#     os.chdir('/asterias-web-apps/adacgh2/cgi')
 
 
 
@@ -213,7 +213,7 @@ def thumb(tmpDir, fnames, outf, maxsthumb = 350):
         outf.write(''.join(['<a href="', bname, '.html"> <img alt="',
 	                    bname, '" title="', bname, '" src="thumb.',
                             bname, '.jpeg"></a>']))
-    os.chdir('/http/adacgh2/cgi')
+    os.chdir('/asterias-web-apps/adacgh2/cgi')
 
 
 def getQualifiedURL(uri = None):
@@ -271,7 +271,7 @@ def relaunchCGI():
     print '</head> <body>'
     print '<p> This is an autorefreshing page; your results will eventually be displayed here.\n'
     print 'If your browser does not autorefresh, the results will be kept for five days at</p>'
-    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html</a>.' 
+    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html</a>.' 
     print '</p> </body> </html>'
     issue_echo('end of relaunchCGI', tmpDir)
     
@@ -318,7 +318,7 @@ def printOKRun():
         outf.write('<IMG BORDER="0" SRC="ErrorFigure.png">')
         outf.write("<br /><br /> <hr>")
         outf.write("<pre>")
-        outf.write('<br /><br /><h2> Results <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
+        outf.write('<br /><br /><h2> Results <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
         outf.write("<br /><br /> <hr>")
         outf.write(cgi.escape(resultsFile))
         outf.write("</pre>")
@@ -327,7 +327,7 @@ def printOKRun():
         Rresults.close()
         shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
     else:
-        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
+        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
         outf.write(open(tmpDir + "/results.for.html").read())
         outf.write('<br />')
         outf.write('<hr>')
@@ -367,13 +367,13 @@ def printOKRun():
         methodUsed = open(tmpDir + '/methodaCGH').read()
         if (methodUsed == 'PSW') or (methodUsed == 'PSW\n'):
             arrayNames = open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t')
-            outf.write('<h2>Island plots, gains <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
+            outf.write('<h2>Island plots, gains <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
             outf.write('<p>Click on thumbnails to expand.</p>')
             gains_fig_list = [''.join(['Gains.', aname]) for aname in arrayNames]
             thumb(tmpDir, gains_fig_list, outf, maxsthumb = 350)
             outf.write('<br />')
             
-            outf.write('<h2>Island plots, losses <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
+            outf.write('<h2>Island plots, losses <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
             outf.write('<p>Click on thumbnails to expand.</p>')
             loss_fig_list = [''.join(['Losses.', aname]) for aname in arrayNames]
             thumb(tmpDir, loss_fig_list, outf, maxsthumb = 350)
@@ -392,7 +392,7 @@ def printOKRun():
             ll1 = glob.glob('*.log')
             for dname in ll1:
                 os.remove(dname)
-            outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
+            outf.write('<hr> <a href="http://adacgh2.iib.uam.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
 
             outf.write(printPalsURLADaCGH(newDir))
@@ -408,7 +408,7 @@ def printOKRun():
             acefdr = acefdrtable.read()
             acefdrtable.close()
             outf.write(acefdr)
-            outf.write('<form action="http://adacgh2.bioinfo.cnio.es/cgi-bin/ace.cgi" method="GET">\n')
+            outf.write('<form action="http://adacgh2.iib.uam.es/cgi-bin/ace.cgi" method="GET">\n')
             outf.write('<input type="hidden" NAME="newDir" VALUE="' + newDir + '">')
             currentfdr = str(open(tmpDir + '/aceFDR').readline())
             outf.write('<br><input type="TEXT" name="fdrace" value="' +
@@ -430,7 +430,7 @@ def printOKRun():
             ll1 = glob.glob('*.log')
             for dname in ll1:
                 os.remove(dname)
-            outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
+            outf.write('<hr> <a href="http://adacgh2.iib.uam.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
 
             outf.write(printPalsURLADaCGH(newDir))
@@ -469,9 +469,9 @@ def printRKilled():
 
 
 def printMPIerror(tmpDir, numtries, application = 'ADaCGH2'):
-    if not os.path.exists('/http/mpi.log/' + application + 'ErrorLog'):
-        os.system('touch /http/mpi.log/' + application + 'ErrorLog')
-    outlog = open('/http/mpi.log/' + application + 'ErrorLog', mode = 'a')
+    if not os.path.exists('/asterias-web-apps/mpi.log/' + application + 'ErrorLog'):
+        os.system('touch /asterias-web-apps/mpi.log/' + application + 'ErrorLog')
+    outlog = open('/asterias-web-apps/mpi.log/' + application + 'ErrorLog', mode = 'a')
     outlog.write('MPI fails more than ' + numtries + 'numtries on ' +
                  time.ctime(time.time()) +
                  ' Directory: ' + tmpDir + '\n')
@@ -496,9 +496,9 @@ def printMPIerror(tmpDir, numtries, application = 'ADaCGH2'):
 
 
 def printMPITooBusy(tmpDir, MAX_DURATION_TRY, application = 'ADaCGH2'):
-    if not os.path.exists('/http/mpi.log/' + application + 'ErrorLog'):
-        os.system('touch /http/mpi.log/' + application + 'ErrorLog')
-    outlog = open('/http/mpi.log/' + application + 'ErrorLog', mode = 'a')
+    if not os.path.exists('/asterias-web-apps/mpi.log/' + application + 'ErrorLog'):
+        os.system('touch /asterias-web-apps/mpi.log/' + application + 'ErrorLog')
+    outlog = open('/asterias-web-apps/mpi.log/' + application + 'ErrorLog', mode = 'a')
     outlog.write('MPI too busy on ' + time.ctime(time.time()) +
                  ' Directory: ' + tmpDir + '\n')
     outlog.close()
@@ -534,7 +534,7 @@ def lamboot(lamSuffix, ncpu, runningProcs = runningProcs):
                        os.O_RDWR | os.O_CREAT | os.O_NDELAY)
     issue_echo('before fullCommand inside lamboot', tmpDir)
     fullCommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
-                  '"; /http/mpi.log/tryBootLAM2.py ' + lamSuffix + \
+                  '"; /asterias-web-apps/mpi.log/tryBootLAM2.py ' + lamSuffix + \
                   ' ' + str(ncpu)
     issue_echo('before os.system inside lamboot', tmpDir)
     lboot = os.system(fullCommand)
@@ -627,7 +627,7 @@ def Rrun(tmpDir, lamSuffix):
     Rcommand = 'export LAM_MPI_SESSION_SUFFIX="' + lamSuffix + \
                '"; cd ' + tmpDir + \
                '; sleep 1; /var/www/bin/R-local-7-LAM-MPI/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
-##               '; sleep 1; /http/R-custom/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
+##               '; sleep 1; /asterias-web-apps/R-custom/bin/R --no-readline --no-save --slave <f1.R >>f1.Rout 2>> Status.msg &'
     Rtorun = os.system(Rcommand)
     
 
@@ -746,7 +746,7 @@ def cleanups(tmpDir, newDir, newnamepid,
     except:
         None
     try:
-        os.system('rm /http/' + appl + '/www/R.running.procs/R.' + newDir + '*')
+        os.system('rm /asterias-web-apps/' + appl + '/www/R.running.procs/R.' + newDir + '*')
     except:
         None
     try:
@@ -842,7 +842,7 @@ def my_queue(MAX_NUM_PROCS,
     out_value = 'OK'
     startTime = time.time()
     while True:
-        killedlamandr = os.system('/http/mpi.log/killOldLamAllMachines.py')
+        killedlamandr = os.system('/asterias-web-apps/mpi.log/killOldLamAllMachines.py')
         issue_echo('     inside my_queue ', tmpDir)
         if (time.time() - startTime) > MAX_DURATION_TRY:
             out_value = 'Failed'
@@ -928,29 +928,29 @@ while True:
         cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
         printErrorRun(tmpDir + '/Status.msg')
         break
-    elif did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[0]:
-        issue_echo('R crash in slaves', tmpDir)
-        cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
-        printErrorRun(did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[1])
-        break
+    # elif did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[0]:
+    #     issue_echo('R crash in slaves', tmpDir)
+    #     cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
+    #     printErrorRun(did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[1])
+    #     break
     elif master_out_of_time(time_start):
         issue_echo('master out of time', tmpDir)
         cleanups(tmpDir, newDir, 'killed.pid.txt', lamSuffix)
         printRKilled()
         break
-    elif did_mpi_crash(tmpDir, machine_root = 'karl'):
-        count_mpi_crash += 1
-        counterApplications.add_to_MPIErrorLog('ADaCGH2',
-                                               tmpDir, socket.gethostname(),
-                                               message = 'MPI crash')
-        if count_mpi_crash > MAX_MPI_CRASHES:
-            printMPIerror(tmpDir, MAX_MPI_CRASHES)
-            cleanups(tmpDir, newDir, 'MPIerror.pid.txt', lamSuffix)
-            break
-        else:
-            recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS,
-                                   lamSuffix,
-                                   machine_root = 'karl')
+    # elif did_mpi_crash(tmpDir, machine_root = 'karl'):
+    #     count_mpi_crash += 1
+    #     counterApplications.add_to_MPIErrorLog('ADaCGH2',
+    #                                            tmpDir, socket.gethostname(),
+    #                                            message = 'MPI crash')
+    #     if count_mpi_crash > MAX_MPI_CRASHES:
+    #         printMPIerror(tmpDir, MAX_MPI_CRASHES)
+    #         cleanups(tmpDir, newDir, 'MPIerror.pid.txt', lamSuffix)
+    #         break
+    #     else:
+    #         recover_from_lam_crash(tmpDir, NCPU, MAX_NUM_PROCS,
+    #                                lamSuffix,
+    #                                machine_root = 'karl')
     else:
         lam_crash_log(tmpDir, 'NoCrash') ## if we get here, this much we know
     time.sleep(TIME_BETWEEN_CHECKS)

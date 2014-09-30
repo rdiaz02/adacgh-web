@@ -38,5 +38,5 @@ if direction=='adacgh':
     os.system("sed 's/\/http\/adacgh2\//\/http\/adacgh\//g' results-pre.html > tmp; mv tmp results-pre.html")
     os.system("sed 's/\/http\/adacgh2\//\/http\/adacgh\//g' results-pre-ace.html > tmp; mv tmp results-pre-ace.html")    
 
-os.system('chmod u+x /http/adacgh2/cgi/*.cgi')    
-os.system('chown -R www-data /http/adacgh2')
+os.system('chmod u+x /asterias-web-apps/adacgh2/cgi/*.cgi')    
+os.system('chown -R www-data /asterias-web-apps/adacgh2')

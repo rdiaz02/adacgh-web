@@ -10,7 +10,7 @@ def create_map(gene_Names, map_coord, idtype, organism):
                             '" href="#', ## new
                             '" onClick="fixedtooltip(',str(numline + 1),
                             ', \'<a class=\\\'tip\\\' href=\\\'javascript:hidetip(',
-                            str(numline + 1), ')\\\'>X</a><a class=\\\'tip2\\\' href=\\\'http://idclight.bioinfo.cnio.es/idclight.prog?',
+                            str(numline + 1), ')\\\'>X</a><a class=\\\'tip2\\\' href=\\\'http://idclight.iib.uam.es/idclight.prog?',
                             '&idtype=', idtype, '&id=', gene_line, '&internal=0&org=', organism, '\\\'>',
                             gene_line, '</a>\', this, event, \'90px\'); return false"  > ']))
     return outstring
@@ -36,7 +36,7 @@ def create_map_none(gene_Names, map_coord, idtype, organism):
 
 #<area id="1" shape="circle" coords="84,218,70" title="mens.title 1" alt="mens.alt 1" href="#" onClick="fixedtooltip(1, 
 #'<a class=\'tip\' href=\'javascript:hidetip(1)\'>X</a> <a class=\'tip2\' 
-#href=\'http://simpleidc.bioinfo.cnio.es/nombre1\'>nombre1</a>', this, event, '90px'); return false"  >
+#href=\'http://simpleidc.iib.uam.es/nombre1\'>nombre1</a>', this, event, '90px'); return false"  >
 
 def create_div(gene_Names):
     outstring = []

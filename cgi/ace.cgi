@@ -68,7 +68,7 @@ def relaunchCGI():
     print '</head> <body>'
     print '<p> This is an autorefreshing page; your results will eventually be displayed here.\n'
     print 'If your browser does not autorefresh, the results will be kept for five days at</p>'
-    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html</a>.' 
+    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html</a>.' 
     print '</p> </body> </html>'
 
 
@@ -175,7 +175,7 @@ def printOKRun():
         outf.write('<IMG WIDTH="500" HEIGHT="500" BORDER="0" SRC="ErrorFigure.png">')
         outf.write("<br /><br /> <hr>")
         outf.write("<pre>")
-        outf.write('<br /><br /><h2> Results <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
+        outf.write('<br /><br /><h2> Results <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
         outf.write("<br /><br /> <hr>")
         outf.write(cgi.escape(resultsFile))
         outf.write("</pre>")
@@ -184,7 +184,7 @@ def printOKRun():
         Rresults.close()
         shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
     else:
-        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh2.bioinfo.cnio.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
+        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
         outf.write(open(tmpDir + "/results.for.html").read())
         outf.write('<br />')
         outf.write('<hr>')
@@ -227,7 +227,7 @@ def printOKRun():
         acefdr = acefdrtable.read()
         acefdrtable.close()
         outf.write(acefdr)
-        outf.write('<form action="http://adacgh2.bioinfo.cnio.es/cgi-bin/ace.cgi" method="GET">\n')
+        outf.write('<form action="http://adacgh2.iib.uam.es/cgi-bin/ace.cgi" method="GET">\n')
         outf.write('<input type="hidden" NAME="newDir" VALUE="' + newDir + '">')
         currentfdr = str(open(tmpDir + '/aceFDR').readline())
         outf.write('<br><input type="TEXT" name="fdrace" value="' +
@@ -253,7 +253,7 @@ def printOKRun():
         for flname in lll:
             allResults.add(flname)
         allResults.close()
-        outf.write('<hr> <a href="http://adacgh2.bioinfo.cnio.es/tmp/' +
+        outf.write('<hr> <a href="http://adacgh2.iib.uam.es/tmp/' +
                    newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
         outf.write("</body></html>")
         outf.close()
@@ -302,7 +302,7 @@ def thumb(tmpDir, fnames, outf, maxsthumb = 350):
         outf.write(''.join(['<a href="', bname, '.html"> <img alt="',
 	                    bname, '" title="', bname, '" src="thumb.',
                             bname, '.jpeg"></a>']))
-    os.chdir('/http/adacgh2/cgi')
+    os.chdir('/asterias-web-apps/adacgh2/cgi')
 
 
 
@@ -348,7 +348,7 @@ if re.search(r'[^0-9]', str(newDir)):
     sys.exit()
                 
 ##    redirectLoc = "/tmp/" + tmpDir
-tmpDir = "/http/adacgh2/www/tmp/" + newDir
+tmpDir = "/asterias-web-apps/adacgh2/www/tmp/" + newDir
 if not os.path.isdir(tmpDir):
     commonOutput()
     print "<h1> ERROR </h1>"    
@@ -372,7 +372,7 @@ if fdrace > 1:
     sys.exit()
                            
 if not os.path.exists(tmpDir + '/rerunACE.Rout'):
-    shutil.copy("/http/adacgh2/cgi/rerunACE.R", tmpDir)
+    shutil.copy("/asterias-web-apps/adacgh2/cgi/rerunACE.R", tmpDir)
     Rcommand = "cd " + tmpDir + "; " + "/var/www/bin/R-local-7-LAM-MPI/bin/R CMD BATCH --no-restore --no-readline --no-save -q rerunACE.R 2> errorACE.msg &"
     Rrun = os.system(Rcommand)
 
@@ -381,7 +381,7 @@ if not os.path.exists(tmpDir + '/rerunACE.Rout'):
 ## Copy to tmpDir a results.html that redirects to checkdone.cgi
 ## If communication gets broken, there is always a results.html
 ## that will do the right thing.
-    shutil.copy("/http/adacgh2/cgi/results-pre-ace.html", tmpDir)
+    shutil.copy("/asterias-web-apps/adacgh2/cgi/results-pre-ace.html", tmpDir)
     os.system("cd " + tmpDir + "; /bin/sed 's/sustituyeme/" +
               newDir + "/g' results-pre-ace.html > results.html; rm results-pre-ace.html")
 
@@ -406,7 +406,7 @@ else: ## i.e., we have already started the R process
                 os.rename(tmpDir + '/ACEpid.txt', tmpDir + '/killed.ACEpid.txt')
                 if os.path.exists(tmpDir + '/rerunACE.Rout'): os.remove(tmpDir + '/rerunACE.Rout')
                 if os.path.exists(tmpDir + '/rerunACE.R'): os.remove(tmpDir + '/rerunACE.R')
-                print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
+                print 'Location: http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
                 sys.exit()
 
     if errorRun > 0:
@@ -417,7 +417,7 @@ else: ## i.e., we have already started the R process
 	except: None
         try: os.remove(tmpDir + '/rerunACE.R')
         except: None
-        print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n'
+        print 'Location: http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
 
     elif finishedOK > 0:
         printOKRun()
@@ -427,7 +427,7 @@ else: ## i.e., we have already started the R process
 	except: None
         try: os.remove(tmpDir + '/f1.R')
         except: None
-        print 'Location: http://adacgh2.bioinfo.cnio.es/tmp/'+ newDir + '/results.html \n\n' 
+        print 'Location: http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html \n\n' 
     
     else:
     ## we only end up here if: we were not done in a previous run AND no process was overtime 

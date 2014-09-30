@@ -266,7 +266,7 @@ def valueNumUpload(fieldName, testNumber = 'float', minValue = 0, errorMessageNa
 #         time.sleep(tsleep)
 #         in_log = int(os.popen('grep "' + \
 #                               tmpDir + \
-#                               '" /http/mpi.log/ApplicationCounter | wc').readline().split()[0])
+#                               '" /asterias-web-apps/mpi.log/ApplicationCounter | wc').readline().split()[0])
 #         if in_log == 0:
 #             leave_track = os.system('/bin/touch ' + tmpDir + \
 #                                     '/had_to_restart_' + str(i + 1))
@@ -278,7 +278,7 @@ def valueNumUpload(fieldName, testNumber = 'float', minValue = 0, errorMessageNa
 #                 print "</body></html>"
 #                 sys.exit()
 #             else:
-#                 tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
+#                 tryrrun = os.system('/asterias-web-apps/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
                 
 #         else:
 #             break
@@ -319,8 +319,8 @@ os.chmod(tmpDir, 0700)
 ### File and parameter upload
 fs = cgi.FieldStorage()
 
-idtype = radioUpload('idtype', acceptedIDTypes)
-organism = radioUpload('organism', acceptedOrganisms)
+idtype = dummyUpload('idtype', 'None')
+organism = dummyUpload('organism', 'None')
 tmp = valueNumUpload('MCR.gapAllowed', 'float', 1)
 tmp1 = valueNumUpload('MCR.alteredLow', 'float', 0)
 tmp2 = valueNumUpload('MCR.alteredHigh', 'float', 0)
@@ -370,9 +370,9 @@ if twofiles == 'Two.files':
         ##debugg:
         os.system("echo " + prep_tmpdir + " > " + tmpDir + "/prep_tmpdir")
             ## an ugly hack, as prep not in this filesystem
-        os.system('wget http://prep.bioinfo.cnio.es/tmp/' + prep_tmpdir +
+        os.system('wget http://prep.iib.uam.es/tmp/' + prep_tmpdir +
                   '/outdata.txt -O ' + tmpDir + '/acghData')
-       ###shutil.copy("/http/prep/www/tmp/" + prep_tmpdir +"/outdata.txt",tmpDir + "/acghData")
+       ###shutil.copy("/asterias-web-apps/prep/www/tmp/" + prep_tmpdir +"/outdata.txt",tmpDir + "/acghData")
     else:
         fileUpload('acghData')
         if os.stat(tmpDir + '/acghData')[ST_SIZE] > MAX_covariate_size:
@@ -607,11 +607,11 @@ createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
 ## error is sent to the server
 # Rcommand = "cd " + tmpDir + "; " + "/usr/bin/R CMD BATCH --no-restore --no-readline --no-save -q f1.R 2> error.msg &"
 # Rrun = os.system(Rcommand)
-##os.system('cp /http/js/js.adacgh.squeleton1.html ' + tmpDir + '/.')
-##os.system('cp /http/js/js.adacgh.squeleton2.html ' + tmpDir + '/.')
-##os.system('cp /http/js/final.adacgh.squeleton.html ' + tmpDir + '/.')
+##os.system('cp /asterias-web-apps/js/js.adacgh.squeleton1.html ' + tmpDir + '/.')
+##os.system('cp /asterias-web-apps/js/js.adacgh.squeleton2.html ' + tmpDir + '/.')
+##os.system('cp /asterias-web-apps/js/final.adacgh.squeleton.html ' + tmpDir + '/.')
 
-## tryrrun = os.system('/http/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
+## tryrrun = os.system('/asterias-web-apps/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
 
 ## Launch the lam checking program 
 run_and_check = os.spawnv(os.P_NOWAIT, '/asterias-web-apps/adacgh2/cgi/runAndCheck.py',

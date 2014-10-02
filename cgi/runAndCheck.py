@@ -17,14 +17,31 @@ import random
 import socket
 ##import fcntl
 
-sys.path = sys.path + ['/asterias-web-apps/mpi.log']
+
+sys.path = sys.path + ['/asterias-web-apps/web-apps-common']
 import counterApplications
+from web_apps_config import *
 
 
 tmpDir = sys.argv[1]
 ROOT_TMP_DIR = "/asterias-web-apps/adacgh2/www/tmp/"
 newDir = tmpDir.replace(ROOT_TMP_DIR, "")
 runningProcs = tmpDir.split('/tmp/')[0] + '/R.running.procs/'
+
+
+
+def issue_echo(fecho, tmpDir):
+    """Silly function to output small tracking files"""
+    timeHuman = '##########   ' + \
+                str(time.strftime('%d %b %Y %H:%M:%S')) 
+    os.system('echo "' + timeHuman + \
+              '" >> ' + tmpDir + '/checkdone.echo')
+    os.system('echo "' + fecho + \
+              '" >> ' + tmpDir + '/checkdone.echo')
+    os.system('echo "    " >> ' + tmpDir + '/checkdone.echo')
+
+issue_echo('at 00', tmpDir)    
+
 
 
 ## I think we no longer check tmpDir is OK, because this is not launched
@@ -88,16 +105,6 @@ def collectZombies(k = 10):
         except:
             None
 
-
-def issue_echo(fecho, tmpDir):
-    """Silly function to output small tracking files"""
-    timeHuman = '##########   ' + \
-                str(time.strftime('%d %b %Y %H:%M:%S')) 
-    os.system('echo "' + timeHuman + \
-              '" >> ' + tmpDir + '/checkdone.echo')
-    os.system('echo "' + fecho + \
-              '" >> ' + tmpDir + '/checkdone.echo')
-    os.system('echo "    " >> ' + tmpDir + '/checkdone.echo')
 
 
 def kill_pid_machine(pid, machine):
@@ -447,8 +454,8 @@ def printOKRun():
         #     Rresults.close()
         #     shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
         #     os.system('tar -czf all.results.tar.gz * &')
-        else:
-            results_print_general(outf, tmpDir, newDir, Rresults)
+        # else:
+        results_print_general(outf, tmpDir, newDir, Rresults)
 
 
 

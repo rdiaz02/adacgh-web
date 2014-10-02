@@ -267,7 +267,7 @@ def thumb2(tmpDir, outf, maxsthumb = 350):
                            ' -resize ', mst, 'x', mst, ' thumb.', 
                            bn2, '.jpeg']))
         outf.write(''.join(['<a href="', bn2, '.html"> <img alt="',
-	                    b2, '" title="', bn2, '" src="thumb.',
+	                    bn2, '" title="', bn2, '" src="thumb.',
                             bn2, '.jpeg"></a>']))
     os.chdir('/asterias-web-apps/adacgh2/cgi') ## FIXME
     

@@ -104,6 +104,152 @@ my.html.data.frame <- function (object, first.col = "Name",
 }
 
 
+
+## writeResults <- function(obj, ...) {
+##     UseMethod("writeResults")
+## }
+
+## ## writeResults.CGH.PSW <- function(obj, acghdata, commondata, file = "PSW.output.txt", ...) {
+## writeResults.CGH.PSW <- function(obj, commondata, file = "PSW.output.txt", ...) {    
+##     write.table(cbind(commondata, obj$Data), file = file,
+##                 sep = "\t", col.names = NA,
+##                 row.names = TRUE, quote = FALSE)
+## }
+
+## writeResults.summaryACE <- function(obj, acghdata, commondata, file = NULL, ...) {
+##     if(is.null(file)) {
+##         file <-  paste("ACE.output.FDR=",
+##                        attr(obj, "aceFDR.for.output"), ".txt", sep ="")
+##     }
+##     print.adacgh.generic.results(obj, acghdata, commondata, output = file)
+## }
+
+## writeResults.CGH.wave <- function(obj, acghdata, commondata,
+##                                   file = "wavelet.output.txt", ...) {
+##     if(inherits(obj, "CGH.wave.merged")) {pals <- TRUE} else {pals <- FALSE}
+##     print.adacgh.generic.results(obj, acghdata, commondata, output = file,
+##                                  send_to_pals = pals)
+## }
+
+## writeResults.DNAcopy <- function(obj, acghdata, commondata, 
+##                                  file = "CBS.output.txt", ...) {
+##   print.adacgh.generic.results(obj, acghdata,
+##                                commondata, output = file)
+## }
+
+## writeResults.CGHseg <- function(obj, acghdata, commondata, 
+##                                  file = "CGHseg.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file,
+##                                  send_to_pals = FALSE)
+## }
+
+## writeResults.adacghHaarSeg <- function(obj, acghdata, commondata, 
+##                                  file = "HaarSeg.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                  commondata, output = file)
+## }
+
+
+
+## writeResults.mergedHMM <- function(obj, acghdata, commondata, 
+##                                  file = "HMM.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file)
+## }
+
+## writeResults.adacghGLAD <- function(obj, acghdata, commondata, 
+##                                  file = "GLAD.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file)
+## }
+
+## writeResults.mergedBioHMM <- function(obj, acghdata, commondata, 
+##                                  file = "BioHMM.output.txt", ...) {
+##     print.adacgh.generic.results(obj, acghdata,
+##                                 commondata, output = file)
+## }
+
+print.adacgh.generic.results <- function(res, xcenter,
+                                         commondata,
+                                         output = "ADaCGH.results.txt",
+                                         send_to_pals = TRUE){
+
+    out <- data.frame(commondata)
+    if(ncol(out) > 5) {
+        stop("This sucks, but if your commondata has more than 5 columns, this function will blow up.")
+    }
+
+    ## for(i in 1:ncol(xcenter)) {
+    ##   out <- cbind(out, res$segm[[i]])
+    ## }
+    for(i in 1:ncol(xcenter)) {
+      out <- cbind(out, xcenter[, i], res$outSmoothed[, i], res$outState[, i])
+    }
+
+    colnames(out)[(ncol(commondata) + 1):(ncol(out))] <-
+        paste(rep(colnames(xcenter),rep(3, ncol(xcenter))),
+              c(".Original", ".Smoothed", ".Status"),
+              sep = "")
+
+    write.table(out, file = output,
+                sep = "\t", col.names = NA,
+                row.names = TRUE, quote = FALSE)
+
+    if (exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv) & send_to_pals) {
+        cols.look <- seq(from = 8, to = ncol(out), by = 3)
+
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
+                     function(z) commondata$ID[which( z == -1)])
+        writeForPaLS(Ids, colnames(xcenter), "Lost_for_PaLS.txt")
+        
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
+                     function(z) commondata$ID[which( z == 1)])
+        writeForPaLS(Ids, colnames(xcenter), "Gained_for_PaLS.txt")
+
+        Ids <- apply(out[, cols.look, drop = FALSE], 2,
+                     function(z) commondata$ID[which( z != 0)])
+        writeForPaLS(Ids, colnames(xcenter), "Gained_or_Lost_for_PaLS.txt")
+    }
+
+}
+
+## writeForPaLS <- function(alist, names, outfile) {
+##     ## alist: a list with as many lists as subjects; each sublist are the
+##     ##        genes of interest.
+##     ## names: subject or array names
+##     ## outfile: guess what? is the name of the output file
+
+    
+##   if(is.array(alist) | is.matrix(alist) )
+##     if (dim(alist)[2] == 1) alist <- as.vector(alist)
+
+##     if(!is.list(alist) & is.vector(alist) & (length(names) == 1)) {
+##         ## we suppose we are dealing with a one-array data set
+##         alist <- list(alist)
+##     }
+##   if(length(alist) == 0) {
+##       write("", file = outfile)
+##   } else if(length(names) != length(alist)) {
+##       print("names are ")
+##       print(names)
+##       print("alist is ")
+##       print(alist)
+##       stop("ERROR in writeForPaLS: names and alist should have the same length")
+##   } else {
+##       write(
+##             unlist(
+##                    mapply(function(x, y) return(c(paste("#", y, sep = ""), as.character(x))),
+##                           alist, names)
+##                    ),
+##             file = outfile)
+##   }
+## }
+
+
+
+
+
 ##startExecTime <- format(Sys.time())
 
 ## why is this here and further down below?? FIXME
@@ -207,11 +353,11 @@ if(.__ADaCGH_WEB_APPL) {
   write.table(file = "pid.txt", pid,
               row.names = FALSE,
               col.names = FALSE)
-  trylam <- try(
-                lamSESSION <- scan("lamSuffix", sep = "\t",
-                                   what = "",
-                                   strip.white = TRUE)
-                )
+  ## trylam <- try(
+  ##               lamSESSION <- scan("lamSuffix", sep = "\t",
+  ##                                  what = "",
+  ##                                  strip.white = TRUE)
+  ##               )
 #################################################################
   ## enter info into lam suffix log table
   
@@ -281,7 +427,7 @@ if(.__ADaCGH_WEB_APPL) {
   ##        from here? But it gives a clear message structure: User and
   ##        ours.
   caughtOurError <- function(message) {
-    CiaroPNG("ErrorFigure.png", width = png.width,
+    CairoPNG("ErrorFigure.png", width = png.width,
         height = png.height, 
         ps = png.pointsize)
     ##           family = png.family)
@@ -999,22 +1145,36 @@ if(.__ADaCGH_WEB_APPL) {
         print(gc())
     }
     if(checkpoint.num < 5) {
+        ## trythis <- try(
+        ##                segmentPlot(segmres, geneNames = positions.merge1$name,
+        ##                            yminmax = c(ymin, ymax),
+        ##                            idtype = idtype,
+        ##                            organism = organism,
+        ##                            html_js = TRUE,
+        ##                            superimp = TRUE,
+        ##                            genomewide_plot = TRUE))
+
         trythis <- try(
-                       segmentPlot(segmres, geneNames = positions.merge1$name,
-                                   yminmax = c(ymin, ymax),
-                                   idtype = idtype,
-                                   organism = organism,
-                                   html_js = TRUE,
-                                   superimp = TRUE,
-                                   genomewide_plot = TRUE))
+                       pChromPlot(segmres,
+                                  cghRDataName = as.matrix(xcenter),
+                                  chromRDataName = positions.merge1$chrom.numeric,
+                                  probenamesRDataName = positions.merge1$name,
+                                  ## yminmax = c(ymin, ymax),
+                                  ## idtype = idtype,
+                                  ## organism = organism,
+                                  ## html_js = TRUE,
+                                  imagemap = TRUE))
+
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         cat("\n\n Plotting done \n\n")
         cat("\n gc right after plotting \n")
         print(gc())
-        trythis <- try(writeResults(segmres,
-                                    acghdata = as.matrix(xcenter),
-                                    commondata = common.data))
+        
+        trythis <- try(print.adacgh.generic.results(res = segmres,
+                                                    xcenter = as.matrix(xcenter),
+                                                    commondata = common.data,
+                                                    send_to_pals = FALSE))
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         doCheckpoint(5)

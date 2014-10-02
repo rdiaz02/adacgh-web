@@ -106,10 +106,13 @@ def collectZombies(k = 10):
             None
 
 
-
-def kill_pid_machine(pid, machine):
+def kill_pid_machine(pid):
     'as it says: to kill somehting somewhere'
-    os.system('ssh ' + machine + ' "kill -s 9 ' + pid + '"')
+    os.system("kill -s 9 " + pid )
+
+# def kill_pid_machine(pid, machine):
+#     'as it says: to kill somehting somewhere'
+#     os.system('ssh ' + machine + ' "kill -s 9 ' + pid + '"')
 
 
 def results_print_general(outf, tmpDir, newDir, Rresults):
@@ -739,14 +742,13 @@ def did_run_out_of_time(tmpDir, R_MAX_time):
                            
 
 def cleanups(tmpDir, newDir, newnamepid,
-             lamSuffix,
              runningProcs = runningProcs,
              appl = 'adacgh2'):
     """ Clean up actions; kill lam, delete running.procs files, clean process table."""
-    lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
+##    lamenv = open(tmpDir + "/lamSuffix", mode = "r").readline()
     rinfo = open(tmpDir + '/current_R_proc_info', mode = 'r').readline().split()
     try:
-        kill_pid_machine(rinfo[1], rinfo[0])
+        kill_pid_machine(rinfo[1])
     except:
         None
     # try:
@@ -960,17 +962,17 @@ count_mpi_crash = 0
 while True:
     if did_run_out_of_time(tmpDir, R_MAX_time):
         issue_echo('run out of time', tmpDir)
-        cleanups(tmpDir, newDir, 'killed.pid.txt', lamSuffix)
+        cleanups(tmpDir, newDir, 'killed.pid.txt')
         printRKilled()
         break
     elif finished_ok(tmpDir):
         issue_echo('finished OK', tmpDir)
-        cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
+        cleanups(tmpDir, newDir, 'natural.death.pid.txt')
         printOKRun()
         break
     elif halted(tmpDir):
         issue_echo('halted', tmpDir)
-        cleanups(tmpDir, newDir, 'natural.death.pid.txt', lamSuffix)
+        cleanups(tmpDir, newDir, 'natural.death.pid.txt')
         printErrorRun(tmpDir + '/Status.msg')
         break
     # elif did_R_crash_in_slaves(tmpDir, machine_root = 'karl')[0]:
@@ -980,7 +982,7 @@ while True:
     #     break
     elif master_out_of_time(time_start):
         issue_echo('master out of time', tmpDir)
-        cleanups(tmpDir, newDir, 'killed.pid.txt', lamSuffix)
+        cleanups(tmpDir, newDir, 'killed.pid.txt')
         printRKilled()
         break
     # elif did_mpi_crash(tmpDir, machine_root = 'karl'):

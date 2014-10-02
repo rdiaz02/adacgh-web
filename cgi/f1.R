@@ -1165,6 +1165,7 @@ if(.__ADaCGH_WEB_APPL) {
                                   ## html_js = TRUE,
                                   imagemap = TRUE))
 
+        
         if(inherits(trythis, "try-error"))
             caughtOurError(trythis)
         cat("\n\n Plotting done \n\n")

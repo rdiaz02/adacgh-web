@@ -21,7 +21,7 @@ import socket
 sys.path = sys.path + ['/asterias-web-apps/web-apps-common']
 import counterApplications
 from web_apps_config import *
-
+import toMapMod
 
 tmpDir = sys.argv[1]
 ROOT_TMP_DIR = "/asterias-web-apps/adacgh2/www/tmp/"
@@ -117,9 +117,10 @@ def kill_pid_machine(pid):
 
 def results_print_general(outf, tmpDir, newDir, Rresults):
     outf.write('<h2>Segmented data plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#output">(help)</a></h2> \n')
-    thumb(tmpDir, open(tmpDir + '/arrayNames', mode = 'r').read().split('\n')[0].split('\t'),
-          outf, maxsthumb = 350)
-    thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
+    imagemaps2(tmpDir)
+    thumb2(tmpDir, outf, maxsthumb = 350)
+    # These are no longer created
+    # thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
     outf.flush()
 ##    output_name = glob.glob(tmpDir + '/*.output.txt')[0].split('/')[-1]
     output_name = glob.glob(tmpDir + '/ADaCGH.results.txt')[0].split('/')[-1]
@@ -212,8 +213,23 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
 #                   + str(fignum + 1) + '.jpeg"></a>\n')
 #     os.chdir('/asterias-web-apps/adacgh2/cgi')
 
+# FIXME: this is REALLY an ugly hack. Come on! Create a proper function and call it!
+# def imagemaps(tmpDir):
+#     os.chdir(tmpDir)
+#     pngs = glob.glob("Chr*.png")
+#     for pngfile in pngs:
+#         os.system(''.join(['/asterias-web-apps/adacgh2/cgi/toMap.py ',
+#                            os.path.splitext(pngfile)[0], " None", " None "]))
 
+def imagemaps2(tmpDir):
+    os.chdir(tmpDir)
+    pngs = glob.glob("Chr*.png")
+    for pngfile in pngs:
+        toMapMod.html_image_maps(os.path.splitext(pngfile)[0])
+        
+        
 
+        
 def thumb(tmpDir, fnames, outf, maxsthumb = 350):
     """ From a set of pngs, obtain thumbnails and
     add links to html. The thumbnails are
@@ -224,6 +240,7 @@ def thumb(tmpDir, fnames, outf, maxsthumb = 350):
     """
     mst = str(maxsthumb)
     os.chdir(tmpDir)
+    
     for bname in fnames:
         os.system(''.join(['/usr/bin/convert ', bname, '.png',
                            ' -resize ', mst, 'x', mst, ' thumb.', 
@@ -233,6 +250,26 @@ def thumb(tmpDir, fnames, outf, maxsthumb = 350):
                             bname, '.jpeg"></a>']))
     os.chdir('/asterias-web-apps/adacgh2/cgi')
 
+def thumb2(tmpDir, outf, maxsthumb = 350):
+    """ From a set of pngs, obtain thumbnails and
+    add links to html. The thumbnails are
+    inserted in the webpage, the large png viewed on clik.
+    tmpDir is the directory where the files live,
+    fnames is a list with the base file names to process
+    maxsthumb   max size of thumbnail and outf the html file.
+    """
+    mst = str(maxsthumb)
+    os.chdir(tmpDir)
+    fnames = glob.glob("Chr*.png")
+    for bname in fnames:
+        os.system(''.join(['/usr/bin/convert ', bname,
+                           ' -resize ', mst, 'x', mst, ' thumb.', 
+                           bname, '.jpeg']))
+        outf.write(''.join(['<a href="', bname, '.html"> <img alt="',
+	                    bname, '" title="', bname, '" src="thumb.',
+                            bname, '.jpeg"></a>']))
+    os.chdir('/asterias-web-apps/adacgh2/cgi') ## FIXME
+    
 
 def getQualifiedURL(uri = None):
     """ Return a full URL starting with schema, servername and port.

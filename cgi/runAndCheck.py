@@ -121,13 +121,14 @@ def results_print_general(outf, tmpDir, newDir, Rresults):
           outf, maxsthumb = 350)
     thumb(tmpDir, ['All_arrays'], outf, maxsthumb = 350)
     outf.flush()
-    output_name = glob.glob(tmpDir + '/*.output.txt')[0].split('/')[-1]
+##    output_name = glob.glob(tmpDir + '/*.output.txt')[0].split('/')[-1]
+    output_name = glob.glob(tmpDir + '/ADaCGH.results.txt')[0].split('/')[-1]
     outf.write('<p>Smoothed values for all genes/clones are available from file' +
                ' <a href="./' + output_name + '">"' + output_name + '".</a></p>')
     outf.write('<br />')
-    if os.path.exists(tmpDir + "/mcr.results.html"):
-        outf.write('<h2>Minimal common regions</h2>\n')
-        outf.write(open(tmpDir + "/mcr.results.html").read())
+    # if os.path.exists(tmpDir + "/mcr.results.html"):
+    #     outf.write('<h2>Minimal common regions</h2>\n')
+    #     outf.write(open(tmpDir + "/mcr.results.html").read())
     outf.write('<br />')
     os.chdir(tmpDir)
     ll1 = glob.glob('*.log')

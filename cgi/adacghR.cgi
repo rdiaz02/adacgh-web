@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 ####  Copyright (C)  2005-2006, Ramon Diaz-Uriarte <rdiaz02@gmail.com>
 
 #### This program is free software; you can redistribute it and/or
@@ -18,6 +19,8 @@
 
 
 
+import cgitb
+cgitb.enable() ## zz: eliminar for real work?
 
 import socket
 import sys
@@ -30,9 +33,8 @@ import dircache
 import string
 import random
 import re
+import subprocess
 from stat import ST_SIZE
-import cgitb
-cgitb.enable() ## zz: eliminar for real work?
 sys.stderr = sys.stdout
 
 APP_NAME = "adacgh2"
@@ -41,15 +43,17 @@ from web_apps_config import *
 from web_apps_common_funcs import *
 
 
+
 #MAX_time_size = 61897L
 ##  f5 <- rep(paste(paste(letters, collapse = ""),
 ##                  paste(LETTERS, collapse="")), 1000)
 ## so each of 1000 labels has 48 chars.
 
-acceptedMethodaCGH = ('Wavelets', 'PSW', 'DNAcopy', 'ACE', 'GLAD', 'HMM', 'BioHMM', 'CGHseg')
+# acceptedMethodaCGH = ('Wavelets', 'PSW', 'DNAcopy', 'ACE', 'GLAD', 'HMM', 'BioHMM', 'CGHseg')
+acceptedMethodaCGH = ('HaarSeg', 'DNAcopy')
 acceptedMethodCentering = ('Median', 'Mean', 'None')
-acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug', 'rsrna', 'rspeptide', 'hugo')
-acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
+# acceptedIDTypes = ('None', 'cnio', 'affy', 'clone', 'acc', 'ensembl', 'entrez', 'ug', 'rsrna', 'rspeptide', 'hugo')
+# acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
 
 
 # def commonOutput():
@@ -130,77 +134,77 @@ acceptedOrganisms = ('None', 'Hs', 'Mm', 'Rn')
 #         print "<p> (Did you enter only a single file, but did not check 'One file'?\
 #         If you are using only one file, the 'Two files' button should not be checked.)</p>"
 #         print "</body></html>"
-        sys.exit()
+#        sys.exit()
 
 
 
-def valueNumUpload(fieldName, testNumber = 'float', minValue = 0, errorMessageName = ''):
-    """Upload and get the values and do some checking. For text and radio selections
-    with positive numeric data.
-    We assume there is an existing call to fs = cgi.FieldStorage()"""
-    if errorMessageName == '': errorMessageName = fieldName
-    if not fs.has_key(fieldName):
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p> ", errorMessageName, "value required </p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
-    if fs[fieldName].filename:
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p> ", errorMessageName, "should not be a file. </p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
-    if type(fs[fieldName]) == type([]):
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p> ", errorMessageName, "should be a single value.</p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
-    else:
-        tmp = fs[fieldName].value
-    ## Accept only numeric values that can be turned to floats or ints
-    if testNumber == 'float':
-        try:
-            tmpn = float(tmp)
-        except:
-            commonOutput()
-            print "<h1> ADaCGH ERROR </h1>"    
-            print "<p> ", errorMessageName, "is not a valid numeric value.</p>"
-            print "<p> Please fill up the required fields and try again</p>"
-            print "</body></html>"
-            sys.exit()
-    else:
-        try:
-            tmpn = int(tmp)
-        except:
-            commonOutput()
-            print "<h1> ADaCGH ERROR </h1>"    
-            print "<p> ", errorMessageName, "is not a valid numeric value.</p>"
-            print "<p> Please fill up the required fields and try again</p>"
-            print "</body></html>"
-            sys.exit()
-    if tmpn < minValue:
-        shutil.rmtree(tmpDir)
-        commonOutput()
-        print "<h1> ADaCGH ERROR </h1>"    
-        print "<p> ", errorMessageName, "smaller than smallest accepted value (", minValue, "). </p>"
-        print "<p> Please fill up the required fields and try again</p>"
-        print "</body></html>"
-        sys.exit()
-    ## transferring files to final destination;
-    fileInServer = tmpDir + "/" + fieldName
-    srvfile = open(fileInServer, mode = 'w')
-    srvfile.write(str(tmpn))
-    srvfile.close()
-    os.chmod(fileInServer, 0666)
-    return tmpn
+# def valueNumUpload(fieldName, testNumber = 'float', minValue = 0, errorMessageName = ''):
+#     """Upload and get the values and do some checking. For text and radio selections
+#     with positive numeric data.
+#     We assume there is an existing call to fs = cgi.FieldStorage()"""
+#     if errorMessageName == '': errorMessageName = fieldName
+#     if not fs.has_key(fieldName):
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p> ", errorMessageName, "value required </p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
+#     if fs[fieldName].filename:
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p> ", errorMessageName, "should not be a file. </p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
+#     if type(fs[fieldName]) == type([]):
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p> ", errorMessageName, "should be a single value.</p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
+#     else:
+#         tmp = fs[fieldName].value
+#     ## Accept only numeric values that can be turned to floats or ints
+#     if testNumber == 'float':
+#         try:
+#             tmpn = float(tmp)
+#         except:
+#             commonOutput()
+#             print "<h1> ADaCGH ERROR </h1>"    
+#             print "<p> ", errorMessageName, "is not a valid numeric value.</p>"
+#             print "<p> Please fill up the required fields and try again</p>"
+#             print "</body></html>"
+#             sys.exit()
+#     else:
+#         try:
+#             tmpn = int(tmp)
+#         except:
+#             commonOutput()
+#             print "<h1> ADaCGH ERROR </h1>"    
+#             print "<p> ", errorMessageName, "is not a valid numeric value.</p>"
+#             print "<p> Please fill up the required fields and try again</p>"
+#             print "</body></html>"
+#             sys.exit()
+#     if tmpn < minValue:
+#         shutil.rmtree(tmpDir)
+#         commonOutput()
+#         print "<h1> ADaCGH ERROR </h1>"    
+#         print "<p> ", errorMessageName, "smaller than smallest accepted value (", minValue, "). </p>"
+#         print "<p> Please fill up the required fields and try again</p>"
+#         print "</body></html>"
+#         sys.exit()
+#     ## transferring files to final destination;
+#     fileInServer = tmpDir + "/" + fieldName
+#     srvfile = open(fileInServer, mode = 'w')
+#     srvfile.write(str(tmpn))
+#     srvfile.close()
+#     os.chmod(fileInServer, 0666)
+#     return tmpn
 
 
 
@@ -319,47 +323,42 @@ os.chmod(tmpDir, 0700)
 ### File and parameter upload
 fs = cgi.FieldStorage()
 
-idtype = dummyUpload('idtype', 'None')
-organism = dummyUpload('organism', 'None')
-tmp = valueNumUpload('MCR.gapAllowed', 'float', 1)
-tmp1 = valueNumUpload('MCR.alteredLow', 'float', 0)
-tmp2 = valueNumUpload('MCR.alteredHigh', 'float', 0)
-tmp = valueNumUpload('MCR.recurrence', 'float', 1)
+idtype = dummyUpload('idtype', 'None', tmpDir)
+organism = dummyUpload('organism', 'None', tmpDir)
+# tmp = valueNumUpload('MCR.gapAllowed', 'float', 1)
+# tmp1 = valueNumUpload('MCR.alteredLow', 'float', 0)
+# tmp2 = valueNumUpload('MCR.alteredHigh', 'float', 0)
+# tmp = valueNumUpload('MCR.recurrence', 'float', 1)
 
-if tmp1 >= tmp2:
-    commonOutput()
-    print "<h1> ERROR </h1>"
-    print "<p> It makes no sense to have an alteredLow larger or equal to \
-    an alteredHigh </p>"
-    print "</body></html>"
-    sys.exit()
+# if tmp1 >= tmp2:
+#     commonOutput()
+#     print "<h1> ERROR </h1>"
+#     print "<p> It makes no sense to have an alteredLow larger or equal to \
+#     an alteredHigh </p>"
+#     print "</body></html>"
+#     sys.exit()
     
 
-
-
-
-
-
-methodaCGH = radioUpload('methodaCGH', acceptedMethodaCGH)
-if methodaCGH == 'Wavelets':
-    tmp = valueNumUpload('Wave.minDiff', 'float', 0)
-    tmp = radioUpload('Wave.merge', ('Yes','No'))
-if methodaCGH == 'ACE':
-    tmp = valueNumUpload('ACE.fdr', 'float', 0)
-if methodaCGH == 'PSW':
-    tmp = valueNumUpload('PSW.nIter', 'int', 10)
-    tmp = valueNumUpload('PSW.p.crit', 'float', 0)
-if methodaCGH == 'CGHseg':
-    tmp = valueNumUpload('CGHseg.s', 'float', -9999999999)
-    if tmp > 0:
-        commonOutput()
-        print "<h1> ERROR </h1>"
-        print "<p> It makes no sense to have this threshold be positive </p>"
-        print "</body></html>"
-        sys.exit()
+methodaCGH = radioUpload('methodaCGH', acceptedMethodaCGH, fs, tmpDir, APP_NAME)
+# if methodaCGH == 'Wavelets':
+#     tmp = valueNumUpload('Wave.minDiff', 'float', 0)
+#     tmp = radioUpload('Wave.merge', ('Yes','No'))
+# if methodaCGH == 'ACE':
+#     tmp = valueNumUpload('ACE.fdr', 'float', 0)
+# if methodaCGH == 'PSW':
+#     tmp = valueNumUpload('PSW.nIter', 'int', 10)
+#     tmp = valueNumUpload('PSW.p.crit', 'float', 0)
+# if methodaCGH == 'CGHseg':
+#     tmp = valueNumUpload('CGHseg.s', 'float', -9999999999)
+#     if tmp > 0:
+#         commonOutput()
+#         print "<h1> ERROR </h1>"
+#         print "<p> It makes no sense to have this threshold be positive </p>"
+#         print "</body></html>"
+#         sys.exit()
         
-centering = radioUpload('centering', acceptedMethodCentering)
-twofiles = radioUpload('twofiles', ('Two.files', 'One.file'))
+centering = radioUpload('centering', acceptedMethodCentering, fs, tmpDir, APP_NAME)
+twofiles = radioUpload('twofiles', ('Two.files', 'One.file'), fs, tmpDir, APP_NAME)
 
 
 if twofiles == 'Two.files':
@@ -374,7 +373,7 @@ if twofiles == 'Two.files':
                   '/outdata.txt -O ' + tmpDir + '/acghData')
        ###shutil.copy("/asterias-web-apps/prep/www/tmp/" + prep_tmpdir +"/outdata.txt",tmpDir + "/acghData")
     else:
-        fileUpload('acghData')
+        fileUpload('acghData', fs, tmpDir, APP_NAME)
         if os.stat(tmpDir + '/acghData')[ST_SIZE] > MAX_covariate_size:
             shutil.rmtree(tmpDir)
             commonOutput()
@@ -383,7 +382,7 @@ if twofiles == 'Two.files':
             print "<p> aCGH files this size not allowed.</p>"
             print "</body></html>"
             sys.exit()
-    fileUpload('positionInfo')
+    fileUpload('positionInfo', fs, tmpDir, APP_NAME)
     if os.stat(tmpDir + '/positionInfo')[ST_SIZE] > MAX_covariate_size:
         shutil.rmtree(tmpDir)
         commonOutput()
@@ -393,7 +392,7 @@ if twofiles == 'Two.files':
         print "</body></html>"
         sys.exit()
 elif twofiles == 'One.file':
-    fileUpload('acghAndPosition')
+    fileUpload('acghAndPosition', fs, tmpDir, APP_NAME)
     if os.stat(tmpDir + '/acghAndPosition')[ST_SIZE] > MAX_covariate_size:
         shutil.rmtree(tmpDir)
         commonOutput()
@@ -614,10 +613,16 @@ createResultsFile = os.system("/bin/touch " + tmpDir + "/results.txt")
 ## tryrrun = os.system('/asterias-web-apps/mpi.log/tryRrun5.py ' + tmpDir + ' ADaCGH &')
 
 ## Launch the lam checking program 
-run_and_check = os.spawnv(os.P_NOWAIT, '/asterias-web-apps/adacgh2/cgi/runAndCheck.py',
-                      ['', tmpDir])
-os.system('echo "' + str(run_and_check) + ' ' + socket.gethostname() +\
-           '"> ' + tmpDir + '/run_and_checkPID')
+# run_and_check = os.spawnv(os.P_NOWAIT, '/asterias-web-apps/adacgh2/cgi/runAndCheck.py',
+#                       ['', tmpDir])
+# os.system('echo "' + str(run_and_check) + ' ' + socket.gethostname() +\
+#            '"> ' + tmpDir + '/run_and_checkPID')
+
+
+subprocess.Popen(['/asterias-web-apps/adacgh2/cgi/runAndCheck.py', tmpDir],
+                 stdout = subprocess.PIPE, stdin = subprocess.PIPE, \
+                 stderr = subprocess.PIPE)
+
 
 ## restart_tryRrun(tmpDir)
 

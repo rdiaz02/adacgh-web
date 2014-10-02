@@ -90,6 +90,10 @@ rdf:resource="http://web.resource.org/cc/ShareAlike"
 
    
 <hr>
+
+<p><FONT COLOR="red" SIZE=+1>This help page is partially
+    outdated. Consider it work in progress.</FONT><a>.</p>
+<hr>
 <ol>
   <li> <a href="#intro">Introduction and purpose</a></li>
   <li><a  href="#methods">Methods</a></li>
@@ -252,6 +256,22 @@ assumption, in this mapping, that the "no change" class is the one that
 has the absolute value closest to zero, and any other classes are either
 gains or losses. When the data are normalized, the "no change" class
 should be the most common one.</p>
+
+
+
+<h3><a name="Haar">HaarSeg method of Ben-Yaacov and Eldar</a></h3>
+<p>(This needs to be written properly. In the mean
+  time, <a href="http://webee.technion.ac.il/people/YoninaEldar/Info/software/HaarSeg.htm">here</a>
+  is a link to the web page of the original implementation of HaarSeg.)</p>
+
+
+<h3><FONT COLOR="red">Methods no longer available</FONT></h3>
+<p>The following are NO longer directly available from the web-based
+application as they are way too slow for the current large data sets (see
+timing examples in the supplementary material to Diaz-Uriarte, 2014). Most
+of them, however, are available from the BioConductor package. This
+information is left in here, as is provides a single common place where
+some of these methods are discussed.</p>
 
 
 
@@ -539,7 +559,14 @@ closest FDR to the one you entered.</p>
 
 
 
-<h3><a name="MCR">Minimal common regions (<FONT COLOR="red">New!!</FONT>)</a></h3>
+<h3><a name="MCR">Minimal common regions </a></h3>
+
+
+<p><FONT COLOR="red">(This is no longer available. See the review by Rueda
+    and Diaz-Uriarte, 2010: Finding Recurrent Copy Number Alteration
+    Regions: A Review of Methods.
+    <a href="http://www.benthamdirect.org/pages/content.php?CBIO/2010/00000005/00000001/0001CBIO.SGM">Current
+    Bioinformatics</a>, 5 (1).) </FONT>
 
 <p>We use the cghMCR function, as provided in the cghMCR bioconductor
 package, by J. Zhang and B. Feng, which implements an algorithm originally
@@ -750,8 +777,7 @@ as green.</p>
   potentially confussing when analyzing 23 chromosomes). </p>
 
 
-<h3><a name="TorontoDB">Link to the Database of Genomic Variants (<FONT
-COLOR="red">New!!</FONT>)</a></h3>
+<h3><a name="TorontoDB">Link to the Database of Genomic Variants </a></h3>
 <p>If you have specified that the organism is human, the chromosome-wide
 plots will include a link to the appropriate chromosome of the <a
 href="http://projects.tcag.ca/variation/">Database of Genomic
@@ -807,30 +833,30 @@ any other height.</p>
 
 
 
-<h3><a name="pals">Sending results to <a
-href="http://pals.iib.uam.es">PaLS</a> (<FONT
-COLOR="red">New!!</FONT>) </h3>
-<p>It is now possible to send the results to <a
-href="http://pals.iib.uam.es">PaLS</a>, for those cases where
-assignment of genes to "gain", "loss", and "no change" is provided
-(for now, ACE, CBS with merge, and PSW). PaLS "analyzes sets
-of lists of genes or single lists of genes. It filters those
-genes/clones/proteins that are referenced by a given percentage of
-PubMed references, Gene Ontology terms, KEGG pathways or Reactome
-pathways." (from <a
-href="http://pals.iib.uam.es/help/pals-help.html">PalS's
-help</a>). By sending your results to PaLS, it might be easier to make
-biological sense of your results, because you are "annotating" your
-results with additional biological information.</p>
+<!-- <h3><a name="pals">Sending results to <a -->
+<!-- href="http://pals.iib.uam.es">PaLS</a> (<FONT -->
+<!-- COLOR="red">New!!</FONT>) </h3> -->
+<!-- <p>It is now possible to send the results to <a -->
+<!-- href="http://pals.iib.uam.es">PaLS</a>, for those cases where -->
+<!-- assignment of genes to "gain", "loss", and "no change" is provided -->
+<!-- (for now, ACE, CBS with merge, and PSW). PaLS "analyzes sets -->
+<!-- of lists of genes or single lists of genes. It filters those -->
+<!-- genes/clones/proteins that are referenced by a given percentage of -->
+<!-- PubMed references, Gene Ontology terms, KEGG pathways or Reactome -->
+<!-- pathways." (from <a -->
+<!-- href="http://pals.iib.uam.es/help/pals-help.html">PalS's -->
+<!-- help</a>). By sending your results to PaLS, it might be easier to make -->
+<!-- biological sense of your results, because you are "annotating" your -->
+<!-- results with additional biological information.</p> -->
 
 
-<p>Scroll to the bottom of the main outpu, where you will find the <img src="../palsfavicon40.png"
-align="middle">PaLS icon and three lists t. When you click on any of the links, the
-corresponding list of genes will be sent to PaLS. There, you can
-configure the options as you want (please, consult <a
-href="http://pals.iib.uam.es/help/pals-help.html">PalS's help</a>
-for details) and then submit the list. In PaLS, you can always go
-back, and keep playing with the very same gene list, modifying the options.</p>
+<!-- <p>Scroll to the bottom of the main outpu, where you will find the <img src="../palsfavicon40.png" -->
+<!-- align="middle">PaLS icon and three lists t. When you click on any of the links, the -->
+<!-- corresponding list of genes will be sent to PaLS. There, you can -->
+<!-- configure the options as you want (please, consult <a -->
+<!-- href="http://pals.iib.uam.es/help/pals-help.html">PalS's help</a> -->
+<!-- for details) and then submit the list. In PaLS, you can always go -->
+<!-- back, and keep playing with the very same gene list, modifying the options.</p> -->
 
 
 
@@ -972,7 +998,7 @@ back, and keep playing with the very same gene list, modifying the options.</p>
 
 <h2><a name="examples">Examples</a></h2>
 <p>An example with fictitious data is provided in <a
-href="http://adacgh.iib.uam.es/Examples/index.html">here</a>. You can
+href="http://adacgh2.iib.uam.es/Examples/index.html">here</a>. You can
 play with the figures, get the additional information from <a
 href="http://idclight.iib.uam.es">IDCLight</a>, etc. Additional
 examples (from a somewhat less interactive version) are also available there.</p>
@@ -1046,11 +1072,11 @@ examples (from a somewhat less interactive version) are also available there.</p
       Olshen and Franck Picard.</p>
 	
  
-<p>This application is running on a cluster of machines using <a
-href="http://www.debian.org">Debian GNU/Linux</a> as operating system, <a
-href="http://www.apache.org">Apache</a> as web server, and <a
-href="http://www.linuxvirtualserver.org">Linux Virtual Server</a> for web server
-  load-balancing.
+<p>This application is running on a machine using <a
+href="http://www.debian.org">Debian GNU/Linux</a> as operating system and <a
+href="http://www.apache.org">Apache</a> as web server.</p><!-- , and <a -->
+<!-- href="http://www.linuxvirtualserver.org">Linux Virtual Server</a> for web server -->
+<!--   load-balancing. -->
 <!-- , and <a -->
 <!-- href="http://www.lam-mpi.org">LAM/MPI</a> for parallelization.</p> -->
 
@@ -1063,11 +1089,11 @@ href="http://www.R-project.org/foundation/main.html"> R foundation for
 statistical computing</a>.</p>
 
 
-<p><b>Funding</b> provided by Fundación de Investigación
-  Médica Mutua Madrileña and Project TIC2003-09331-C02-02 of the Spanish
-  Ministry of Education and Science. This application is running on a
-  cluster of machines purchased with funds from the
-<a href="http://www.rticcc.org/">RTICCC</a>.</p> 
+<p><b>Funding</b> provided by Fundación de Investigación Médica Mutua
+  Madrileña and Projects TIC2003-09331-C02-02 of the Spanish Ministry of
+  Education and Science and BIO2009-12458 of the Spanish MINECO. This
+  application is running on  machines purchased with funds
+  from project BIO2009-12458.</p> 
 
 
 <!-- <p><a name="beta">This is an <b>early beta version</b> </a>of the application. Comments, -->
@@ -1089,13 +1115,23 @@ statistical computing</a>.</p>
 	warranties regarding the software, whether express or implied, including but
 	not limited to warranties pertaining to merchantability or fitness for a
 	particular purpose.</li>
-      <li>If you use ADaCGH for any publication, we would appreciate if you
-	could let us know and if you cite our program (you know, "credit where
-	credit is due"). The best would be to cite our paper 
-<a href="http://www.plosone.org/article/fetchArticle.action?articleURI=info%3Adoi%2F10.1371%2Fjournal.pone.0000737">
-Diaz-Uriarte and Rueda, "ADaCGH: A Parallelized Web-Based Application and R Package for the Analysis of aCGH Data", PLoS ONE, 2007, 2 (8): e737</a>
-and a link to the main web site:
-	<a href="http://adacgh.iib.uam.es">http://adacgh2.iib.uam.es</a>).</li>
+      <li>If you use ADaCGH for any publication, we would appreciate if
+	you could let us know and if you cite our program (you know,
+	"credit where credit is due"). As mentioned in the main page, we
+	ask that, if you use this web application, you give credit both to
+	the original application (Diaz-Uriarte and Rueda, 2007), on which
+	this builds uppon, and the new BioConductor package ADaCGH2
+	(Diaz-Uriarte,
+	2014). <a href="http://www.ncbi.nlm.nih.gov/pubmed/24532724">Diaz-Uriarte,
+	R. "ADaCGH2: parallelized analysis of (big) CNA data",
+	Bioinformatics, 2014, 30: 1759-1761.</a>
+	and <a href="http://www.plosone.org/article/fetchArticle.action?articleURI=info%3Adoi%2F10.1371%2Fjournal.pone.0000737">
+	Diaz-Uriarte, R and Rueda, OM. "ADaCGH: A Parallelized Web-Based
+	Application and R Package for the Analysis of aCGH Data", PLoS
+	ONE, 2007, 2 (8): e737.</a> Likewise, please provide a link to
+	the application: <>a
+	href="http://adacgh2.iib.uam.es">http://adacgh2.iib.uam.es</a>).</li>
+
     <li>We appreciate if you give us feedback concerning bugs, errors or misconfigurations.
 	Complaints or suggestions are welcome.</li>
     </ul>
@@ -1244,11 +1280,11 @@ segmentation to array CGH data for downstream analyses Bioinformatics, 21:
 
 
 <h3>Copyright</h3>
-This document is copyrighted. Copyright © 2005, 2006, 2007 Ramón
+This document is copyrighted. Copyright © 2005, 2006, 2007, 2014 Ramón
 Díaz-Uriarte. Please, respect the copyright and the license.
 <hr>
 
-<!-- hhmts start -->Last modified: Tue Apr 17 16:01:51 CEST 2007 <!-- hhmts end -->
+<!-- <\!-- hhmts start -\->Last modified: Tue Apr 17 16:01:51 CEST 2007 <\!-- hhmts end -\-> -->
 
 <hr>
 <p>

@@ -25,7 +25,7 @@
 </head>
 
 
-<BODY background="fondo3.jpg">
+<!-- <BODY background="fondo3.jpg"> -->
 
 <form action="http://adacgh2.iib.uam.es/cgi-bin/adacghR.cgi"
 enctype="multipart/form-data" method="POST">
@@ -48,13 +48,13 @@ enctype="multipart/form-data" method="POST">
 <!--     <td bgcolor="#254117" align=center width="100%"> -->
       <a href="http://iib.uam.es" STYLE="text-decoration:none">
       <font color=white>
-      <b>Bioinformatics Unit</b>
+      <!-- <b>Bioinformatics Unit</b> -->
       </font>
       </a>
         -  
-      <a href="http://www.cnio.es" STYLE="text-decoration:none">
+      <a href="http://www.iib.uam.es" STYLE="text-decoration:none">
       <font color=white>
-      <b>CNIO</b>
+      <!-- <b>CNIO</b> -->
       </font>
       </a>
     </td>
@@ -83,15 +83,29 @@ enctype="multipart/form-data" method="POST">
 </table>
 </center>
 
-<h2><center>ADaCGH: analysis of data from aCGH (v.20070605)</center></h2>
+<h2><center>ADaCGH2: analysis of data from aCGH </center></h2>
 
 
-<p style="font-family: 'Bitstream Vera Sans',Verdana,sans"> ADaCGH is a
+<p style="font-family: 'Bitstream Vera Sans',Verdana,sans"> ADaCGH2 is a
     web tool for the analysis of aCGH data sets. We focus
     on calling gains and losses and estimating the number of copy changes.</p> 
 
-<p>ADaCGH will continue being maintained, but is deprecated. Our new tool
-  for CGH and CNV is <a href="http://wavi.iib.uam.es"><FONT COLOR="red" SIZE=+1>WaviCGH</FONT><a>.</p>
+<p>This version of ADaCGH2 uses, underneath, the ADaCGH2 BioConductor package by
+  R.Diaz-Uriarte (2014) and presents several key changes and
+  simplifications with respect to the original web-based application. Many
+  methods (that are slow for large data sets ---see the 2014 paper and its
+  supplementary material) are no longer provided in the web application
+  (but they are available from the BioConductor pakage) and we do not
+  offer the option to find common regions as those were obsolte (see our
+  review, Rueda and Diaz-Uriarte, 2010).</p>
+
+<p>This web-based application is provided as a convenience. However, you
+  are strongly suggested to use the BioConductor package as it allows you,
+  for instance, to deal with missing values and analyze much larger
+  samples than we can afford to upload via the internet.</p>
+<!-- <p>ADaCGH will continue being maintained, but is deprecated. Our new tool -->
+<!--   for CGH and CNV is <a href="http://wavi.iib.uam.es"><FONT COLOR="red" -->
+<!--   SIZE=+1>WaviCGH</FONT><a>.</p> -->
 
 <!-- , or with which we have had some -->
 <!--     previous positive experiences.</p> -->
@@ -175,124 +189,132 @@ interpretation. See further details in the <a href="./help/adacgh-help.html#cent
     circular binary segmentation (CBS).<br>
 <hr>
 <br />
-
-
 <p>
-<input type="RADIO" name="methodaCGH" value="HMM">
-<FONT COLOR="#CC00FF" SIZE=+1><b>HMM</b></FONT>: Fridlyand et al.'s
-    homogeneous Hidden Markov Model (HMM).<br>
+<input type="RADIO" name="methodaCGH" value="HaarSeg">
+<FONT COLOR="#CC00FF" SIZE=+1><b>HaarSeg</b></FONT>: a wavelet-based
+approach by Ben-Yaacov & Eldat<br>
 <hr>
-<br />
 
-
-<p>
-<input type="RADIO" name="methodaCGH" value="BioHMM">
-<FONT COLOR="#CC00FF" SIZE=+1><b>BioHMM</b></FONT>: Marioni et al.'s
-    non-homogeneous HMM. <b>This is the only method that incorporates
-    distance between probes</b><br>
-<hr>
-<br />
-
-
-<p>
-<input type="RADIO" name="methodaCGH" value="CGHseg">
-<FONT COLOR="#CC00FF" SIZE=+1><b>CGHseg</b></FONT>: Piccard et al.'s
-    CGH segmentation.<br>
-<table>
-<tr><td width="100"></td><td width="240">minDiff</td>
-  <td><input type="TEXT" name="CGHseg.s" value="-0.5" size="9"
-    maxlength="9"></td></tr>
-</table>
-
-<hr>
-<br />
-
-
-<p>
-<input type="RADIO" name="methodaCGH" value="GLAD">
-<FONT COLOR="#CC00FF" SIZE=+1><b>GLAD</b></FONT>: Huppé et al.'s Gain and
-    Loss Analysis of DNA (GLAD).<br>
-<hr>
-<br />
-
-<input type="RADIO" name="methodaCGH" value="Wavelets">
-<FONT COLOR="#CC00FF" SIZE=+1><b>Wavelet smoothing (Wavelets)</b></FONT>: Hsu et
-    al.'s wavelet-based smoothing.<br>
-<table>
-<tr><td width="100"></td><td width="240">minDiff</td>
-  <td><input type="TEXT" name="Wave.minDiff" value="0.25" size="5"
-    maxlength="5"></td></tr>
-</table>
-
-<b>Use mergeLevels algorithm?</b> (<a
-href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</FONT>)
-<input type="RADIO" name="Wave.merge" checked value="Yes"> Yes
-<input type="RADIO" name="Wave.merge" value="No"> No
-
-<hr>
-<br />
-
-<input type="RADIO" name="methodaCGH" value="PSW">
-<FONT COLOR="#CC00FF" SIZE=+1><b>Price-Smith-Waterman (PSW)</b></FONT>:
-    Price et al. method for aCGH using Smith and Waterman's algorithm.<br>
-<table>
-<tr><td>
-<b>Permutation test</b>
-<table>
-<tr><td width="200">Number of permutations</td>
-  <td><input type="TEXT" name="PSW.nIter" value="1000" size="5"
-    maxlength="5"></td></tr>
-</table>
-</td>
-<td width="40"></td>
-<td>
-<b>Plotting</b>
-<table>
-<tr><td width="200">Largest p-value shown</td>
-  <td><input type="TEXT" name="PSW.p.crit" value="0.15" size="5"
-    maxlength="5"></td></tr>
-</table>
-</td></tr></table>
-<hr>
-<br />
-<input type="RADIO" name="methodaCGH" value="ACE">
-<FONT COLOR="#CC00FF" SIZE=+1><b>Analysis of copy errors
-    (ACE)</b></FONT>: Lingjaerde et al.'s CGH Explorer.<br>
-<table>
-<tr><td width="100"></td><td width="240">(desired) FDR</td>
-  <td><input type="TEXT" name="ACE.fdr" value="0.15" size="10"
-    maxlength="10"></td></tr>
-</table>
+<!-- <br /> -->
 
 
 
+<!-- <p> -->
+<!-- <input type="RADIO" name="methodaCGH" value="HMM"> -->
+<!-- <FONT COLOR="#CC00FF" SIZE=+1><b>HMM</b></FONT>: Fridlyand et al.'s -->
+<!--     homogeneous Hidden Markov Model (HMM).<br> -->
+<!-- <hr> -->
+<!-- <br /> -->
+
+
+<!-- <p> -->
+<!-- <input type="RADIO" name="methodaCGH" value="BioHMM"> -->
+<!-- <FONT COLOR="#CC00FF" SIZE=+1><b>BioHMM</b></FONT>: Marioni et al.'s -->
+<!--     non-homogeneous HMM. <b>This is the only method that incorporates -->
+<!--     distance between probes</b><br> -->
+<!-- <hr> -->
+<!-- <br /> -->
+
+
+<!-- <p> -->
+<!-- <input type="RADIO" name="methodaCGH" value="CGHseg"> -->
+<!-- <FONT COLOR="#CC00FF" SIZE=+1><b>CGHseg</b></FONT>: Piccard et al.'s -->
+<!--     CGH segmentation.<br> -->
+<!-- <table> -->
+<!-- <tr><td width="100"></td><td width="240">minDiff</td> -->
+<!--   <td><input type="TEXT" name="CGHseg.s" value="-0.5" size="9" -->
+<!--     maxlength="9"></td></tr> -->
+<!-- </table> -->
+
+<!-- <hr> -->
+<!-- <br /> -->
+
+
+<!-- <p> -->
+<!-- <input type="RADIO" name="methodaCGH" value="GLAD"> -->
+<!-- <FONT COLOR="#CC00FF" SIZE=+1><b>GLAD</b></FONT>: Huppé et al.'s Gain and -->
+<!--     Loss Analysis of DNA (GLAD).<br> -->
+<!-- <hr> -->
+<!-- <br /> -->
+
+<!-- <input type="RADIO" name="methodaCGH" value="Wavelets"> -->
+<!-- <FONT COLOR="#CC00FF" SIZE=+1><b>Wavelet smoothing (Wavelets)</b></FONT>: Hsu et -->
+<!--     al.'s wavelet-based smoothing.<br> -->
+<!-- <table> -->
+<!-- <tr><td width="100"></td><td width="240">minDiff</td> -->
+<!--   <td><input type="TEXT" name="Wave.minDiff" value="0.25" size="5" -->
+<!--     maxlength="5"></td></tr> -->
+<!-- </table> -->
+
+<!-- <b>Use mergeLevels algorithm?</b> (<a -->
+<!-- href="./help/adacgh-help.html#mergeLevels">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</FONT>) -->
+<!-- <input type="RADIO" name="Wave.merge" checked value="Yes"> Yes -->
+<!-- <input type="RADIO" name="Wave.merge" value="No"> No -->
+
+<!-- <hr> -->
+<!-- <br /> -->
+
+<!-- <input type="RADIO" name="methodaCGH" value="PSW"> -->
+<!-- <FONT COLOR="#CC00FF" SIZE=+1><b>Price-Smith-Waterman (PSW)</b></FONT>: -->
+<!--     Price et al. method for aCGH using Smith and Waterman's algorithm.<br> -->
+<!-- <table> -->
+<!-- <tr><td> -->
+<!-- <b>Permutation test</b> -->
+<!-- <table> -->
+<!-- <tr><td width="200">Number of permutations</td> -->
+<!--   <td><input type="TEXT" name="PSW.nIter" value="1000" size="5" -->
+<!--     maxlength="5"></td></tr> -->
+<!-- </table> -->
+<!-- </td> -->
+<!-- <td width="40"></td> -->
+<!-- <td> -->
+<!-- <b>Plotting</b> -->
+<!-- <table> -->
+<!-- <tr><td width="200">Largest p-value shown</td> -->
+<!--   <td><input type="TEXT" name="PSW.p.crit" value="0.15" size="5" -->
+<!--     maxlength="5"></td></tr> -->
+<!-- </table> -->
+<!-- </td></tr></table> -->
+<!-- <hr> -->
+<!-- <br /> -->
+<!-- <input type="RADIO" name="methodaCGH" value="ACE"> -->
+<!-- <FONT COLOR="#CC00FF" SIZE=+1><b>Analysis of copy errors -->
+<!--     (ACE)</b></FONT>: Lingjaerde et al.'s CGH Explorer.<br> -->
+<!-- <table> -->
+<!-- <tr><td width="100"></td><td width="240">(desired) FDR</td> -->
+<!--   <td><input type="TEXT" name="ACE.fdr" value="0.15" size="10" -->
+<!--     maxlength="10"></td></tr> -->
+<!-- </table> -->
 
 
 
 
 
-<hr/ >
-<h2>Minimal common regions (<a
-href="./help/adacgh-help.html#MCR">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</FONT>)</h2>
 
-<table>
-<tr><td width="100">gapAllowed</td>
-  <td><input type="TEXT" name="MCR.gapAllowed" value="500" size="5"
-    maxlength="5"></td>
-<td width="30"></td>
-<td width="100">alteredLow</td>
-  <td><input type="TEXT" name="MCR.alteredLow" value="0.03" size="5"
-    maxlength="5"></td>
-<td width="30"></td>
-<td width="100">alteredHigh</td>
-  <td><input type="TEXT" name="MCR.alteredHigh" value="0.97" size="5"
-    maxlength="5"></td>
-<td width="30"></td>
-<td width="100">recurrence</td>
-  <td><input type="TEXT" name="MCR.recurrence" value="75" size="5"
-    maxlength="5"></td>
-</tr>
-</table>
+
+
+<!-- <hr/ > -->
+<!-- <h2>Minimal common regions (<a -->
+<!-- href="./help/adacgh-help.html#MCR">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</FONT>)</h2> -->
+
+<!-- <table> -->
+<!-- <tr><td width="100">gapAllowed</td> -->
+<!--   <td><input type="TEXT" name="MCR.gapAllowed" value="500" size="5" -->
+<!--     maxlength="5"></td> -->
+<!-- <td width="30"></td> -->
+<!-- <td width="100">alteredLow</td> -->
+<!--   <td><input type="TEXT" name="MCR.alteredLow" value="0.03" size="5" -->
+<!--     maxlength="5"></td> -->
+<!-- <td width="30"></td> -->
+<!-- <td width="100">alteredHigh</td> -->
+<!--   <td><input type="TEXT" name="MCR.alteredHigh" value="0.97" size="5" -->
+<!--     maxlength="5"></td> -->
+<!-- <td width="30"></td> -->
+<!-- <td width="100">recurrence</td> -->
+<!--   <td><input type="TEXT" name="MCR.recurrence" value="75" size="5" -->
+<!--     maxlength="5"></td> -->
+<!-- </tr> -->
+<!-- </table> -->
 
 
 
@@ -360,16 +382,16 @@ href="./help/adacgh-help.html#MCR">help</a>) (<FONT COLOR="red" SIZE=+1>New!!</F
 
 
 
-<hr>
-<br />
+<!-- <hr> -->
+<!-- <br /> -->
 
-<p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"><b>Note:</b>
-<b>Floating-point numbers</b>, such as 0.001, can be specified as either "0.001",
-"1e-3" or "1E-3" (without the "", of course). Anything else will produce
-an error. </p>
-<hr>
+<!-- <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt"><b>Note:</b> -->
+<!-- <b>Floating-point numbers</b>, such as 0.001, can be specified as either "0.001", -->
+<!-- "1e-3" or "1E-3" (without the "", of course). Anything else will produce -->
+<!-- an error. </p> -->
+<!-- <hr> -->
 <input value="Submit" type = "SUBMIT">
-<br>
+<!-- <br> -->
 <p style="font-family: 'Bitstream Vera Sans',Verdana,sans; font-size: 9pt">
 Click "Submit" to send the data to the server and start execution. If the
 servers are too busy, you will be asked to try again later.</p>
@@ -384,12 +406,29 @@ servers are too busy, you will be asked to try again later.</p>
 </form>
 
 <hr />
-<p><h4>Citing ADaCGH</h4> <a
+
+<p><h4>Citing this web application</h4>
+
+We ask that, if you use this web application, you give credit both to the
+  original application (Diaz-Uriarte and Rueda, 2007), on which this
+  builds uppon, and the new BioConductor package ADaCGH2 (Diaz-Uriarte,
+  2014).
+<p>
+  <a href="http://www.ncbi.nlm.nih.gov/pubmed/24532724">Diaz-Uriarte,
+  R. "ADaCGH2: parallelized analysis of (big) CNA data", Bioinformatics, 2014,
+  30: 1759-1761.</a>
+</p>
+
+<p>
+  <a
 href="http://www.plosone.org/article/fetchArticle.action?articleURI=info%3Adoi%2F10.1371%2Fjournal.pone.0000737">
 Diaz-Uriarte, R and Rueda, OM. "ADaCGH: A Parallelized Web-Based
 Application and R Package for the Analysis of aCGH Data", PLoS ONE,
-2007, 2 (8): e737</a>
+2007, 2 (8): e737.</a>
 </p>
+
+<!-- <hr /> -->
+
 
 
 

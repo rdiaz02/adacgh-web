@@ -56,7 +56,7 @@ def pdf2html(rootname, tmpDir, outf, compressedFile, maxsthumb = 350):
                   + str(fignum + 1) + '.jpeg"></a>\n')
         compressedFile.add(rootname + '.' + str(fignum + 1) + '.jpeg',
                            rootname + '.' + str(fignum + 1) + '.jpeg')
-    os.chdir('/asterias-web-apps/adacgh/cgi')
+    os.chdir('/asterias-web-apps/adacgh2/cgi')
 
 
 def getQualifiedURL(uri = None):
@@ -112,7 +112,7 @@ def relaunchCGI():
     print '</head> <body>'
     print '<p> This is an autorefreshing page; your results will eventually be displayed here.\n'
     print 'If your browser does not autorefresh, the results will be kept for five days at</p>'
-    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh.iib.uam.es/tmp/'+ newDir + '/results.html</a>.' 
+    print '<p><a href="' + getBaseURL() + '?newDir=' + newDir + '">', 'http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html</a>.' 
     print '</p> </body> </html>'
     
 
@@ -149,7 +149,7 @@ def printOKRun():
         outf.write('<IMG WIDTH="500" HEIGHT="500" BORDER="0" SRC="ErrorFigure.png">')
         outf.write("<br /><br /> <hr>")
         outf.write("<pre>")
-        outf.write('<br /><br /><h2> Results <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
+        outf.write('<br /><br /><h2> Results <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></h2> \n')
         outf.write("<br /><br /> <hr>")
         outf.write(cgi.escape(resultsFile))
         outf.write("</pre>")
@@ -158,7 +158,7 @@ def printOKRun():
         Rresults.close()
         shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
     else:
-        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
+        outf.write('<br /><br /><center><h2> ADaCGH Results <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputText">(help)</a></center></h2> \n')
         outf.write(open(tmpDir + "/results.for.html").read())
         outf.write('<br />')
         outf.write('<hr>')
@@ -199,7 +199,7 @@ def printOKRun():
 
         methodUsed = open(tmpDir + '/methodaCGH').read()
         if (methodUsed == 'CBS') or (methodUsed == 'CBS\n'):
-            outf.write('<h2>Diagnostic plots <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+            outf.write('<h2>Diagnostic plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
             outf.write('<h3>One plot per array/sample</h3>')
             outf.write('<a href="CBS.diagnostic.plots.pdf">View/save</a> the (multipage) pdf')
             outf.write('<h3>One plot per array/sample and chromosome</h3>')
@@ -209,11 +209,11 @@ def printOKRun():
                        ' much higher quality ones downloading the results, ' +
                        'with output also in pdf format.)</p>')
 
-            outf.write('<h2>Segmented data plots <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+            outf.write('<h2>Segmented data plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
 	    pdf2html('CBS.segmented.plots', tmpDir, outf, allResults, 350)
             outf.write('<p>Smoothed values for all genes/clones are available from file "Wavelets.results.txt", below</p>')
             outf.write('<br />')
-            outf.write('<h2>Plateau plots <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
+            outf.write('<h2>Plateau plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputCBS">(help)</a></h2> \n')
             pdf2html('CBS.plateau.plots', tmpDir, outf, allResults, 150)
             outf.write('<br />')
             allResults.add(tmpDir + '/CBS.results.txt', 'CBS.results.txt')
@@ -223,7 +223,7 @@ def printOKRun():
                             'CBS.diagnostic.plots.per.array.and.chromosome.pdf')
 
             allResults.close()
-            outf.write('<hr> <a href="http://adacgh.iib.uam.es/tmp/' +
+            outf.write('<hr> <a href="http://adacgh2.iib.uam.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
             outf.write("</body></html>")
             outf.close()
@@ -231,7 +231,7 @@ def printOKRun():
             shutil.copyfile(tmpDir + "/pre-results.html", tmpDir + "/results.html")
 
         if (methodUsed == 'WS') or (methodUsed == 'WS\n'):
-            outf.write('<h2>Diagnostic autocorrelation plots <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputWS">(help)</a></h2> \n')
+            outf.write('<h2>Diagnostic autocorrelation plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputWS">(help)</a></h2> \n')
             outf.write('<a href="Autocorrelation.plots.pdf">View/save</a> the (multipage) pdf') ##zz: later, provide thumbnails
             ## and true images
             outf.write('<br />')
@@ -239,11 +239,11 @@ def printOKRun():
                        ' The larger figures shown are still jpegs; you can get the' +
                        ' much higher quality ones downloading the results, ' +
                        'with output also in pdf format.)</p>')
-            outf.write('<h2>Segmented data plots <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputWS">(help)</a></h2> \n')
+            outf.write('<h2>Segmented data plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputWS">(help)</a></h2> \n')
             pdf2html('WS.segmented.plots', tmpDir, outf, allResults, 350)
             outf.write('<p>Smoothed values for all genes/clones are available from file "Wavelets.results.txt", below</p>')
             outf.write('<br />')
-            outf.write('<h2>Plateau plots <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputWS">(help)</a></h2> \n')
+            outf.write('<h2>Plateau plots <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputWS">(help)</a></h2> \n')
             pdf2html('WS.plateau.plots', tmpDir, outf, allResults, 150)
             outf.write('<br />')
 
@@ -253,7 +253,7 @@ def printOKRun():
                             'Autocorrelation.plots.pdf')
                 
             allResults.close()
-            outf.write('<hr> <a href="http://adacgh.iib.uam.es/tmp/' +
+            outf.write('<hr> <a href="http://adacgh2.iib.uam.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
             outf.write("</body></html>")
             outf.close()
@@ -268,11 +268,11 @@ def printOKRun():
                        'with output also in pdf format.)</p>')
 
 
-            outf.write('<h2>Island plots, gains <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
+            outf.write('<h2>Island plots, gains <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
             pdf2html('PSW.island.plots.gains', tmpDir, outf, allResults, 350)
             outf.write('<br />')
             
-            outf.write('<h2>Island plots, losses <a href="http://adacgh.iib.uam.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
+            outf.write('<h2>Island plots, losses <a href="http://adacgh2.iib.uam.es/help/adacgh-help.html#outputPSW">(help)</a></h2> \n')
             pdf2html('PSW.island.plots.losses', tmpDir, outf, allResults, 350)
             outf.write('<br />')
 
@@ -282,7 +282,7 @@ def printOKRun():
             allResults.add(tmpDir + '/Losses.Price.Smith.Waterman.output.txt', 'Losses.Price.Smith.Waterman.output.txt')
 
             allResults.close()
-            outf.write('<hr> <a href="http://adacgh.iib.uam.es/tmp/' +
+            outf.write('<hr> <a href="http://adacgh2.iib.uam.es/tmp/' +
                        newDir + '/all.results.tar.gz">Download</a> all figures and text results.')  
             outf.write("</body></html>")
             outf.close()
@@ -346,7 +346,7 @@ if re.search(r'[^0-9]', str(newDir)):
     sys.exit()
     
 redirectLoc = "/tmp/" + newDir
-tmpDir = "/asterias-web-apps/adacgh/www/tmp/" + newDir
+tmpDir = "/asterias-web-apps/adacgh2/www/tmp/" + newDir
 
 if not os.path.isdir(tmpDir):
     commonOutput()
@@ -361,7 +361,7 @@ if not os.path.isdir(tmpDir):
 ## No need to reopen files or check anything else. Return url with results
 ## and bail out.
 if os.path.exists(tmpDir + "/natural.death.pid.txt") or os.path.exists(tmpDir + "/killed.pid.txt"):
-    print 'Location: http://adacgh.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
+    print 'Location: http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
     sys.exit()
 
 ## No, we were not done. Need to examine R output
@@ -382,9 +382,9 @@ if os.path.exists(tmpDir + "/pid.txt"):
             os.rename(tmpDir + '/pid.txt', tmpDir + '/killed.pid.txt')
             os.remove(tmpDir + '/f1.R')
             try:
-                os.remove("/asterias-web-apps/adacgh/www/R.running.procs/R." + newDir)
+                os.remove("/asterias-web-apps/adacgh2/www/R.running.procs/R." + newDir)
             finally:
-                print 'Location: http://adacgh.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
+                print 'Location: http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
                 sys.exit()
 
 if errorRun > 0:
@@ -392,18 +392,18 @@ if errorRun > 0:
     os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
     os.remove(tmpDir + '/f1.R')
     try:
-        os.remove("/asterias-web-apps/adacgh/www/R.running.procs/R." + newDir)
+        os.remove("/asterias-web-apps/adacgh2/www/R.running.procs/R." + newDir)
     finally:
-        print 'Location: http://adacgh.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
+        print 'Location: http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html \n\n'
 
 elif finishedOK > 0:
     printOKRun()
     os.rename(tmpDir + '/pid.txt', tmpDir + '/natural.death.pid.txt')
     os.remove(tmpDir + '/f1.R')
     try:
-        os.remove("/asterias-web-apps/adacgh/www/R.running.procs/R." + newDir)
+        os.remove("/asterias-web-apps/adacgh2/www/R.running.procs/R." + newDir)
     finally:
-        print 'Location: http://adacgh.iib.uam.es/tmp/'+ newDir + '/results.html \n\n' 
+        print 'Location: http://adacgh2.iib.uam.es/tmp/'+ newDir + '/results.html \n\n' 
     
 else:
     ## we only end up here if: we were not done in a previous run AND no process was overtime 

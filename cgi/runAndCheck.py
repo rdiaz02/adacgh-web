@@ -262,12 +262,13 @@ def thumb2(tmpDir, outf, maxsthumb = 350):
     os.chdir(tmpDir)
     fnames = glob.glob("Chr*.png")
     for bname in fnames:
+        bn2 = os.path.splitext(bname)[0]
         os.system(''.join(['/usr/bin/convert ', bname,
                            ' -resize ', mst, 'x', mst, ' thumb.', 
-                           bname, '.jpeg']))
-        outf.write(''.join(['<a href="', bname, '.html"> <img alt="',
-	                    bname, '" title="', bname, '" src="thumb.',
-                            bname, '.jpeg"></a>']))
+                           bn2, '.jpeg']))
+        outf.write(''.join(['<a href="', bn2, '.html"> <img alt="',
+	                    b2, '" title="', bn2, '" src="thumb.',
+                            bn2, '.jpeg"></a>']))
     os.chdir('/asterias-web-apps/adacgh2/cgi') ## FIXME
     
 

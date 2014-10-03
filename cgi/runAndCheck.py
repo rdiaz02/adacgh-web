@@ -85,7 +85,7 @@ issue_echo('at 00', tmpDir)
 
 
 def Rrun(tmpDir, R_bin):
-    """ Launch R, after setting the lam stuff."""
+    """ Launch R."""
     issue_echo(' inside Rrun ', tmpDir)
     Rcommand = 'cd ' + tmpDir + \
                '; sleep 1; ' + \
@@ -105,10 +105,17 @@ def collectZombies(k = 10):
         except:
             None
 
-
 def kill_pid_machine(pid):
-    'as it says: to kill somehting somewhere'
-    os.system("kill -s 9 " + pid )
+    'as it says: to kill somehting and not get error messages'
+    fi, fo, fu = os.popen3('kill -s 9 ' + pid )
+    fi.close()
+    fo.close()
+    fu.close()
+            
+
+# def kill_pid_machine(pid):
+#     'as it says: to kill somehting somewhere'
+#     os.system("kill -s 9 " + pid )
 
 # def kill_pid_machine(pid, machine):
 #     'as it says: to kill somehting somewhere'
@@ -699,74 +706,74 @@ def status_run(tmpDir):
         return('Out_of_time')
 
 
-def did_R_crash_in_slaves(tmpDir, machine_root = 'karl'):
-    """ Verify whether R crashed in any of the slaves by
-    checking lam logs."""
-    R_LAM_MSGS = 'Error:  Error in'
-    lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
-    in_lam_logs = 0
-    for lam_log in lam_logs:
-        tmp1 = int(os.popen('grep "' + R_LAM_MSGS + '" ' + \
-                            lam_log + ' | wc').readline().split()[0])
-        if tmp1 > 0:
-            in_lam_logs = 1
-            break
-    if in_lam_logs > 0:
-        return True, lam_log
-    else:
-        return False, 'NA'
+# def did_R_crash_in_slaves(tmpDir, machine_root = 'karl'):
+#     """ Verify whether R crashed in any of the slaves by
+#     checking lam logs."""
+#     R_LAM_MSGS = 'Error:  Error in'
+#     lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
+#     in_lam_logs = 0
+#     for lam_log in lam_logs:
+#         tmp1 = int(os.popen('grep "' + R_LAM_MSGS + '" ' + \
+#                             lam_log + ' | wc').readline().split()[0])
+#         if tmp1 > 0:
+#             in_lam_logs = 1
+#             break
+#     if in_lam_logs > 0:
+#         return True, lam_log
+#     else:
+#         return False, 'NA'
 
 
 
-def did_lam_crash(tmpDir, machine_root = 'karl'):
-    """ Verify whether LAM/MPI crashed by checking logs and f1.Rout
-    for single universe lamboot."""
-    OTHER_LAM_MSGS = 'Call stack within LAM:'
-    lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
-    in_error_msg = int(os.popen('grep MPI_Error_string ' + \
-                                tmpDir + '/Status.msg | wc').readline().split()[0])
-#     no_universe = int(os.popen('grep "Running serial version of papply" ' + \
-#                                tmpDir + '/f1.Rout | wc').readline().split()[0])
-## We do NOT want that, because sometimes a one node universe is legitimate!!!
-    if in_error_msg > 0:
-        for lam_log in lam_logs:
-            os.system('rm ' + lam_log)
-#     elif no_universe > 0:
-#         os.system("sed -i 's/Running serial version of papply/already_seen:running serial version of papply/g'" + \
-#                   tmpDir + "/f1.Rout")
-    else: ## look in lam logs
-        in_lam_logs = 0
-        for lam_log in lam_logs:
-            tmp1 = int(os.popen('grep "' + OTHER_LAM_MSGS + '" ' + \
-                                lam_log + ' | wc').readline().split()[0])
-            if tmp1 > 0:
-                in_lam_logs = 1
-                break
-    if (in_error_msg > 0) or (in_lam_logs > 0):
-        return True
-    else:
-        return False
+# def did_lam_crash(tmpDir, machine_root = 'karl'):
+#     """ Verify whether LAM/MPI crashed by checking logs and f1.Rout
+#     for single universe lamboot."""
+#     OTHER_LAM_MSGS = 'Call stack within LAM:'
+#     lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
+#     in_error_msg = int(os.popen('grep MPI_Error_string ' + \
+#                                 tmpDir + '/Status.msg | wc').readline().split()[0])
+# #     no_universe = int(os.popen('grep "Running serial version of papply" ' + \
+# #                                tmpDir + '/f1.Rout | wc').readline().split()[0])
+# ## We do NOT want that, because sometimes a one node universe is legitimate!!!
+#     if in_error_msg > 0:
+#         for lam_log in lam_logs:
+#             os.system('rm ' + lam_log)
+# #     elif no_universe > 0:
+# #         os.system("sed -i 's/Running serial version of papply/already_seen:running serial version of papply/g'" + \
+# #                   tmpDir + "/f1.Rout")
+#     else: ## look in lam logs
+#         in_lam_logs = 0
+#         for lam_log in lam_logs:
+#             tmp1 = int(os.popen('grep "' + OTHER_LAM_MSGS + '" ' + \
+#                                 lam_log + ' | wc').readline().split()[0])
+#             if tmp1 > 0:
+#                 in_lam_logs = 1
+#                 break
+#     if (in_error_msg > 0) or (in_lam_logs > 0):
+#         return True
+#     else:
+#         return False
     
-def did_mpi_crash(tmpDir, machine_root = 'karl'):
-    """ Either Rmpi or LAM crashed"""
-    if (status_run(tmpDir) == 'Error_mpi') or \
-       did_lam_crash(tmpDir, machine_root):
-        return True
-    else:
-        return False
+# def did_mpi_crash(tmpDir, machine_root = 'karl'):
+#     """ Either Rmpi or LAM crashed"""
+#     if (status_run(tmpDir) == 'Error_mpi') or \
+#        did_lam_crash(tmpDir, machine_root):
+#         return True
+#     else:
+#         return False
 
-def del_mpi_logs(tmpDir, machine_root = 'karl'):
-    """ Delete logs from LAM/MPI."""
-    lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
-    try:
-        os.system('rm ' + tmpDir + '/Status.msg')
-    except:
-        None
-    try:
-        for lam_log in lam_logs:
-            os.system('rm ' + lam_log)    
-    except:
-        None
+# def del_mpi_logs(tmpDir, machine_root = 'karl'):
+#     """ Delete logs from LAM/MPI."""
+#     lam_logs = glob.glob(tmpDir + '/' + machine_root + '*.*.*.log')
+#     try:
+#         os.system('rm ' + tmpDir + '/Status.msg')
+#     except:
+#         None
+#     try:
+#         for lam_log in lam_logs:
+#             os.system('rm ' + lam_log)    
+#     except:
+#         None
 
 def did_run_out_of_time(tmpDir, R_MAX_time):
     """ Did the process run longer than allowed?"""

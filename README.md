@@ -15,3 +15,8 @@ is how development took place and for various other historical reasons.
 That code, however, is left there just for tracking and historical purposes
 but is outdated. Please see
 the github repo for [adacgh2](https://github.com/rdiaz02/adacgh2).
+
+License
+=======
+
+GNU Affero GPL 3.
